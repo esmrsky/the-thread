@@ -43,8 +43,8 @@ const NAV = [
 function buildHeroChart() {
   const picks = ['lamb', 'bread', 'water', 'garment', 'light', 'shepherd', 'king', 'temple', 'rest', 'covenant', 'bride', 'exile', 'name'];
   const ths = picks.map(id => THREADS.find(t => t.id === id));
-  const X0 = 34, CX = 528, CY = 152, XE = 706;
-  const n = ths.length, top = 44, bot = 258;
+  const X0 = 34, CX = 528, CY = 158, XE = 706;
+  const n = ths.length, top = 42, bot = 276;
   let paths = '';
   ths.forEach((t, i) => {
     const y0 = top + (bot - top) * (i / (n - 1));
@@ -60,17 +60,17 @@ function buildHeroChart() {
   const eras = [[70, 'TORAH'], [180, 'HISTORY'], [277, 'POETS'], [398, 'PROPHETS'], [528, 'GOSPELS'], [622, 'LETTERS'], [694, 'REV']];
   let ticks = '';
   eras.forEach(([x, l]) => {
-    ticks += '<line x1="' + x + '" y1="276" x2="' + x + '" y2="282" stroke="var(--line)" stroke-width="1.5"/>' +
-      '<text x="' + x + '" y="294" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
+    ticks += '<line x1="' + x + '" y1="288" x2="' + x + '" y2="294" stroke="var(--line)" stroke-width="1.5"/>' +
+      '<text x="' + x + '" y="306" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
   });
-  return '<svg viewBox="0 0 720 300" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
+  return '<svg viewBox="0 0 720 316" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
     paths +
     '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
     '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
     '<circle cx="' + CX + '" cy="' + CY + '" r="5.5" fill="var(--gold)"/>' +
-    '<path d="M' + CX + ' 116 v-26 M' + (CX - 9) + ' 99 h18" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>' +
-    '<line x1="' + CX + '" y1="122" x2="' + CX + '" y2="146" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>' +
-    '<text x="' + CX + '" y="80" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
+    '<path d="M' + CX + ' 118 v-26 M' + (CX - 9) + ' 101 h18" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>' +
+    '<line x1="' + CX + '" y1="124" x2="' + CX + '" y2="' + (CY - 8) + '" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>' +
+    '<text x="' + CX + '" y="82" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
     ticks +
     '</svg>';
 }
@@ -118,7 +118,19 @@ function buildJourneySVG() {
     '<path d="M' + (bx - 26) + ' ' + (by - 26) + ' h6 v-5 h5 v5 h6 v-5 h5 v5 h6 v-5 h5 v5 h6 v-5 h5 v5 h5" fill="#b8a271"/>' +
     '<rect x="' + (bx - 6) + '" y="' + (by - 16) + '" width="12" height="16" fill="#6b5836"/>';
   const pins = []; // waypoint pins drawn last, on top of the route
-  const pin = (x, y, n) => pins.push('<g class="journey-pin"><circle cx="' + x + '" cy="' + y + '" r="9" fill="var(--card)" stroke="var(--thread)" stroke-width="2.5"/><text x="' + x + '" y="' + (y + 3.2) + '" text-anchor="middle" font-size="9" fill="var(--thread)" style="font-family:var(--font-label);font-weight:700">' + n + '</text></g>');
+  const pin = (x, y, n, name, dy) => {
+    let label = '';
+    if (name) {
+      const lines = name.split('|');
+      const y0 = y + (dy || 22);
+      const onSlab = !dy || dy > 0; // below-pin labels sit on a colored slab: use light ink
+      const c1 = onSlab ? '#fff" opacity="0.92' : 'var(--ink-soft)';
+      const c2 = onSlab ? '#fff" opacity="0.72' : 'var(--ink-faint)';
+      label = '<text x="' + x + '" y="' + y0 + '" text-anchor="middle" font-size="7.4" letter-spacing="0.8" fill="' + c1 + '" style="font-family:var(--font-label);font-weight:700">' + lines[0] + '</text>' +
+        (lines[1] ? '<text x="' + x + '" y="' + (y0 + (dy && dy < 0 ? -10 : 10)) + '" text-anchor="middle" font-size="6.4" letter-spacing="0.8" fill="' + c2 + '" style="font-family:var(--font-label);font-weight:700">' + lines[1] + '</text>' : '');
+    }
+    pins.push('<g class="journey-pin"><circle cx="' + x + '" cy="' + y + '" r="9" fill="var(--card)" stroke="var(--thread)" stroke-width="2.5"/><text x="' + x + '" y="' + (y + 3.2) + '" text-anchor="middle" font-size="9" fill="var(--thread)" style="font-family:var(--font-label);font-weight:700">' + n + '</text>' + label + '</g>');
+  };
   const flag = (x, y, txt, c) =>
     '<text x="' + x + '" y="' + y + '" text-anchor="middle" font-size="9" letter-spacing="1.4" fill="' + (c || 'var(--ink-soft)') + '" style="font-family:var(--font-label);font-weight:700">' + txt + '</text>';
   const seaGap = (x0, x1, yTop, name) => {
@@ -139,16 +151,24 @@ function buildJourneySVG() {
   const rLa1 = la.pt(0.12, 0.5), rLa2 = la.pt(0.86, 0.55);
   const route = 'M' + aEg.map(Math.round).join(' ') + ' L' + rEg.map(Math.round).join(' ') +
     ' Q' + Math.round(rEg[0] + 40) + ' ' + Math.round(rEg[1] + 24) + ' ' + rDe1.map(Math.round).join(' ') +
-    ' L' + rDeMid.map(Math.round).join(' ') + ' L' + rDe2.map(Math.round).join(' ') +
+    ' L' + rDeMid.map(Math.round).join(' ') +
+    ' a15 15 0 1 1 10 4' + // the 40-year loop at Kadesh
+    ' L' + rDe2.map(Math.round).join(' ') +
     ' Q' + Math.round(rDe2[0] + 40) + ' ' + Math.round(rDe2[1] + 20) + ' ' + rLa1.map(Math.round).join(' ') +
     ' L' + rLa2.map(Math.round).join(' ');
 
-  // pins on key points
-  pin(aEg[0], aEg[1], 1); pin(rDe1[0], rDe1[1], 2); pin(rDeMid[0], rDeMid[1], 3); pin(rLa1[0], rLa1[1], 4); pin(rLa2[0], rLa2[1], 5);
+  // pins on key points, each named
+  pin(aEg[0], aEg[1], 1, 'GOSHEN|DELIVERED', 24);
+  pin(rDe1[0], rDe1[1], 2, 'SINAI|IDENTITY SPOKEN', 24);
+  pin(rDeMid[0], rDeMid[1], 3, 'KADESH|THE CHOICE', 28);
+  pin(rLa1[0], rLa1[1], 4, 'GILGAL|MANNA STOPS', -20);
+  pin(rLa2[0], rLa2[1], 5, 'FRUITFULNESS', 22);
+  pins.push('<text x="' + Math.round(rDeMid[0] + 6) + '" y="' + Math.round(rDeMid[1] - 26) + '" text-anchor="middle" font-size="7.2" letter-spacing="1.2" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700">40-YEAR LOOP</text>');
 
   const eL = eg.pt(0.4, 0.55), eL2 = eg.pt(0.75, 0.5);
-  const dT = de.pt(0.55, 0.55), dFire = de.pt(0.28, 0.6);
-  const lH = la.pt(0.35, 0.6), lG = la.pt(0.62, 0.5), lC = la.pt(0.85, 0.62);
+  const dT = de.pt(0.72, 0.85), dFire = de.pt(0.28, 0.6), mtn = de.pt(0.06, 0.8);
+  const lH = la.pt(0.35, 0.6), lG = la.pt(0.62, 0.5), lC = la.pt(0.88, 0.85);
+  const nile1 = eg.pt(0.02, 1), nile2 = eg.pt(0.07, 0);
 
   return '<svg viewBox="0 0 900 430" role="img" aria-label="An isometric journey from Egypt through the wilderness into the promised land">' +
     sun(150, 70, 16) +
@@ -164,70 +184,131 @@ function buildJourneySVG() {
     de.svg + seaGap(250, 318, 350, 'RED SEA') +
     eg.svg +
     // elements
+    '<path d="M' + Math.round(nile1[0]) + ' ' + Math.round(nile1[1]) + ' L' + Math.round(nile2[0]) + ' ' + Math.round(nile2[1]) + '" stroke="var(--t-water)" stroke-width="7" stroke-linecap="round" opacity="0.4"/>' +
     pyramid(eL[0], eL[1], 30, 62) + pyramid(eL2[0], eL2[1], 20, 42) +
+    // Mount Sinai, smoking (Ex 19:18)
+    '<path d="M' + Math.round(mtn[0] - 18) + ' ' + Math.round(mtn[1]) + ' L' + Math.round(mtn[0]) + ' ' + Math.round(mtn[1] - 34) + ' L' + Math.round(mtn[0] + 18) + ' ' + Math.round(mtn[1]) + ' Z" fill="color-mix(in srgb, var(--s-desert) 70%, #000 14%)"/>' +
+    '<circle cx="' + Math.round(mtn[0]) + '" cy="' + Math.round(mtn[1] - 40) + '" r="5" fill="var(--s-egypt)" opacity="0.5"/>' +
+    '<circle cx="' + Math.round(mtn[0] + 6) + '" cy="' + Math.round(mtn[1] - 46) + '" r="3.6" fill="var(--s-egypt)" opacity="0.35"/>' +
     tent(dT[0], dT[1], 26, 40) +
     hill(lH[0] - 14, lH[1], 30, 26, 'color-mix(in srgb, var(--s-land) 78%, #000 10%)') + hill(lH[0] + 16, lH[1], 34, 34, 'var(--s-land)') +
     grapes(lG[0], lG[1]) + cityWall(lC[0], lC[1]) +
     '<path class="journey-route-path" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>' +
     pins.join('') +
     // zone banners
-    flag(eg.pt(0.5, -0.05)[0], 405, 'EGYPT', 'var(--s-egypt)') + flag(eg.pt(0.5, -0.05)[0], 417, 'BONDAGE') +
-    flag(de.pt(0.5, -0.05)[0], 405, 'WILDERNESS', 'var(--s-desert)') + flag(de.pt(0.5, -0.05)[0], 417, 'FORMATION') +
-    flag(la.pt(0.5, -0.05)[0], 405, 'PROMISED LAND', 'var(--s-land)') + flag(la.pt(0.5, -0.05)[0], 417, 'INHERITANCE') +
+    flag(eg.pt(0.5, -0.05)[0], 405, 'EGYPT', 'var(--s-egypt)') + flag(eg.pt(0.5, -0.05)[0], 419, 'BONDAGE') +
+    flag(de.pt(0.5, -0.05)[0], 405, 'WILDERNESS', 'var(--s-desert)') + flag(de.pt(0.5, -0.05)[0], 419, 'FORMATION') +
+    flag(la.pt(0.5, -0.05)[0], 405, 'PROMISED LAND', 'var(--s-land)') + flag(la.pt(0.5, -0.05)[0], 419, 'INHERITANCE') +
     '</svg>';
 }
 
 function buildTabernacleSVG() {
-  const path = 'M50 90 L160 90 L270 90 L420 60 L420 120 L540 90 L610 90 L680 90';
-  const nodes = [
-    { x: 50, y: 90, label: '1', name: 'The Gate' },
-    { x: 160, y: 90, label: '2', name: 'Bronze Altar' },
-    { x: 270, y: 90, label: '3', name: 'The Laver' },
-    { x: 420, y: 60, label: '4', name: 'Table of Bread' },
-    { x: 420, y: 120, label: '5', name: 'The Lampstand' },
-    { x: 540, y: 90, label: '6', name: 'Altar of Incense' },
-    { x: 610, y: 90, label: '7', name: 'The Veil' },
-    { x: 680, y: 90, label: '8', name: 'Mercy Seat' }
-  ];
+  // isometric courtyard: top surface pt(u,v), u = east→west, v = front→back
+  const X = 70, Y = 330, W = 640, D = 150, DX = D * 0.72, DY = D * 0.5, T = 22;
+  const pt = (u, v) => [Math.round(X + u * W + v * DX), Math.round(Y - v * DY)];
+  const P = n => n.map(a => a.map(Math.round).join(',')).join(' ');
+  const A = [X, Y], B = [X + W, Y], C = [X + W + DX, Y - DY], Dp = [X + DX, Y - DY];
 
-  const nodeElements = nodes.map((n, i) => {
-    const isHolyOfHolies = i >= 6;
-    const isHolyPlace = i >= 3 && i < 6;
-    const themeColor = isHolyOfHolies ? 'var(--c-codes)' : (isHolyPlace ? 'var(--s-egypt)' : 'var(--s-desert)');
-    return '<g class="svg-station-node" data-index="' + i + '" style="--zone-c:' + themeColor + '">' +
-      '<circle cx="' + n.x + '" cy="' + n.y + '" r="10" fill="var(--card)" stroke="' + themeColor + '" stroke-width="2"/>' +
-      '<text x="' + n.x + '" y="' + (n.y + 3) + '" text-anchor="middle" font-size="8" fill="var(--ink)" style="font-family:var(--font-label);font-weight:700">' + n.label + '</text>' +
-      '<text x="' + n.x + '" y="' + (n.y - 15) + '" text-anchor="middle" font-size="7.2" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600;letter-spacing:0.5px">' + n.name.toUpperCase() + '</text>' +
+  const ground =
+    '<polygon points="' + P([B, C, [C[0], C[1] + T], [B[0], B[1] + T]]) + '" fill="var(--s-desert)"/>' +
+    '<polygon points="' + P([B, C, [C[0], C[1] + T], [B[0], B[1] + T]]) + '" fill="#000" opacity="0.22"/>' +
+    '<polygon points="' + P([A, B, [B[0], B[1] + T], [A[0], A[1] + T]]) + '" fill="var(--s-desert)"/>' +
+    '<polygon points="' + P([A, B, [B[0], B[1] + T], [A[0], A[1] + T]]) + '" fill="#000" opacity="0.1"/>' +
+    '<polygon points="' + P([A, B, C, Dp]) + '" fill="var(--s-desert)"/>' +
+    '<polygon points="' + P([A, B, C, Dp]) + '" fill="#fff" opacity="0.28"/>';
+
+  // linen fence: posts + rail on the front edge and the east (left) edge, gate gap on the east
+  let fence = '';
+  for (let u = 0; u <= 1.001; u += 0.1) { const p = pt(u, 0); fence += '<line x1="' + p[0] + '" y1="' + p[1] + '" x2="' + p[0] + '" y2="' + (p[1] - 14) + '" stroke="var(--ink-faint)" stroke-width="1.6" opacity="0.55"/>'; }
+  fence += '<line x1="' + pt(0, 0)[0] + '" y1="' + (pt(0, 0)[1] - 14) + '" x2="' + pt(1, 0)[0] + '" y2="' + (pt(1, 0)[1] - 14) + '" stroke="var(--ink-faint)" stroke-width="1.2" opacity="0.45"/>';
+  [0, 0.2, 0.8, 1].forEach(v => { const p = pt(0, v); fence += '<line x1="' + p[0] + '" y1="' + p[1] + '" x2="' + p[0] + '" y2="' + (p[1] - 14) + '" stroke="var(--ink-faint)" stroke-width="1.6" opacity="0.55"/>'; });
+
+  // stations (order must match CODES.tabernacle.stations / data-index 0-7)
+  const sGate = pt(0.02, 0.5), sAltar = pt(0.15, 0.5), sLaver = pt(0.28, 0.5),
+    sTable = pt(0.52, 0.72), sLamp = pt(0.52, 0.28), sIncense = pt(0.68, 0.5),
+    sVeil = pt(0.79, 0.5), sArk = pt(0.9, 0.5);
+
+  // tent: floor + two cutaway walls (back + west), gold boards
+  const f1 = pt(0.42, 0.12), f2 = pt(0.98, 0.12), f3 = pt(0.98, 0.88), f4 = pt(0.42, 0.88), H = 44;
+  const up = (p) => [p[0], p[1] - H];
+  const tent =
+    '<polygon points="' + P([f1, f2, f3, f4]) + '" fill="var(--gold)" opacity="0.1"/>' +
+    '<polygon points="' + P([f4, f3, up(f3), up(f4)]) + '" fill="var(--gold)" opacity="0.28"/>' +
+    '<polygon points="' + P([f3, f2, up(f2), up(f3)]) + '" fill="var(--gold)" opacity="0.4"/>' +
+    '<polygon points="' + P([f1, f2, f3, f4]) + '" fill="none" stroke="var(--gold)" stroke-width="1.4" opacity="0.55"/>' +
+    '<line x1="' + f4[0] + '" y1="' + f4[1] + '" x2="' + up(f4)[0] + '" y2="' + up(f4)[1] + '" stroke="var(--gold)" stroke-width="1.4" opacity="0.55"/>' +
+    '<line x1="' + f3[0] + '" y1="' + f3[1] + '" x2="' + up(f3)[0] + '" y2="' + up(f3)[1] + '" stroke="var(--gold)" stroke-width="1.4" opacity="0.55"/>' +
+    '<line x1="' + f2[0] + '" y1="' + f2[1] + '" x2="' + up(f2)[0] + '" y2="' + up(f2)[1] + '" stroke="var(--gold)" stroke-width="1.4" opacity="0.55"/>';
+
+  // the veil: a curtain quad across the tent at u=0.79
+  const v1 = pt(0.79, 0.12), v2 = pt(0.79, 0.88);
+  const veil =
+    '<polygon points="' + P([v1, v2, [v2[0], v2[1] - 40], [v1[0], v1[1] - 40]]) + '" fill="var(--c-codes)" opacity="0.4"/>' +
+    '<line x1="' + v1[0] + '" y1="' + (v1[1] - 40) + '" x2="' + v2[0] + '" y2="' + (v2[1] - 40) + '" stroke="var(--c-codes)" stroke-width="1.6" opacity="0.7"/>';
+
+  // furniture (2.5D sprites)
+  const box3 = (x, y, w, h, cMain, o) =>
+    '<rect x="' + (x - w / 2) + '" y="' + (y - h) + '" width="' + w + '" height="' + h + '" fill="' + cMain + '"' + (o ? ' opacity="' + o + '"' : '') + '/>' +
+    '<polygon points="' + P([[x - w / 2, y - h], [x + w / 2, y - h], [x + w / 2 + 6, y - h - 4], [x - w / 2 + 6, y - h - 4]]) + '" fill="' + cMain + '"/>' +
+    '<polygon points="' + P([[x - w / 2, y - h], [x + w / 2, y - h], [x + w / 2 + 6, y - h - 4], [x - w / 2 + 6, y - h - 4]]) + '" fill="#fff" opacity="0.25"/>' +
+    '<polygon points="' + P([[x + w / 2, y - h], [x + w / 2 + 6, y - h - 4], [x + w / 2 + 6, y - 4], [x + w / 2, y]]) + '" fill="' + cMain + '"/>' +
+    '<polygon points="' + P([[x + w / 2, y - h], [x + w / 2 + 6, y - h - 4], [x + w / 2 + 6, y - 4], [x + w / 2, y]]) + '" fill="#000" opacity="0.22"/>';
+  const bronze = '#a5673a';
+  const gate =
+    '<line x1="' + (sGate[0] - 13) + '" y1="' + (sGate[1] + 4) + '" x2="' + (sGate[0] - 13) + '" y2="' + (sGate[1] - 24) + '" stroke="var(--ink-soft)" stroke-width="2"/>' +
+    '<line x1="' + (sGate[0] + 13) + '" y1="' + (sGate[1] + 4) + '" x2="' + (sGate[0] + 13) + '" y2="' + (sGate[1] - 24) + '" stroke="var(--ink-soft)" stroke-width="2"/>' +
+    '<rect x="' + (sGate[0] - 13) + '" y="' + (sGate[1] - 24) + '" width="26" height="17" fill="var(--thread)" opacity="0.5"/>';
+  const altar = box3(sAltar[0], sAltar[1], 20, 15, bronze) +
+    '<path d="M' + sAltar[0] + ' ' + (sAltar[1] - 17) + ' q-4 -7 0 -12 q2 4 4 2 q3 5 -1 10z" fill="var(--thread)" opacity="0.85"/>';
+  const laver =
+    '<ellipse cx="' + sLaver[0] + '" cy="' + (sLaver[1] - 8) + '" rx="12" ry="5" fill="' + bronze + '"/>' +
+    '<ellipse cx="' + sLaver[0] + '" cy="' + (sLaver[1] - 9.5) + '" rx="9" ry="3.4" fill="var(--t-water)" opacity="0.85"/>' +
+    '<path d="M' + (sLaver[0] - 7) + ' ' + (sLaver[1] - 6) + ' q7 6 14 0 l-2 6 h-10z" fill="' + bronze + '"/>';
+  const table = box3(sTable[0], sTable[1], 18, 12, 'var(--gold)') +
+    '<circle cx="' + (sTable[0] - 3) + '" cy="' + (sTable[1] - 14) + '" r="2.2" fill="var(--card)"/>' +
+    '<circle cx="' + (sTable[0] + 4) + '" cy="' + (sTable[1] - 15) + '" r="2.2" fill="var(--card)"/>';
+  let lamp = '<line x1="' + sLamp[0] + '" y1="' + sLamp[1] + '" x2="' + sLamp[0] + '" y2="' + (sLamp[1] - 18) + '" stroke="var(--gold)" stroke-width="2"/>' +
+    '<path d="M' + (sLamp[0] - 10) + ' ' + (sLamp[1] - 18) + ' a10 10 0 0 1 20 0 M' + (sLamp[0] - 5.5) + ' ' + (sLamp[1] - 18) + ' a5.5 5.5 0 0 1 11 0" fill="none" stroke="var(--gold)" stroke-width="2"/>';
+  for (let k = -3; k <= 3; k++) { const lx = sLamp[0] + k * (k === 0 ? 0 : (Math.abs(k) === 1 ? 5.5 : (Math.abs(k) === 2 ? 8 : 10))); lamp += '<circle cx="' + lx + '" cy="' + (sLamp[1] - (k === 0 ? 22 : 20)) + '" r="1.6" fill="var(--thread)"/>'; }
+  const incense = box3(sIncense[0], sIncense[1], 11, 15, 'var(--gold)') +
+    '<path d="M' + sIncense[0] + ' ' + (sIncense[1] - 19) + ' q-4 -6 1 -11 q-4 -5 1 -9" fill="none" stroke="var(--ink-faint)" stroke-width="1.6" opacity="0.8"/>';
+  const ark =
+    '<circle cx="' + sArk[0] + '" cy="' + (sArk[1] - 10) + '" r="26" fill="var(--gold)" opacity="0.16"/>' +
+    box3(sArk[0], sArk[1], 22, 13, 'var(--gold)') +
+    '<path d="M' + (sArk[0] - 8) + ' ' + (sArk[1] - 15) + ' q-5 -7 2 -8 M' + (sArk[0] + 8) + ' ' + (sArk[1] - 15) + ' q5 -7 -2 -8" fill="none" stroke="var(--gold)" stroke-width="1.8"/>';
+
+  // route: outside → gate → altar → laver → into the tent → lamp → table → incense → veil → ark
+  const entry = pt(0.44, 0.5);
+  const route = 'M' + (sGate[0] - 46) + ' ' + sGate[1] + ' L' + sGate.join(' ') + ' L' + sAltar.join(' ') + ' L' + sLaver.join(' ') +
+    ' L' + entry.join(' ') + ' L' + sLamp.join(' ') + ' L' + sTable.join(' ') + ' L' + sIncense.join(' ') + ' L' + sVeil.join(' ') + ' L' + sArk.join(' ');
+
+  // numbered pins + staggered name labels in the sky
+  const stations = [
+    { p: sGate, name: 'THE GATE', pinY: 248 }, { p: sAltar, name: 'BRONZE ALTAR', pinY: 248 }, { p: sLaver, name: 'THE LAVER', pinY: 248 },
+    { p: sTable, name: 'TABLE OF BREAD', pinY: 202 }, { p: sLamp, name: 'LAMPSTAND', pinY: 202 }, { p: sIncense, name: 'ALTAR OF INCENSE', pinY: 202 },
+    { p: sVeil, name: 'THE VEIL', pinY: 202 }, { p: sArk, name: 'MERCY SEAT', pinY: 202 }
+  ];
+  const nodeElements = stations.map((s, i) => {
+    const zone = i >= 6 ? 'var(--c-codes)' : (i >= 3 ? 'var(--s-egypt)' : 'var(--s-desert)');
+    const nameY = s.pinY - (i % 2 ? 30 : 16);
+    return '<g class="svg-station-node" data-index="' + i + '" style="--zone-c:' + zone + '">' +
+      '<line x1="' + s.p[0] + '" y1="' + (s.pinY + 9) + '" x2="' + s.p[0] + '" y2="' + (s.p[1] - 24) + '" stroke="' + zone + '" stroke-width="1.1" stroke-dasharray="2 3" opacity="0.6"/>' +
+      '<circle cx="' + s.p[0] + '" cy="' + s.pinY + '" r="9" fill="var(--card)" stroke="' + zone + '" stroke-width="2"/>' +
+      '<text x="' + s.p[0] + '" y="' + (s.pinY + 3) + '" text-anchor="middle" font-size="8" fill="var(--ink)" style="font-family:var(--font-label);font-weight:700">' + (i + 1) + '</text>' +
+      '<text x="' + s.p[0] + '" y="' + nameY + '" text-anchor="middle" font-size="6.8" letter-spacing="0.6" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:700">' + s.name + '</text>' +
       '</g>';
   }).join('');
 
-  return '<svg class="tabernacle-svg" viewBox="0 0 760 180" role="img" aria-label="Tabernacle Floor Plan Diagram">' +
-    // Outer Court Boundary
-    '<rect x="15" y="15" width="730" height="150" fill="none" stroke="var(--s-desert)" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.3"/>' +
-    '<text x="25" y="30" font-size="7.5" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700;letter-spacing:1px">OUTER COURT</text>' +
-    
-    // Tent of Meeting Boundary
-    '<rect x="360" y="28" width="370" height="124" fill="none" stroke="var(--s-egypt)" stroke-width="1.5" opacity="0.4"/>' +
-    '<text x="370" y="24" font-size="7.5" fill="var(--s-egypt)" style="font-family:var(--font-label);font-weight:700;letter-spacing:1px">TENT OF MEETING</text>' +
-    
-    // Holy Place Label
-    '<text x="500" y="24" font-size="7" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY PLACE</text>' +
-    
-    // Holy of Holies Veil line and Label
-    '<line x1="610" y1="28" x2="610" y2="152" stroke="var(--c-codes)" stroke-width="2" stroke-dasharray="4 4" opacity="0.6"/>' +
-    '<text x="615" y="24" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">VEIL</text>' +
-    '<text x="660" y="24" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY OF HOLIES</text>' +
-    
-    // Marching Route Line
-    '<path class="tabernacle-route" d="' + path + '" fill="none" stroke="var(--thread)" stroke-width="2.2" stroke-linecap="round"/>' +
-    
-    // Node Markers
+  const zlabel = (x, y, txt, c) => '<text x="' + x + '" y="' + y + '" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="' + c + '" style="font-family:var(--font-label);font-weight:700">' + txt + '</text>';
+
+  return '<svg class="tabernacle-svg" viewBox="0 0 920 400" role="img" aria-label="Isometric diagram of the tabernacle: the walk from the gate to the mercy seat">' +
+    ground + fence + gate + altar + laver + tent + veil + table + lamp + incense + ark +
+    '<path class="tabernacle-route" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="2 6"/>' +
     nodeElements +
-    
-    // Orientation Indicators (East/West)
-    '<text x="25" y="154" font-size="7" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">EAST (ENTRANCE)</text>' +
-    '<text x="735" y="154" text-anchor="end" font-size="7" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">WEST (ARK)</text>' +
-    
+    zlabel(460, 128, 'HOLY PLACE', 'var(--s-egypt)') + zlabel(700, 128, 'HOLY OF HOLIES', 'var(--c-codes)') +
+    '<text x="118" y="349" font-size="7.5" letter-spacing="1.4" fill="#fff" opacity="0.75" style="font-family:var(--font-label);font-weight:700">OUTER COURT</text>' +
+    '<text x="46" y="382" font-size="7.5" letter-spacing="1.2" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">EAST · THE WAY IN</text>' +
+    '<text x="874" y="382" text-anchor="end" font-size="7.5" letter-spacing="1.2" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">WEST · THE PRESENCE</text>' +
     '</svg>';
 }
 
@@ -303,7 +384,14 @@ function vPattern() {
     '<div class="row r3"><b>Land</b><span>' + linkRefs(c.p3) + '</span></div>' +
     '</div></div>').join('');
   return '<div class="view">' + head(n, 'Egypt → Wilderness → Promised Land', PATTERN.intro) +
-    '<div class="chart-panel journey-panel"><div class="journey-scroll">' + buildJourneySVG() + '</div></div>' +
+    '<div class="chart-panel journey-panel">' +
+    '<span class="chart-corner tl">Gen 15:13</span><span class="chart-corner br">Josh 21:45</span>' +
+    '<div class="journey-scroll">' + buildJourneySVG() + '</div>' +
+    '<div class="journey-caps">' +
+    '<div class="journey-cap" style="--c:var(--s-egypt)"><b>Egypt says</b><span>' + linkRefs('“You are what you produce.” Worth measured in bricks per day (Ex 5:13-14).') + '</span></div>' +
+    '<div class="journey-cap" style="--c:var(--s-desert)"><b>The wilderness hears</b><span>' + linkRefs('“You are my son” — identity spoken before performance (Ex 4:22; Deut 8:2-3).') + '</span></div>' +
+    '<div class="journey-cap" style="--c:var(--s-land)"><b>The land walks</b><span>' + linkRefs('Fight FROM victory, not for it — “I have given you” (Josh 1:3).') + '</span></div>' +
+    '</div></div>' +
     '<div class="season-grid">' + seasons + '</div>' +
     '<div class="home-section-title"><h2>Trail wisdom</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<ol class="insight-list">' + insights + '</ol>' +
@@ -316,21 +404,24 @@ function vPattern() {
 
 function vThreads() {
   const n = NAV[2];
-  const cards = THREADS.map(t => {
-    const way = t.way.map(w =>
-      '<li' + (w.j ? ' class="wp-cross"' : '') + '><span class="wp-ref">' + refLink(w.ref) + '</span><div class="wp-note">' + w.note + '</div></li>').join('');
-    return '<div class="thread-card" id="t-' + t.id + '" style="--c:var(' + t.cvar + ')">' +
-      '<button class="thread-head" data-toggle="' + t.id + '" aria-expanded="false">' +
+  const rows = THREADS.map(t => {
+    const wps = t.way.map(w =>
+      '<div class="wp-card' + (w.j ? ' wp-cross' : '') + '"><span class="wp-ref">' + refLink(w.ref) + (w.j ? ' · lands here' : '') + '</span><p>' + linkRefs(w.note) + '</p></div>').join('');
+    return '<div class="thread-row" id="t-' + t.id + '" style="--c:var(' + t.cvar + ')">' +
+      '<div class="thread-row-head">' +
       '<span class="icon-chip">' + icon(t.icon) + '</span>' +
-      '<span><h3>' + t.name + '</h3><span class="thread-tag">' + t.tag + '</span></span>' +
-      '<span class="chev">' + icon('chevron') + '</span></button>' +
-      '<div class="thread-body"><div class="thread-body-inner"><ul class="trail">' + way + '</ul>' +
+      '<div class="thread-row-title"><h3>' + t.name + '</h3><span class="thread-tag">' + t.tag + '</span></div>' +
+      '<span class="thread-count">' + t.way.length + ' waypoints</span>' +
+      '</div>' +
+      '<div class="thread-marquee" data-marquee><div class="marquee-track">' + wps + '</div></div>' +
+      '<div class="thread-row-foot">' +
       '<div class="lands-on"><span class="label">Where it lands</span>' + linkRefs(t.landsOn) + '</div>' +
-      '<p class="for-you">For you: ' + linkRefs(t.forYou) + '</p></div></div></div>';
+      '<p class="for-you">For you: ' + linkRefs(t.forYou) + '</p>' +
+      '</div></div>';
   }).join('');
   return '<div class="view">' + head(n, 'Thirteen threads through the whole book',
-    'Pick any of these and follow it Genesis to Revelation — the dots are real verses, the gold waypoint is where the thread lands on Jesus, and the last line is what it means for your actual week. This is the fastest cure for “the Bible feels random.”') +
-    '<div class="grid thread-grid">' + cards + '</div></div>';
+    'Every ribbon below is one theme traced Genesis to Revelation — real verses, in order, drifting past like a filmstrip (hover to pause, tap any reference to read it). The gold card is where the thread lands on Jesus. This is the fastest cure for “the Bible feels random.”') +
+    '<div class="thread-rows">' + rows + '</div></div>';
 }
 
 function vCodes() {
@@ -1051,7 +1142,82 @@ function renderSections() {
   container.innerHTML = html;
   measureThreadPreviewHeight();
   wireAllSections();
+  initMarquees();
+  layoutRail();
 }
+
+/* ================= filmstrip marquees (threads) ================= */
+function initMarquees() {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('[data-marquee]').forEach(mq => {
+    const track = mq.querySelector('.marquee-track');
+    if (!track) return;
+    if (!track.dataset.orig) track.dataset.orig = track.innerHTML;
+    track.innerHTML = track.dataset.orig;
+    mq.classList.remove('scrolling');
+    track.style.removeProperty('--dur');
+    if (reduced) return; // falls back to manual horizontal scroll via CSS
+    const w = track.scrollWidth;
+    if (w > mq.clientWidth + 4) {
+      track.innerHTML = track.dataset.orig + track.dataset.orig; // seamless loop
+      track.style.setProperty('--dur', Math.max(30, Math.round(w / 30)) + 's');
+      mq.classList.add('scrolling');
+    }
+  });
+}
+let marqueeResizeTimer = null;
+window.addEventListener('resize', () => {
+  if (marqueeResizeTimer) clearTimeout(marqueeResizeTimer);
+  marqueeResizeTimer = setTimeout(initMarquees, 150);
+});
+
+/* ================= scarlet progress rail ================= */
+function initRail() {
+  if (document.getElementById('rail')) return;
+  const rail = document.createElement('div');
+  rail.id = 'rail';
+  rail.innerHTML = '<div class="rail-track"></div><div class="rail-fill"></div>' +
+    NAV.map(n => '<button class="rail-dot" data-view="' + n.id + '" title="' + n.label + '" aria-label="Jump to ' + n.label + '" style="--c:var(' + n.cvar + ')"></button>').join('');
+  document.body.appendChild(rail);
+  rail.addEventListener('click', ev => {
+    const dot = ev.target.closest('.rail-dot');
+    if (!dot) return;
+    const el = document.getElementById(dot.dataset.view);
+    if (el) { isScrollingNav = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); updateActiveNav(dot.dataset.view); setTimeout(() => { isScrollingNav = false; }, 800); }
+  });
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      const dh = document.documentElement.scrollHeight - window.innerHeight;
+      if (dh <= 0) return;
+      const frac = Math.min(1, window.scrollY / dh);
+      const fill = rail.querySelector('.rail-fill');
+      if (fill) fill.style.height = (frac * 100) + '%';
+      const marker = window.scrollY + window.innerHeight * 0.4;
+      rail.querySelectorAll('.rail-dot').forEach(dot => {
+        const el = document.getElementById(dot.dataset.view);
+        dot.classList.toggle('passed', !!el && marker >= el.offsetTop);
+      });
+    });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
+function layoutRail() {
+  const rail = document.getElementById('rail');
+  if (!rail) return;
+  const dh = document.documentElement.scrollHeight - window.innerHeight;
+  if (dh <= 0) return;
+  NAV.forEach(n => {
+    const el = document.getElementById(n.id);
+    const dot = rail.querySelector('.rail-dot[data-view="' + n.id + '"]');
+    if (el && dot) dot.style.top = (Math.min(1, el.offsetTop / dh) * 100) + '%';
+  });
+}
+window.addEventListener('resize', () => setTimeout(layoutRail, 200));
 
 function applyEdition(ed) {
   TEXT_EDITION = (ed === 'orig') ? 'orig' : 'updated';
@@ -1110,6 +1276,7 @@ function boot() {
   });
 
   // Render all sections (edition-aware) on the single page
+  initRail();
   renderSections();
 
   buildIndex();
