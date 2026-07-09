@@ -45,6 +45,7 @@ body { margin: 0; }
   --t-bride: #b0506e;
   --t-exile: #5a6472;
   --t-name: #bf5b22;
+  --t-garment: #9e4b86;
 
   /* pattern season hues */
   --s-egypt: #5a6472;
@@ -98,6 +99,7 @@ body { margin: 0; }
     --t-bride: #d97f9c;
     --t-exile: #93a0b1;
     --t-name: #e08a4e;
+    --t-garment: #cf82ba;
     --s-egypt: #8fa0b4;
     --s-desert: #d09c40;
     --s-land: #6fb075;

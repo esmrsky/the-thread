@@ -30,7 +30,7 @@ function paragraphCards(html, labels) {
 const NAV = [
   { id: 'start', label: 'Start Here', icon: 'compass', cvar: '--c-start', blurb: 'The big idea in five moves — and how to read without wasting your Bible.' },
   { id: 'pattern', label: 'The Pattern', icon: 'dune', cvar: '--c-pattern', blurb: 'Egypt → Wilderness → Promised Land: the three seasons every life walks through.' },
-  { id: 'threads', label: 'Threads', icon: 'thread', cvar: '--c-threads', blurb: 'Twelve routes traced Genesis to Revelation — every one lands on Jesus.' },
+  { id: 'threads', label: 'Threads', icon: 'thread', cvar: '--c-threads', blurb: 'Thirteen routes traced Genesis to Revelation — every one lands on Jesus.' },
   { id: 'codes', label: 'The Codes', icon: 'key', cvar: '--c-codes', blurb: 'Prophecies, types & shadows, and the feasts — with honesty badges on every claim.' },
   { id: 'triune', label: 'Threefold Witness', icon: 'trinity', cvar: '--c-triune', blurb: 'Father, Son, and Spirit shown plainly — and echoed through the story patterns.' },
   { id: 'walking', label: 'Walk It Out', icon: 'walk', cvar: '--c-walk', blurb: 'Identity, righteousness, rest, healing — new-covenant life without the old software.' },
@@ -41,7 +41,7 @@ const NAV = [
 
 /* ================= hero thread chart ================= */
 function buildHeroChart() {
-  const picks = ['lamb', 'bread', 'water', 'light', 'shepherd', 'king', 'temple', 'rest', 'covenant', 'bride', 'exile', 'name'];
+  const picks = ['lamb', 'bread', 'water', 'garment', 'light', 'shepherd', 'king', 'temple', 'rest', 'covenant', 'bride', 'exile', 'name'];
   const ths = picks.map(id => THREADS.find(t => t.id === id));
   const X0 = 34, CX = 528, CY = 152, XE = 706;
   const n = ths.length, top = 44, bot = 258;
@@ -63,7 +63,7 @@ function buildHeroChart() {
     ticks += '<line x1="' + x + '" y1="276" x2="' + x + '" y2="282" stroke="var(--line)" stroke-width="1.5"/>' +
       '<text x="' + x + '" y="294" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
   });
-  return '<svg viewBox="0 0 720 300" role="img" aria-label="Twelve biblical themes converging on Jesus and continuing to Revelation">' +
+  return '<svg viewBox="0 0 720 300" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
     paths +
     '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
     '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
@@ -328,7 +328,7 @@ function vThreads() {
       '<div class="lands-on"><span class="label">Where it lands</span>' + linkRefs(t.landsOn) + '</div>' +
       '<p class="for-you">For you: ' + linkRefs(t.forYou) + '</p></div></div></div>';
   }).join('');
-  return '<div class="view">' + head(n, 'Twelve threads through the whole book',
+  return '<div class="view">' + head(n, 'Thirteen threads through the whole book',
     'Pick any of these and follow it Genesis to Revelation — the dots are real verses, the gold waypoint is where the thread lands on Jesus, and the last line is what it means for your actual week. This is the fastest cure for “the Bible feels random.”') +
     '<div class="grid thread-grid">' + cards + '</div></div>';
 }

@@ -53,6 +53,7 @@ body { margin: 0; }
   --t-bride: #b0506e;
   --t-exile: #5a6472;
   --t-name: #bf5b22;
+  --t-garment: #9e4b86;
 
   /* pattern season hues */
   --s-egypt: #5a6472;
@@ -106,6 +107,7 @@ body { margin: 0; }
     --t-bride: #d97f9c;
     --t-exile: #93a0b1;
     --t-name: #e08a4e;
+    --t-garment: #cf82ba;
     --s-egypt: #8fa0b4;
     --s-desert: #d09c40;
     --s-land: #6fb075;
@@ -1796,6 +1798,7 @@ const ICONS = {
   chevron: _ic('<path d="m9.2 5.8 6.3 6.2-6.3 6.2"/>'),
   mountain: _ic('<path d="m3 19.5 6-10.5 3.6 6 2.4-3.5 6 8z"/>'),
   star: _ic('<path d="m12 4 2.2 4.7 5.2.7-3.8 3.6.9 5.1L12 15.7l-4.5 2.4.9-5.1-3.8-3.6 5.2-.7z"/>'),
+  garment: _ic('<path d="M8.5 3.5 11 3.5 12 5.6 13 3.5 15.5 3.5 19.6 7.6 16.8 10.2 16 9.2 16 20.5 8 20.5 8 9.2 7.2 10.2 4.4 7.6 Z"/>'),
   search: _ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>')
 };
 
@@ -2001,6 +2004,26 @@ const THREADS = [
     ],
     landsOn: 'The unspeakable Name of the burning bush shows up in Galilee saying “I AM” — bread, light, door, shepherd, resurrection, way, truth, life, vine. Eight predicates, one claim.',
     forYou: 'You were baptized INTO the Name (Matt 28:19). <b>You don’t drop it to fit in — you carry it, and it carries you.</b>'
+  },
+  {
+    id: 'garment', name: 'The Garment', icon: 'garment', cvar: '--t-garment',
+    tag: 'What you wear before God — from fig leaves to fine linen.',
+    way: [
+      { ref: 'Gen 3:7', note: 'The first fashion line: fig leaves. Shame’s instinct is to sew your own covering and hope nobody looks too closely.' },
+      { ref: 'Gen 3:21', note: 'God overrules the fig leaves and makes “garments of skin” — the first death, to clothe the guilty. Someone bleeds so shame gets covered properly.' },
+      { ref: 'Gen 27:15-23', note: 'Rebekah dresses Jacob in his older brother Esau’s finest garments so their blind father blesses him as the firstborn. Hold this one gently — the deceit was real — but the shape preaches: the blessing comes to the younger while he’s wearing the firstborn’s clothes.' },
+      { ref: 'Gen 37:3,23', note: 'Jacob’s son gets the coat this time — the father’s love made visible — and the brothers strip it off him before the pit. Robes given by a father keep getting torn off.' },
+      { ref: 'Ex 28:2', note: 'The high priest’s garments are made “for glory and for beauty.” You don’t approach God in street clothes; the mediator is dressed for the room.' },
+      { ref: 'Zech 3:3-5', note: 'Joshua the high priest stands before God in filth while Satan accuses. God’s verdict: “Take off his filthy clothes… I have clothed you with pure vestments.” Grace as a wardrobe change, in open court.' },
+      { ref: 'Isa 61:10', note: '“He has clothed me with the garments of salvation… the robe of righteousness” — a righteousness you wear, not one you manufacture. (And Isa 64:6: our own best is “filthy rags.”)' },
+      { ref: 'Luke 15:22', note: 'The son rehearses a servant speech; the father interrupts: “Bring the best robe.” You don’t get worked back up to son — you get dressed as one before you can finish apologizing.' },
+      { ref: 'John 19:23-24', j: true, note: 'At the cross they strip Him and gamble for His seamless robe (Ps 22:18). The Priest is left naked so the naked can be robed — the exchange the whole thread was climbing toward.' },
+      { ref: 'Gal 3:27', note: '“As many of you as were baptized into Christ have PUT ON Christ.” The Jacob picture, made real: you’re received in the Firstborn’s clothes (Col 1:15).' },
+      { ref: 'Rom 13:14', note: '“Put on the Lord Jesus Christ” — daily, deliberately. The robe is given once; wearing it is a morning habit.' },
+      { ref: 'Rev 19:8; 7:14', note: 'The Bride wears “fine linen, bright and pure”… robes “made white in the blood of the Lamb.” Washed in blood, somehow whiter — the last word on the wardrobe.' }
+    ],
+    landsOn: 'Naked Adam hid; the last Adam hung stripped and exposed so the hiding could end. Every covering in between — skins, coats, priestly robes, the best robe, white linen — was pointing at the great exchange: “he was made sin… so that in him we might become the righteousness of God” (2 Cor 5:21). He wore your shame; you wear His righteousness.',
+    forYou: 'Stop sewing fig leaves. <b>You don’t sew a righteousness to wear — you receive one and put it on</b> (Isa 61:10). Get dressed in the morning: you’re wearing the Firstborn’s clothes.'
   }
 ];
 /* ================= THE PATTERN — Egypt → Wilderness → Promised Land ================= */
@@ -2622,7 +2645,7 @@ function paragraphCards(html, labels) {
 const NAV = [
   { id: 'start', label: 'Start Here', icon: 'compass', cvar: '--c-start', blurb: 'The big idea in five moves — and how to read without wasting your Bible.' },
   { id: 'pattern', label: 'The Pattern', icon: 'dune', cvar: '--c-pattern', blurb: 'Egypt → Wilderness → Promised Land: the three seasons every life walks through.' },
-  { id: 'threads', label: 'Threads', icon: 'thread', cvar: '--c-threads', blurb: 'Twelve routes traced Genesis to Revelation — every one lands on Jesus.' },
+  { id: 'threads', label: 'Threads', icon: 'thread', cvar: '--c-threads', blurb: 'Thirteen routes traced Genesis to Revelation — every one lands on Jesus.' },
   { id: 'codes', label: 'The Codes', icon: 'key', cvar: '--c-codes', blurb: 'Prophecies, types & shadows, and the feasts — with honesty badges on every claim.' },
   { id: 'triune', label: 'Threefold Witness', icon: 'trinity', cvar: '--c-triune', blurb: 'Father, Son, and Spirit shown plainly — and echoed through the story patterns.' },
   { id: 'walking', label: 'Walk It Out', icon: 'walk', cvar: '--c-walk', blurb: 'Identity, righteousness, rest, healing — new-covenant life without the old software.' },
@@ -2633,7 +2656,7 @@ const NAV = [
 
 /* ================= hero thread chart ================= */
 function buildHeroChart() {
-  const picks = ['lamb', 'bread', 'water', 'light', 'shepherd', 'king', 'temple', 'rest', 'covenant', 'bride', 'exile', 'name'];
+  const picks = ['lamb', 'bread', 'water', 'garment', 'light', 'shepherd', 'king', 'temple', 'rest', 'covenant', 'bride', 'exile', 'name'];
   const ths = picks.map(id => THREADS.find(t => t.id === id));
   const X0 = 34, CX = 528, CY = 152, XE = 706;
   const n = ths.length, top = 44, bot = 258;
@@ -2655,7 +2678,7 @@ function buildHeroChart() {
     ticks += '<line x1="' + x + '" y1="276" x2="' + x + '" y2="282" stroke="var(--line)" stroke-width="1.5"/>' +
       '<text x="' + x + '" y="294" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
   });
-  return '<svg viewBox="0 0 720 300" role="img" aria-label="Twelve biblical themes converging on Jesus and continuing to Revelation">' +
+  return '<svg viewBox="0 0 720 300" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
     paths +
     '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
     '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
@@ -2920,7 +2943,7 @@ function vThreads() {
       '<div class="lands-on"><span class="label">Where it lands</span>' + linkRefs(t.landsOn) + '</div>' +
       '<p class="for-you">For you: ' + linkRefs(t.forYou) + '</p></div></div></div>';
   }).join('');
-  return '<div class="view">' + head(n, 'Twelve threads through the whole book',
+  return '<div class="view">' + head(n, 'Thirteen threads through the whole book',
     'Pick any of these and follow it Genesis to Revelation — the dots are real verses, the gold waypoint is where the thread lands on Jesus, and the last line is what it means for your actual week. This is the fastest cure for “the Bible feels random.”') +
     '<div class="grid thread-grid">' + cards + '</div></div>';
 }

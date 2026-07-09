@@ -199,5 +199,25 @@ const THREADS = [
     ],
     landsOn: 'The unspeakable Name of the burning bush shows up in Galilee saying “I AM” — bread, light, door, shepherd, resurrection, way, truth, life, vine. Eight predicates, one claim.',
     forYou: 'You were baptized INTO the Name (Matt 28:19). <b>You don’t drop it to fit in — you carry it, and it carries you.</b>'
+  },
+  {
+    id: 'garment', name: 'The Garment', icon: 'garment', cvar: '--t-garment',
+    tag: 'What you wear before God — from fig leaves to fine linen.',
+    way: [
+      { ref: 'Gen 3:7', note: 'The first fashion line: fig leaves. Shame’s instinct is to sew your own covering and hope nobody looks too closely.' },
+      { ref: 'Gen 3:21', note: 'God overrules the fig leaves and makes “garments of skin” — the first death, to clothe the guilty. Someone bleeds so shame gets covered properly.' },
+      { ref: 'Gen 27:15-23', note: 'Rebekah dresses Jacob in his older brother Esau’s finest garments so their blind father blesses him as the firstborn. Hold this one gently — the deceit was real — but the shape preaches: the blessing comes to the younger while he’s wearing the firstborn’s clothes.' },
+      { ref: 'Gen 37:3,23', note: 'Jacob’s son gets the coat this time — the father’s love made visible — and the brothers strip it off him before the pit. Robes given by a father keep getting torn off.' },
+      { ref: 'Ex 28:2', note: 'The high priest’s garments are made “for glory and for beauty.” You don’t approach God in street clothes; the mediator is dressed for the room.' },
+      { ref: 'Zech 3:3-5', note: 'Joshua the high priest stands before God in filth while Satan accuses. God’s verdict: “Take off his filthy clothes… I have clothed you with pure vestments.” Grace as a wardrobe change, in open court.' },
+      { ref: 'Isa 61:10', note: '“He has clothed me with the garments of salvation… the robe of righteousness” — a righteousness you wear, not one you manufacture. (And Isa 64:6: our own best is “filthy rags.”)' },
+      { ref: 'Luke 15:22', note: 'The son rehearses a servant speech; the father interrupts: “Bring the best robe.” You don’t get worked back up to son — you get dressed as one before you can finish apologizing.' },
+      { ref: 'John 19:23-24', j: true, note: 'At the cross they strip Him and gamble for His seamless robe (Ps 22:18). The Priest is left naked so the naked can be robed — the exchange the whole thread was climbing toward.' },
+      { ref: 'Gal 3:27', note: '“As many of you as were baptized into Christ have PUT ON Christ.” The Jacob picture, made real: you’re received in the Firstborn’s clothes (Col 1:15).' },
+      { ref: 'Rom 13:14', note: '“Put on the Lord Jesus Christ” — daily, deliberately. The robe is given once; wearing it is a morning habit.' },
+      { ref: 'Rev 19:8; 7:14', note: 'The Bride wears “fine linen, bright and pure”… robes “made white in the blood of the Lamb.” Washed in blood, somehow whiter — the last word on the wardrobe.' }
+    ],
+    landsOn: 'Naked Adam hid; the last Adam hung stripped and exposed so the hiding could end. Every covering in between — skins, coats, priestly robes, the best robe, white linen — was pointing at the great exchange: “he was made sin… so that in him we might become the righteousness of God” (2 Cor 5:21). He wore your shame; you wear His righteousness.',
+    forYou: 'Stop sewing fig leaves. <b>You don’t sew a righteousness to wear — you receive one and put it on</b> (Isa 61:10). Get dressed in the morning: you’re wearing the Firstborn’s clothes.'
   }
 ];
