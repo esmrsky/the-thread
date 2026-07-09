@@ -1225,19 +1225,14 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   overflow: hidden;
 }
 
-@media (min-width: 1600px) {
+@media (min-width: 1100px) {
   .chart-panel.hero-chart {
-    margin-left: 0;
-    margin-right: 0;
-    width: 100%;
-    max-width: 100%;
-  }
-}
-@media (min-width: 1100px) and (max-width: 1599px) {
-  .chart-panel.hero-chart {
-    margin-left: 0;
-    margin-right: 0;
-    width: 100%;
+    --hero-chart-width: min(1360px, calc(100vw - 40px));
+    grid-template-columns: minmax(520px, 0.48fr) minmax(0, 1fr);
+    width: var(--hero-chart-width);
+    max-width: var(--hero-chart-width);
+    margin-left: calc((100% - var(--hero-chart-width)) / 2);
+    margin-right: calc((100% - var(--hero-chart-width)) / 2);
   }
 }
 
@@ -1263,6 +1258,10 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 @media (max-width: 960px) {
   .chart-panel.hero-chart {
     grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
     min-height: 0;
     overflow: visible;
   }
