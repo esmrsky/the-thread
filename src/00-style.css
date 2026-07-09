@@ -26,6 +26,7 @@ body { margin: 0; }
   --c-pattern: #a06b1e;
   --c-threads: #b3242f;
   --c-codes: #8f6c12;
+  --c-triune: #4d679b;
   --c-walk: #3f7a44;
   --c-detour: #a8502f;
   --c-mind: #5b5a93;
@@ -80,6 +81,7 @@ body { margin: 0; }
     --c-pattern: #d09c40;
     --c-threads: #e05a66;
     --c-codes: #cfa73e;
+    --c-triune: #93a8e6;
     --c-walk: #6fb075;
     --c-detour: #dd8358;
     --c-mind: #9d9cd6;
@@ -123,6 +125,7 @@ body { margin: 0; }
   --c-pattern: #d09c40;
   --c-threads: #e05a66;
   --c-codes: #cfa73e;
+  --c-triune: #93a8e6;
   --c-walk: #6fb075;
   --c-detour: #dd8358;
   --c-mind: #9d9cd6;
@@ -612,6 +615,85 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .feast-when { font-family: var(--font-label); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); padding-top: 5px; }
 .feast-row h4 { font-size: 1.02rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .feast-row p { font-size: 0.93rem; color: var(--ink-soft); margin-top: 3px; }
+
+/* ---------- threefold witness ---------- */
+.triune-rails {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.triune-rail {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border: 1px dashed color-mix(in srgb, var(--c-triune) 30%, var(--line));
+  border-radius: var(--r);
+  background: color-mix(in srgb, var(--c-triune) 5%, var(--card));
+}
+.triune-rail .icon-chip {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+.triune-rail h3 {
+  font-size: 1.02rem;
+  margin-bottom: 4px;
+}
+.triune-rail p {
+  color: var(--ink-soft);
+  font-size: 0.94rem;
+  line-height: 1.58;
+}
+.triune-anchor-card,
+.triune-pattern-card {
+  display: grid;
+  gap: 16px;
+}
+.triune-anchor-card h3,
+.triune-pattern-card h3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 1.1rem;
+}
+.triune-roles {
+  display: grid;
+  gap: 10px;
+}
+.triune-role {
+  padding: 12px 14px;
+  border-radius: var(--r);
+  background: var(--card);
+  border: 1px solid var(--line-soft);
+}
+.triune-role b {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-triune);
+  margin-bottom: 4px;
+}
+.triune-role span,
+.triune-pattern-card p {
+  color: var(--ink-soft);
+  font-size: 0.94rem;
+  line-height: 1.58;
+}
+.triune-pattern-card .story {
+  color: var(--ink);
+}
+.triune-pattern-card .reading {
+  padding: 14px 16px;
+  border-left: 3px solid var(--c-triune);
+  border-radius: 0 var(--r) var(--r) 0;
+  background: color-mix(in srgb, var(--c-triune) 7%, transparent);
+}
 
 /* tabernacle walk */
 .tabernacle-grid {

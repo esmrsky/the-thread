@@ -28,6 +28,7 @@ body { margin: 0; }
   --c-pattern: #a06b1e;
   --c-threads: #b3242f;
   --c-codes: #8f6c12;
+  --c-triune: #4d679b;
   --c-walk: #3f7a44;
   --c-detour: #a8502f;
   --c-mind: #5b5a93;
@@ -82,6 +83,7 @@ body { margin: 0; }
     --c-pattern: #d09c40;
     --c-threads: #e05a66;
     --c-codes: #cfa73e;
+    --c-triune: #93a8e6;
     --c-walk: #6fb075;
     --c-detour: #dd8358;
     --c-mind: #9d9cd6;
@@ -125,6 +127,7 @@ body { margin: 0; }
   --c-pattern: #d09c40;
   --c-threads: #e05a66;
   --c-codes: #cfa73e;
+  --c-triune: #93a8e6;
   --c-walk: #6fb075;
   --c-detour: #dd8358;
   --c-mind: #9d9cd6;
@@ -614,6 +617,85 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .feast-when { font-family: var(--font-label); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); padding-top: 5px; }
 .feast-row h4 { font-size: 1.02rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .feast-row p { font-size: 0.93rem; color: var(--ink-soft); margin-top: 3px; }
+
+/* ---------- threefold witness ---------- */
+.triune-rails {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.triune-rail {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border: 1px dashed color-mix(in srgb, var(--c-triune) 30%, var(--line));
+  border-radius: var(--r);
+  background: color-mix(in srgb, var(--c-triune) 5%, var(--card));
+}
+.triune-rail .icon-chip {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+.triune-rail h3 {
+  font-size: 1.02rem;
+  margin-bottom: 4px;
+}
+.triune-rail p {
+  color: var(--ink-soft);
+  font-size: 0.94rem;
+  line-height: 1.58;
+}
+.triune-anchor-card,
+.triune-pattern-card {
+  display: grid;
+  gap: 16px;
+}
+.triune-anchor-card h3,
+.triune-pattern-card h3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 1.1rem;
+}
+.triune-roles {
+  display: grid;
+  gap: 10px;
+}
+.triune-role {
+  padding: 12px 14px;
+  border-radius: var(--r);
+  background: var(--card);
+  border: 1px solid var(--line-soft);
+}
+.triune-role b {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-triune);
+  margin-bottom: 4px;
+}
+.triune-role span,
+.triune-pattern-card p {
+  color: var(--ink-soft);
+  font-size: 0.94rem;
+  line-height: 1.58;
+}
+.triune-pattern-card .story {
+  color: var(--ink);
+}
+.triune-pattern-card .reading {
+  padding: 14px 16px;
+  border-left: 3px solid var(--c-triune);
+  border-radius: 0 var(--r) var(--r) 0;
+  background: color-mix(in srgb, var(--c-triune) 7%, transparent);
+}
 
 /* tabernacle walk */
 .tabernacle-grid {
@@ -1628,6 +1710,7 @@ const ICONS = {
   shepherd: _ic('<path d="M9.5 21V7.5a4 4 0 0 1 8 0v1.3"/><path d="M6 21h7"/>'),
   king: _ic('<path d="M4.5 18.5 3.5 9.5l4.9 3.3L12 6.4l3.6 6.4 4.9-3.3-1 9z"/>'),
   temple: _ic('<path d="M12 4.5 3 19.5h18z"/><path d="M12 12.5 8.5 19.5h7z"/>'),
+  trinity: _ic('<circle cx="12" cy="6.2" r="3.2"/><circle cx="6.8" cy="15.2" r="3.2"/><circle cx="17.2" cy="15.2" r="3.2"/><path d="M10.4 8.9 8.4 12.5M13.6 8.9l2 3.6M10 15.2h4"/>'),
   rest: _ic('<path d="M20 13.8A8.3 8.3 0 1 1 10.2 4a6.8 6.8 0 0 0 9.8 9.8z"/>'),
   covenant: _ic('<path d="M3.5 16.5a8.5 8.5 0 0 1 17 0M7.5 16.5a4.5 4.5 0 0 1 9 0"/><path d="M2.5 19.5h3.2M18.3 19.5h3.2"/>'),
   bride: _ic('<circle cx="9.2" cy="13.6" r="5"/><circle cx="14.8" cy="10.4" r="5"/>'),
@@ -2345,6 +2428,108 @@ const START = {
   },
   heroVerse: { text: '“And beginning with Moses and all the Prophets, he interpreted to them in all the Scriptures the things concerning himself.”', ref: 'Luke 24:27' }
 };
+/* ================= THREEFOLD WITNESS — Father, Son, and Spirit in the story ================= */
+const TRIUNE = {
+  intro: 'The Bible does not wait for a theology textbook to show us the triune God. It gives us scenes: the Father speaking, the Son revealed, the Spirit hovering, descending, filling, leading, and sealing. Some moments name all three plainly. Other stories rhyme with the pattern: from the Father, through the Son, by the Spirit, for a bride and a new creation.',
+  rails: [
+    { t: 'Start with what is named.', x: 'Baptism, the Great Commission, apostolic blessings, and salvation passages explicitly name Father, Son, and Spirit together. These are the load-bearing beams.' },
+    { t: 'Then enjoy the echoes.', x: 'The story patterns are not alternate proof texts for the Trinity. They are icons: narrative windows that help you see the same God acting in the same threefold way.' },
+    { t: 'Do not make every three a code.', x: 'Three days, three visitors, three measures, three offices — some are meaningful, some are just three. The safest question is not “can I force a pattern?” but “does the rest of Scripture already teach this?”' }
+  ],
+  anchors: [
+    {
+      name: 'Creation opens with God, Word, and Spirit',
+      badge: 'explicit',
+      refs: ['Gen 1:1-3', 'John 1:1-3', 'Col 1:16'],
+      father: 'God creates and commands the story into being.',
+      son: 'John names the creating Word: all things were made through Him.',
+      spirit: 'The Spirit hovers over the waters before light breaks in.'
+    },
+    {
+      name: 'The baptism of Jesus puts all three in one frame',
+      badge: 'explicit',
+      refs: ['Matt 3:16-17', 'Luke 3:21-22'],
+      father: 'The voice from heaven delights in the beloved Son.',
+      son: 'Jesus stands in the water, identifying with the people He came to save.',
+      spirit: 'The Spirit descends and rests on Him like a dove.'
+    },
+    {
+      name: 'The mission is given in one name',
+      badge: 'explicit',
+      refs: ['Matt 28:18-20', 'Acts 2:33'],
+      father: 'The Father is the source and sender of the promised gift.',
+      son: 'The risen Son has all authority and pours out what He received.',
+      spirit: 'The Spirit is the presence and power of the mission.'
+    },
+    {
+      name: 'Salvation is described threefold',
+      badge: 'explicit',
+      refs: ['1 Pet 1:2', '2 Cor 13:14', 'Eph 1:3-14'],
+      father: 'Chosen, blessed, and adopted according to the Father’s purpose.',
+      son: 'Redeemed, forgiven, and reconciled through the blood of Jesus.',
+      spirit: 'Sanctified, sealed, and made alive by the Holy Spirit.'
+    }
+  ],
+  patterns: [
+    {
+      name: 'Abraham, Isaac, and the unnamed servant',
+      badge: 'classical',
+      refs: ['Gen 24', 'John 14:26', 'Eph 5:25-27'],
+      story: 'A father sends his trusted servant to seek a bride for his beloved son. The servant speaks of the son, gives gifts, and leads the bride home.',
+      reading: 'Classically read as Father, Son, Spirit, and Bride: the Father initiates, the Son receives the bride, and the servant-like Spirit witnesses, adorns, and brings her home.'
+    },
+    {
+      name: 'The exodus rescue',
+      badge: 'classical',
+      refs: ['Ex 4:22-23', 'Ex 12:13', 'Ex 13:21-22', '1 Cor 10:1-4'],
+      story: 'God calls Israel His son, the lamb’s blood covers the house, and the cloud/fire leads the people through the sea and wilderness.',
+      reading: 'The Father claims a people, the Lamb covers them, and the Spirit-like cloud guides them into freedom. Paul even calls the Rock Christ and the cloud part of their baptismal passage.'
+    },
+    {
+      name: 'The tabernacle approach',
+      badge: 'classical',
+      refs: ['Ex 25:22', 'John 14:6', 'Heb 10:19-22', 'Rev 4:5'],
+      story: 'The mercy seat is the throne-meeting place, the blood and veil define access, and the oil-fed lampstand burns in the holy place.',
+      reading: 'Approach to the Father, through the Son, by the Spirit: throne of grace, torn veil, cleansing blood, and sevenfold fire before God’s presence.'
+    },
+    {
+      name: 'The anointed king',
+      badge: 'explicit',
+      refs: ['1 Sam 16:1-13', 'Luke 4:18', 'Acts 10:38'],
+      story: 'The chosen son is anointed with oil, and the Spirit rushes upon him for the work ahead.',
+      reading: 'David’s anointing becomes a messianic grammar lesson: the Father chooses, the Son/Messiah is anointed, and the Spirit empowers the mission.'
+    },
+    {
+      name: 'The annunciation to Mary',
+      badge: 'explicit',
+      refs: ['Luke 1:31-35'],
+      story: 'The angel announces the Son, the power of the Most High overshadows Mary, and the Holy Spirit is named as the one who brings about the conception.',
+      reading: 'Not hidden symbolism but revelation: the Son is given, the Most High acts, and the Spirit overshadows new creation in a womb.'
+    },
+    {
+      name: 'Jesus sends the church the way He was sent',
+      badge: 'explicit',
+      refs: ['John 20:21-22', 'Acts 1:8', 'Acts 13:2-4'],
+      story: 'The risen Jesus says He is sending His people as the Father sent Him, breathes on them, and promises Spirit-empowered witness.',
+      reading: 'Mission remains triune: sent by the Father, commissioned by the Son, carried by the Spirit.'
+    },
+    {
+      name: 'The transfiguration cloud',
+      badge: 'classical',
+      refs: ['Matt 17:1-8', 'Ex 40:34-38', '2 Pet 1:17-18'],
+      story: 'The Son shines in glory, the Father speaks from the bright cloud, and the glory-cloud overshadows the mountain.',
+      reading: 'The Father’s voice and the Son’s unveiled glory are explicit. Reading the cloud as Spirit-presence is classic and fitting, though the text does not name the Spirit there.'
+    },
+    {
+      name: 'Water, blood, and Spirit',
+      badge: 'explicit',
+      refs: ['John 19:34', '1 John 5:6-8'],
+      story: 'John watches water and blood flow from Jesus’s side, then later says the Spirit, the water, and the blood bear witness.',
+      reading: 'John gives the caption: the Spirit testifies to the Son’s finished work. The witness is not abstract; it flows from the crucified Jesus.'
+    }
+  ],
+  note: 'The Trinity is not a riddle hidden under the Bible. It is the God of the Bible showing Himself by action: the Father sends and loves, the Son reveals and redeems, the Spirit rests, fills, seals, leads, and makes new.'
+};
 /* ================= app: helpers ================= */
 const BG = 'https://www.biblegateway.com/passage/?search=';
 const REF_RE = /((?:[123]\s)?(?:Gen|Ex|Lev|Num|Deut|Josh|Judg|Ruth|Sam|Kings|Chr|Ezra|Neh|Esth|Job|Ps|Prov|Eccl|Song|Isa|Jer|Lam|Ezek|Dan|Hos|Joel|Amos|Jonah|Mic|Micah|Nah|Hab|Zeph|Hag|Zech|Mal|Matt|Mark|Luke|John|Acts|Rom|Cor|Gal|Eph|Phil|Col|Thess|Tim|Titus|Heb|Jas|James|Pet|Jude|Rev)\s\d+(?::\d+(?:[-–]\d+(?::\d+)?)?(?:,\s?\d+(?:[-–]\d+)?)*)?)/g;
@@ -2373,6 +2558,7 @@ const NAV = [
   { id: 'pattern', label: 'The Pattern', icon: 'dune', cvar: '--c-pattern', blurb: 'Egypt → Wilderness → Promised Land: the three seasons every life walks through.' },
   { id: 'threads', label: 'Threads', icon: 'thread', cvar: '--c-threads', blurb: 'Twelve routes traced Genesis to Revelation — every one lands on Jesus.' },
   { id: 'codes', label: 'The Codes', icon: 'key', cvar: '--c-codes', blurb: 'Prophecies, types & shadows, and the feasts — with honesty badges on every claim.' },
+  { id: 'triune', label: 'Threefold Witness', icon: 'trinity', cvar: '--c-triune', blurb: 'Father, Son, and Spirit shown plainly — and echoed through the story patterns.' },
   { id: 'walking', label: 'Walk It Out', icon: 'walk', cvar: '--c-walk', blurb: 'Identity, righteousness, rest, healing — new-covenant life without the old software.' },
   { id: 'detours', label: 'Detours', icon: 'fork', cvar: '--c-detour', blurb: 'Twelve sincere wrong turns, marked on the map — each with the on-ramp back.' },
   { id: 'mind', label: 'Mind & Body', icon: 'brain', cvar: '--c-mind', blurb: 'Where scripture and neuroscience shake hands: emotions, meditation, sound, hearing God.' },
@@ -2641,8 +2827,35 @@ function vCodes() {
     '</div>';
 }
 
-function vWalking() {
+function vTriune() {
   const n = NAV[4];
+  const rails = TRIUNE.rails.map(r =>
+    '<div class="triune-rail" style="--c:var(--c-triune)"><span class="icon-chip">' + icon('trinity') + '</span><div><h3>' + r.t + '</h3><p>' + linkRefs(r.x) + '</p></div></div>').join('');
+  const anchors = TRIUNE.anchors.map(a =>
+    '<div class="card triune-anchor-card" style="--c:var(--c-triune)">' +
+    '<h3>' + a.name + ' ' + badge(a.badge) + '</h3>' +
+    '<div class="triune-roles">' +
+    '<div class="triune-role"><b>Father</b><span>' + linkRefs(a.father) + '</span></div>' +
+    '<div class="triune-role"><b>Son</b><span>' + linkRefs(a.son) + '</span></div>' +
+    '<div class="triune-role"><b>Spirit</b><span>' + linkRefs(a.spirit) + '</span></div>' +
+    '</div>' + refRow(a.refs) + '</div>').join('');
+  const patterns = TRIUNE.patterns.map(p =>
+    '<div class="card triune-pattern-card" style="--c:var(--c-triune)">' +
+    '<h3>' + p.name + ' ' + badge(p.badge) + '</h3>' +
+    '<p class="story">' + linkRefs(p.story) + '</p>' +
+    '<p class="reading">' + linkRefs(p.reading) + '</p>' +
+    refRow(p.refs) + '</div>').join('');
+  return '<div class="view">' + head(n, 'Father, Son & Spirit in the story', TRIUNE.intro) +
+    '<div class="card triune-rails" style="--c:var(--c-triune)">' + rails + '</div>' +
+    '<div class="home-section-title"><h2>Explicit anchors</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="grid grid-2">' + anchors + '</div>' +
+    '<div class="home-section-title"><h2>Story echoes</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="grid grid-2">' + patterns + '</div>' +
+    '<p class="note" style="border-left-color:var(--c-triune)">' + linkRefs(TRIUNE.note) + '</p></div>';
+}
+
+function vWalking() {
+  const n = NAV[5];
   const words = TEN_WORDS.map(w => '<span class="legend-chip" style="--c:var(--c-walk)"><span class="dot"></span>' + w + '</span>').join('');
   const cards = WALKING.pillars.map(p =>
     '<div class="card pillar-card" style="--c:var(--c-walk)">' +
@@ -2659,7 +2872,7 @@ function vWalking() {
 }
 
 function vDetours() {
-  const n = NAV[5];
+  const n = NAV[6];
   const cards = DETOURS.items.map((d, i) =>
     '<div class="card detour-card" id="d-' + i + '" style="--c:var(--c-detour)">' +
     '<h3><span class="icon-chip" style="--c:var(--c-detour)">' + icon('fork') + '</span>' + d.name + '</h3>' +
@@ -2673,7 +2886,7 @@ function vDetours() {
 }
 
 function vMind() {
-  const n = NAV[6];
+  const n = NAV[7];
   const primer = NEURO_PRIMER.map(p =>
     '<div class="mind-panel">' +
     '<span class="label">' + p.label + '</span>' +
@@ -2701,7 +2914,7 @@ function vMind() {
 }
 
 function vLibrary() {
-  const n = NAV[7];
+  const n = NAV[8];
   const shelves = LIBRARY.shelves.map(s =>
     '<div class="shelf" style="--c:var(--c-library)"><div class="shelf-title">' + icon(s.icon) + '<h3>' + s.title + '</h3></div>' +
     '<div class="shelf-items">' + s.items.map(i =>
@@ -2724,6 +2937,8 @@ function buildIndex() {
   CODES.types.forEach(t => add('codes', '', 'Types & shadows', '--c-codes', t.name, t.refs, t.body));
   CODES.feasts.forEach(f => add('codes', '', 'The feasts', '--c-codes', f.name, f.when, f.body));
   CODES.loose.forEach(l => add('codes', '', 'Hold loosely', '--c-codes', l.name, '', l.body));
+  TRIUNE.anchors.forEach(a => add('triune', '', 'Threefold Witness', '--c-triune', a.name, a.refs.join(' · '), a.father + ' ' + a.son + ' ' + a.spirit));
+  TRIUNE.patterns.forEach(p => add('triune', '', 'Story echoes', '--c-triune', p.name, p.refs.join(' · '), p.story + ' ' + p.reading));
   WALKING.pillars.forEach(p => add('walking', '', 'Walk It Out', '--c-walk', p.name, p.truth, p.lie + ' ' + p.body));
   DETOURS.items.forEach((d, i) => add('detours', 'd-' + i, 'Detours', '--c-detour', d.name, '', d.pull + ' ' + d.cost + ' ' + d.home));
   MIND.blocks.forEach(b => add('mind', '', 'Mind & Body', '--c-mind', b.name, '', b.body));
@@ -2785,7 +3000,7 @@ function goToHit(e) {
 }
 
 /* ================= router & boot ================= */
-const VIEWS = { start: vStart, pattern: vPattern, threads: vThreads, codes: vCodes, walking: vWalking, detours: vDetours, mind: vMind, library: vLibrary };
+const VIEWS = { start: vStart, pattern: vPattern, threads: vThreads, codes: vCodes, triune: vTriune, walking: vWalking, detours: vDetours, mind: vMind, library: vLibrary };
 
 let isScrollingNav = false;
 
@@ -3267,7 +3482,7 @@ function hideTooltip() {
 function boot() {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
-  const NAV_ICONS = { start: 'compass', pattern: 'dune', threads: 'thread', codes: 'key', walking: 'walk', detours: 'fork', mind: 'brain', library: 'book' };
+  const NAV_ICONS = { start: 'compass', pattern: 'dune', threads: 'thread', codes: 'key', triune: 'trinity', walking: 'walk', detours: 'fork', mind: 'brain', library: 'book' };
   const nav = document.getElementById('nav');
   nav.innerHTML = NAV.map(n =>
     '<a class="nav-link" data-view="' + n.id + '" href="#/' + n.id + '" style="--c:var(' + n.cvar + ')">' + icon(NAV_ICONS[n.id] || 'cross') + ' ' + n.label + '</a>').join('');

@@ -14,6 +14,7 @@ A single-file website that maps the Bible's threads, patterns, and codes — all
   - `23-data-codes.js` — prophecies, types & shadows, tabernacle walk, feasts, hold-loosely items
   - `24-data-walking.js` — Walk It Out pillars + the 12 Detours
   - `25-data-mind.js` — Mind & Body blocks, the Library, Start Here content
+  - `26-data-triune.js` — Father, Son, and Spirit anchors + story-pattern echoes
   - `30-app.js` — renderers, hero/journey charts, search, router, theme toggle
 - **research/** — the sourced research dossiers behind the content (grace theology, mind/body/spirit, bible threads), with confidence labels and URLs.
 - **build/artifact.html** — the same site without the document wrapper (used for Claude artifact previews).

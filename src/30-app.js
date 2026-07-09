@@ -26,6 +26,7 @@ const NAV = [
   { id: 'pattern', label: 'The Pattern', icon: 'dune', cvar: '--c-pattern', blurb: 'Egypt → Wilderness → Promised Land: the three seasons every life walks through.' },
   { id: 'threads', label: 'Threads', icon: 'thread', cvar: '--c-threads', blurb: 'Twelve routes traced Genesis to Revelation — every one lands on Jesus.' },
   { id: 'codes', label: 'The Codes', icon: 'key', cvar: '--c-codes', blurb: 'Prophecies, types & shadows, and the feasts — with honesty badges on every claim.' },
+  { id: 'triune', label: 'Threefold Witness', icon: 'trinity', cvar: '--c-triune', blurb: 'Father, Son, and Spirit shown plainly — and echoed through the story patterns.' },
   { id: 'walking', label: 'Walk It Out', icon: 'walk', cvar: '--c-walk', blurb: 'Identity, righteousness, rest, healing — new-covenant life without the old software.' },
   { id: 'detours', label: 'Detours', icon: 'fork', cvar: '--c-detour', blurb: 'Twelve sincere wrong turns, marked on the map — each with the on-ramp back.' },
   { id: 'mind', label: 'Mind & Body', icon: 'brain', cvar: '--c-mind', blurb: 'Where scripture and neuroscience shake hands: emotions, meditation, sound, hearing God.' },
@@ -294,8 +295,35 @@ function vCodes() {
     '</div>';
 }
 
-function vWalking() {
+function vTriune() {
   const n = NAV[4];
+  const rails = TRIUNE.rails.map(r =>
+    '<div class="triune-rail" style="--c:var(--c-triune)"><span class="icon-chip">' + icon('trinity') + '</span><div><h3>' + r.t + '</h3><p>' + linkRefs(r.x) + '</p></div></div>').join('');
+  const anchors = TRIUNE.anchors.map(a =>
+    '<div class="card triune-anchor-card" style="--c:var(--c-triune)">' +
+    '<h3>' + a.name + ' ' + badge(a.badge) + '</h3>' +
+    '<div class="triune-roles">' +
+    '<div class="triune-role"><b>Father</b><span>' + linkRefs(a.father) + '</span></div>' +
+    '<div class="triune-role"><b>Son</b><span>' + linkRefs(a.son) + '</span></div>' +
+    '<div class="triune-role"><b>Spirit</b><span>' + linkRefs(a.spirit) + '</span></div>' +
+    '</div>' + refRow(a.refs) + '</div>').join('');
+  const patterns = TRIUNE.patterns.map(p =>
+    '<div class="card triune-pattern-card" style="--c:var(--c-triune)">' +
+    '<h3>' + p.name + ' ' + badge(p.badge) + '</h3>' +
+    '<p class="story">' + linkRefs(p.story) + '</p>' +
+    '<p class="reading">' + linkRefs(p.reading) + '</p>' +
+    refRow(p.refs) + '</div>').join('');
+  return '<div class="view">' + head(n, 'Father, Son & Spirit in the story', TRIUNE.intro) +
+    '<div class="card triune-rails" style="--c:var(--c-triune)">' + rails + '</div>' +
+    '<div class="home-section-title"><h2>Explicit anchors</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="grid grid-2">' + anchors + '</div>' +
+    '<div class="home-section-title"><h2>Story echoes</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="grid grid-2">' + patterns + '</div>' +
+    '<p class="note" style="border-left-color:var(--c-triune)">' + linkRefs(TRIUNE.note) + '</p></div>';
+}
+
+function vWalking() {
+  const n = NAV[5];
   const words = TEN_WORDS.map(w => '<span class="legend-chip" style="--c:var(--c-walk)"><span class="dot"></span>' + w + '</span>').join('');
   const cards = WALKING.pillars.map(p =>
     '<div class="card pillar-card" style="--c:var(--c-walk)">' +
@@ -312,7 +340,7 @@ function vWalking() {
 }
 
 function vDetours() {
-  const n = NAV[5];
+  const n = NAV[6];
   const cards = DETOURS.items.map((d, i) =>
     '<div class="card detour-card" id="d-' + i + '" style="--c:var(--c-detour)">' +
     '<h3><span class="icon-chip" style="--c:var(--c-detour)">' + icon('fork') + '</span>' + d.name + '</h3>' +
@@ -326,7 +354,7 @@ function vDetours() {
 }
 
 function vMind() {
-  const n = NAV[6];
+  const n = NAV[7];
   const primer = NEURO_PRIMER.map(p =>
     '<div class="mind-panel">' +
     '<span class="label">' + p.label + '</span>' +
@@ -354,7 +382,7 @@ function vMind() {
 }
 
 function vLibrary() {
-  const n = NAV[7];
+  const n = NAV[8];
   const shelves = LIBRARY.shelves.map(s =>
     '<div class="shelf" style="--c:var(--c-library)"><div class="shelf-title">' + icon(s.icon) + '<h3>' + s.title + '</h3></div>' +
     '<div class="shelf-items">' + s.items.map(i =>
@@ -377,6 +405,8 @@ function buildIndex() {
   CODES.types.forEach(t => add('codes', '', 'Types & shadows', '--c-codes', t.name, t.refs, t.body));
   CODES.feasts.forEach(f => add('codes', '', 'The feasts', '--c-codes', f.name, f.when, f.body));
   CODES.loose.forEach(l => add('codes', '', 'Hold loosely', '--c-codes', l.name, '', l.body));
+  TRIUNE.anchors.forEach(a => add('triune', '', 'Threefold Witness', '--c-triune', a.name, a.refs.join(' · '), a.father + ' ' + a.son + ' ' + a.spirit));
+  TRIUNE.patterns.forEach(p => add('triune', '', 'Story echoes', '--c-triune', p.name, p.refs.join(' · '), p.story + ' ' + p.reading));
   WALKING.pillars.forEach(p => add('walking', '', 'Walk It Out', '--c-walk', p.name, p.truth, p.lie + ' ' + p.body));
   DETOURS.items.forEach((d, i) => add('detours', 'd-' + i, 'Detours', '--c-detour', d.name, '', d.pull + ' ' + d.cost + ' ' + d.home));
   MIND.blocks.forEach(b => add('mind', '', 'Mind & Body', '--c-mind', b.name, '', b.body));
@@ -438,7 +468,7 @@ function goToHit(e) {
 }
 
 /* ================= router & boot ================= */
-const VIEWS = { start: vStart, pattern: vPattern, threads: vThreads, codes: vCodes, walking: vWalking, detours: vDetours, mind: vMind, library: vLibrary };
+const VIEWS = { start: vStart, pattern: vPattern, threads: vThreads, codes: vCodes, triune: vTriune, walking: vWalking, detours: vDetours, mind: vMind, library: vLibrary };
 
 let isScrollingNav = false;
 
@@ -920,7 +950,7 @@ function hideTooltip() {
 function boot() {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
-  const NAV_ICONS = { start: 'compass', pattern: 'dune', threads: 'thread', codes: 'key', walking: 'walk', detours: 'fork', mind: 'brain', library: 'book' };
+  const NAV_ICONS = { start: 'compass', pattern: 'dune', threads: 'thread', codes: 'key', triune: 'trinity', walking: 'walk', detours: 'fork', mind: 'brain', library: 'book' };
   const nav = document.getElementById('nav');
   nav.innerHTML = NAV.map(n =>
     '<a class="nav-link" data-view="' + n.id + '" href="#/' + n.id + '" style="--c:var(' + n.cvar + ')">' + icon(NAV_ICONS[n.id] || 'cross') + ' ' + n.label + '</a>').join('');

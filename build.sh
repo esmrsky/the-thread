@@ -5,7 +5,7 @@
 set -e
 cd "$(dirname "$0")"
 
-JS_FILES="src/20-icons.js src/21-data-threads.js src/22-data-pattern.js src/23-data-codes.js src/24-data-walking.js src/25-data-mind.js src/30-app.js"
+JS_FILES="src/20-icons.js src/21-data-threads.js src/22-data-pattern.js src/23-data-codes.js src/24-data-walking.js src/25-data-mind.js src/26-data-triune.js src/30-app.js"
 
 {
   printf '<title>The Thread — A Field Manual to the Bible</title>\n<style>\n'

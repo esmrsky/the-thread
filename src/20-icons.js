@@ -12,6 +12,7 @@ const ICONS = {
   shepherd: _ic('<path d="M9.5 21V7.5a4 4 0 0 1 8 0v1.3"/><path d="M6 21h7"/>'),
   king: _ic('<path d="M4.5 18.5 3.5 9.5l4.9 3.3L12 6.4l3.6 6.4 4.9-3.3-1 9z"/>'),
   temple: _ic('<path d="M12 4.5 3 19.5h18z"/><path d="M12 12.5 8.5 19.5h7z"/>'),
+  trinity: _ic('<circle cx="12" cy="6.2" r="3.2"/><circle cx="6.8" cy="15.2" r="3.2"/><circle cx="17.2" cy="15.2" r="3.2"/><path d="M10.4 8.9 8.4 12.5M13.6 8.9l2 3.6M10 15.2h4"/>'),
   rest: _ic('<path d="M20 13.8A8.3 8.3 0 1 1 10.2 4a6.8 6.8 0 0 0 9.8 9.8z"/>'),
   covenant: _ic('<path d="M3.5 16.5a8.5 8.5 0 0 1 17 0M7.5 16.5a4.5 4.5 0 0 1 9 0"/><path d="M2.5 19.5h3.2M18.3 19.5h3.2"/>'),
   bride: _ic('<circle cx="9.2" cy="13.6" r="5"/><circle cx="14.8" cy="10.4" r="5"/>'),
