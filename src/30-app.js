@@ -741,21 +741,32 @@ function wireAllSections() {
 }
 
 function setupScrollspy() {
+  // Track every section's intersection with a thin band across the viewport's
+  // vertical centre, then activate whichever section owns that centre. This is
+  // stable where the old "last intersecting entry wins" loop mis-highlighted
+  // neighbours when several tall sections changed state in one callback.
+  const visibleTops = new Map();
   const options = {
     root: null,
-    rootMargin: '-25% 0px -55% 0px',
+    rootMargin: '-45% 0px -45% 0px',
     threshold: 0
   };
 
   const observer = new IntersectionObserver((entries) => {
-    if (isScrollingNav) return;
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.id;
-        updateActiveNav(id);
-        history.replaceState(null, null, '#/' + id);
-      }
+      if (entry.isIntersecting) visibleTops.set(entry.target.id, entry.boundingClientRect.top);
+      else visibleTops.delete(entry.target.id);
     });
+    if (isScrollingNav || visibleTops.size === 0) return;
+    let bestId = null, bestDist = Infinity;
+    visibleTops.forEach((top, id) => {
+      const dist = Math.abs(top);
+      if (dist < bestDist) { bestDist = dist; bestId = id; }
+    });
+    if (bestId) {
+      updateActiveNav(bestId);
+      history.replaceState(null, null, '#/' + bestId);
+    }
   }, options);
 
   NAV.forEach(n => {
@@ -950,10 +961,9 @@ function hideTooltip() {
 function boot() {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
-  const NAV_ICONS = { start: 'compass', pattern: 'dune', threads: 'thread', codes: 'key', triune: 'trinity', walking: 'walk', detours: 'fork', mind: 'brain', library: 'book' };
   const nav = document.getElementById('nav');
   nav.innerHTML = NAV.map(n =>
-    '<a class="nav-link" data-view="' + n.id + '" href="#/' + n.id + '" style="--c:var(' + n.cvar + ')">' + icon(NAV_ICONS[n.id] || 'cross') + ' ' + n.label + '</a>').join('');
+    '<a class="nav-link" data-view="' + n.id + '" href="#/' + n.id + '" style="--c:var(' + n.cvar + ')"><span class="dot"></span>' + n.label + '</a>').join('');
 
   // Set up nav click listeners for smooth scrolling
   document.querySelectorAll('.nav-link').forEach(a => {
