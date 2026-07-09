@@ -1134,11 +1134,11 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 /* Hero chart layout grid */
 .chart-panel.hero-chart {
   display: grid;
-  grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
+  grid-template-columns: minmax(430px, 0.48fr) minmax(0, 1fr);
   gap: clamp(16px, 2.5vw, 24px);
   align-items: stretch;
   background-image: none;
-  min-height: clamp(520px, 56vw, 640px);
+  min-height: var(--thread-preview-lock-height, 560px);
   height: auto;
   overflow: hidden;
 }
@@ -1173,6 +1173,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
+  min-height: var(--thread-preview-lock-height, 560px);
   overflow: hidden;
 }
 
@@ -1187,6 +1188,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
     border-left: none;
     padding-left: 0;
     padding-top: 24px;
+    min-height: 0;
     height: auto;
     justify-content: flex-start;
     gap: 24px;
@@ -1208,8 +1210,8 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   justify-content: flex-start; /* Keeps active preview title at a static vertical position */
   position: relative;
   overflow: hidden;
-  height: 100%;
-  min-height: 0;
+  height: var(--thread-preview-lock-height, 560px);
+  min-height: var(--thread-preview-lock-height, 560px);
   box-sizing: border-box;
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
@@ -1259,7 +1261,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
     padding: 10px;
   }
   .thread-preview-card {
-    height: auto;
     padding: 18px;
   }
 }
@@ -1297,11 +1298,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  animation: fade-in 0.2s ease-out;
-}
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .preview-header {

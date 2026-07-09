@@ -463,26 +463,17 @@ function updateActiveNav(id) {
 let previewResetTimer = null;
 function queuePreviewReset() {
   if (previewResetTimer) clearTimeout(previewResetTimer);
-  previewResetTimer = setTimeout(() => {
-    resetThreadPreview();
-  }, 300);
 }
 function cancelPreviewReset() {
   if (previewResetTimer) clearTimeout(previewResetTimer);
 }
 
-function updateThreadPreview(threadId) {
-  const t = THREADS.find(x => x.id === threadId);
-  if (!t) return;
-
-  const previewEl = document.getElementById('thread-preview');
-  if (!previewEl) return;
-
+function buildThreadPreviewContent(t) {
   const shortWay = t.way.slice(0, 3).map(w => 
     '<li><b>' + w.ref + ':</b> ' + w.note + '</li>'
   ).join('');
 
-  previewEl.innerHTML = 
+  return (
     '<div class="preview-content" style="--c: var(' + t.cvar + ')">' +
     '  <div class="preview-header">' +
     '    <span class="preview-icon">' + icon(t.icon) + '</span>' +
@@ -497,12 +488,61 @@ function updateThreadPreview(threadId) {
     '      <p>' + t.landsOn + '</p>' +
     '    </div>' +
     '  </div>' +
-    '</div>';
+    '</div>'
+  );
+}
+
+let activePreviewThreadId = null;
+let previewMeasureTimer = null;
+
+function measureThreadPreviewHeight() {
+  const previewEl = document.getElementById('thread-preview');
+  if (!previewEl) return;
+
+  const covenant = THREADS.find(x => x.id === 'covenant') || THREADS[0];
+  const rect = previewEl.getBoundingClientRect();
+  if (!rect.width) return;
+
+  const clone = previewEl.cloneNode(false);
+  clone.removeAttribute('id');
+  clone.style.position = 'absolute';
+  clone.style.visibility = 'hidden';
+  clone.style.pointerEvents = 'none';
+  clone.style.left = '-9999px';
+  clone.style.top = '0';
+  clone.style.width = rect.width + 'px';
+  clone.style.height = 'auto';
+  clone.style.minHeight = '0';
+  clone.innerHTML = buildThreadPreviewContent(covenant);
+  document.body.appendChild(clone);
+
+  const lockedHeight = Math.ceil(clone.scrollHeight);
+  clone.remove();
+  previewEl.style.setProperty('--thread-preview-lock-height', Math.max(lockedHeight, 420) + 'px');
+}
+
+function scheduleThreadPreviewMeasure() {
+  if (previewMeasureTimer) clearTimeout(previewMeasureTimer);
+  previewMeasureTimer = setTimeout(measureThreadPreviewHeight, 80);
+}
+
+function updateThreadPreview(threadId) {
+  if (activePreviewThreadId === threadId) return;
+
+  const t = THREADS.find(x => x.id === threadId);
+  if (!t) return;
+
+  const previewEl = document.getElementById('thread-preview');
+  if (!previewEl) return;
+
+  previewEl.innerHTML = buildThreadPreviewContent(t);
+  activePreviewThreadId = threadId;
 }
 
 function resetThreadPreview() {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
+  activePreviewThreadId = null;
   previewEl.innerHTML = 
     '  <div class="preview-placeholder">' +
     '    <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
@@ -535,8 +575,8 @@ function wireAllSections() {
   document.querySelectorAll('.legend-chip[data-thread]').forEach(chip => {
     const threadId = chip.dataset.thread;
     const pathEl = () => document.querySelector('.hero-thread[data-thread="' + threadId + '"]');
-    
-    chip.addEventListener('mouseenter', () => {
+
+    const showPreview = () => {
       cancelPreviewReset();
       chip.classList.add('hot');
       const p = pathEl();
@@ -544,16 +584,25 @@ function wireAllSections() {
         p.classList.add('hot');
       }
       updateThreadPreview(threadId);
-    });
-    
-    chip.addEventListener('mouseleave', () => {
+    };
+
+    const clearPreviewHotState = () => {
       chip.classList.remove('hot');
       const p = pathEl();
       if (p) p.classList.remove('hot');
       queuePreviewReset();
-    });
-    
+    };
+
+    chip.addEventListener('mouseenter', showPreview);
+    chip.addEventListener('pointerenter', showPreview);
+    chip.addEventListener('focus', showPreview);
+
+    chip.addEventListener('mouseleave', clearPreviewHotState);
+    chip.addEventListener('pointerleave', clearPreviewHotState);
+    chip.addEventListener('blur', clearPreviewHotState);
+
     chip.addEventListener('click', () => {
+      showPreview();
       const card = document.getElementById('t-' + threadId);
       if (card) {
         card.classList.add('open');
@@ -571,23 +620,30 @@ function wireAllSections() {
     const threadId = trigger.dataset.thread;
     const path = document.querySelector('.hero-thread[data-thread="' + threadId + '"]');
     const chipEl = () => document.querySelector('.legend-chip[data-thread="' + threadId + '"]');
-    
-    trigger.addEventListener('mouseenter', () => {
+
+    const showPreview = () => {
       cancelPreviewReset();
       if (path) path.classList.add('hot');
       const c = chipEl();
       if (c) c.classList.add('hot');
       updateThreadPreview(threadId);
-    });
-    
-    trigger.addEventListener('mouseleave', () => {
+    };
+
+    const clearPreviewHotState = () => {
       if (path) path.classList.remove('hot');
       const c = chipEl();
       if (c) c.classList.remove('hot');
       queuePreviewReset();
-    });
+    };
+
+    trigger.addEventListener('mouseenter', showPreview);
+    trigger.addEventListener('pointerenter', showPreview);
+
+    trigger.addEventListener('mouseleave', clearPreviewHotState);
+    trigger.addEventListener('pointerleave', clearPreviewHotState);
 
     trigger.addEventListener('click', () => {
+      showPreview();
       const card = document.getElementById('t-' + threadId);
       if (card) {
         card.classList.add('open');
@@ -911,6 +967,7 @@ function boot() {
     }
   });
   container.innerHTML = html;
+  measureThreadPreviewHeight();
 
   buildIndex();
   const input = document.getElementById('search-input');
@@ -934,6 +991,7 @@ function boot() {
   initTooltip();
 
   window.addEventListener('hashchange', route);
+  window.addEventListener('resize', scheduleThreadPreviewMeasure);
   if (location.hash) {
     route({ instant: true });
     setupScrollspy();
