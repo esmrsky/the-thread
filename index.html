@@ -216,12 +216,13 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
+/* one line: brand (left) · nav (centred) · actions (right) */
 .topbar-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 10px 24px;
+  gap: 14px;
+  padding: 8px 24px;
   width: 100%;
   min-width: 0;
 }
@@ -232,6 +233,7 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
   text-decoration: none;
   flex-shrink: 0;
   min-width: 0;
+  justify-self: start;
 }
 .brand svg {
   width: 26px;
@@ -259,7 +261,17 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
   gap: 10px;
   flex-shrink: 0;
   min-width: 0;
+  justify-self: end;
 }
+
+.edition-toggle { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--card-2); flex-shrink: 0; }
+.edition-btn {
+  font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--ink-faint); padding: 6px 11px; white-space: nowrap;
+}
+.edition-btn.active { background: var(--thread); color: #fff; }
+.edition-btn:not(.active):hover { color: var(--ink); }
 
 .theme-toggle {
   flex-shrink: 0; width: 34px; height: 34px;
@@ -277,30 +289,38 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
   :root:not([data-theme="light"]) .theme-toggle .ic-moon { display: none; }
 }
 
-/* nav is its own full-width row beneath the brand/actions row */
+/* centred middle column; scrolls internally only if cramped */
 .navstrip {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   justify-content: center;
-  margin: 0 auto;
-  padding: 3px 20px 9px;
-  max-width: 1240px;
+  justify-self: center;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
-  min-width: 0;
-  border-top: 1px solid var(--line-soft);
 }
 .navstrip::-webkit-scrollbar { display: none; }
 
-@media (max-width: 990px) {
+/* not enough room for one line: brand + actions on row 1, nav wraps to row 2 */
+@media (max-width: 1180px) {
   .topbar-row {
-    padding: 10px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    padding: 9px 18px;
   }
-  /* left-align once the strip must scroll, so no items hide off the left edge */
   .navstrip {
+    order: 3;
+    flex-basis: 100%;
     justify-content: flex-start;
-    padding: 8px 16px;
+    justify-self: stretch;
+    padding-top: 8px;
+    border-top: 1px solid var(--line-soft);
   }
 }
 
@@ -332,15 +352,17 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
 }
 .nav-link {
   font-family: var(--font-label);
-  font-size: 0.72rem; font-weight: 600;
-  letter-spacing: 0.13em; text-transform: uppercase;
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--ink-soft);
   text-decoration: none;
-  padding: 6px 9px;
+  padding: 6px 8px;
   border-radius: 999px;
   display: flex; align-items: center; gap: 6px;
   white-space: nowrap;
 }
+/* subtitle lives in the hero eyebrow + footer; keep the top bar to one crisp line */
+.brand-sub { display: none; }
 .nav-link .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); opacity: 0.85; flex-shrink: 0; }
 .nav-link:hover { color: var(--ink); background: var(--card-2); }
 .nav-link.active { color: var(--c); background: color-mix(in srgb, var(--c) 11%, transparent); }
@@ -1024,6 +1046,41 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .idea-row b { display: block; font-size: 1.04rem; }
 .idea-row p { font-size: 0.95rem; color: var(--ink-soft); }
 
+/* ---------- bento grid (how to read your Bible) ---------- */
+.bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; grid-auto-rows: minmax(112px, auto); --c: var(--c-walk); }
+.bento-tile {
+  display: flex; flex-direction: column; gap: 9px;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: 18px 20px; box-shadow: var(--shadow);
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.bento-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: color-mix(in srgb, var(--c) 40%, var(--line)); }
+.bento-wide { grid-column: span 3; }
+.bento-reg { grid-column: span 2; }
+.bento-feature {
+  grid-column: span 3; grid-row: span 2;
+  background:
+    radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--c-walk) 16%, transparent), transparent 60%),
+    var(--card);
+  border-color: color-mix(in srgb, var(--c-walk) 32%, var(--line));
+  justify-content: flex-start;
+}
+.bento-ic { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; color: var(--c-walk); background: color-mix(in srgb, var(--c-walk) 12%, transparent); flex-shrink: 0; }
+.bento-ic svg { width: 19px; height: 19px; }
+.bento-feature .bento-ic { width: 46px; height: 46px; border-radius: 13px; }
+.bento-feature .bento-ic svg { width: 26px; height: 26px; }
+.bento-txt b { display: block; font-size: 1.03rem; margin-bottom: 4px; }
+.bento-feature .bento-txt b { font-size: 1.32rem; line-height: 1.2; }
+.bento-txt p { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.55; }
+.bento-feature .bento-txt p { font-size: 1rem; }
+@media (max-width: 860px) {
+  .bento { grid-template-columns: repeat(2, 1fr); }
+  .bento-wide, .bento-reg, .bento-feature { grid-column: span 1; grid-row: auto; }
+}
+@media (max-width: 520px) {
+  .bento { grid-template-columns: 1fr; }
+}
+
 /* ---------- journey svg ---------- */
 .journey-panel { padding: 10px 10px 4px; margin: 8px 0 clamp(30px, 4vw, 42px); }
 .journey-panel svg { width: 100%; height: auto; min-width: 0; }
@@ -1216,7 +1273,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 /* Hero chart layout grid */
 .chart-panel.hero-chart {
   display: grid;
-  grid-template-columns: minmax(430px, 0.48fr) minmax(0, 1fr);
+  grid-template-columns: minmax(340px, 0.36fr) minmax(0, 1fr);
   gap: clamp(16px, 2.5vw, 24px);
   align-items: stretch;
   background-image: none;
@@ -1228,7 +1285,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 @media (min-width: 1100px) {
   .chart-panel.hero-chart {
     --hero-chart-width: min(1360px, calc(100vw - 40px));
-    grid-template-columns: minmax(520px, 0.48fr) minmax(0, 1fr);
+    grid-template-columns: minmax(380px, 0.34fr) minmax(0, 1fr);
     width: var(--hero-chart-width);
     max-width: var(--hero-chart-width);
     margin-left: calc((100% - var(--hero-chart-width)) / 2);
@@ -1662,7 +1719,13 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
       <span class="brand-sub">A field manual to the Bible</span>
     </a>
 
+    <nav class="navstrip" id="nav" aria-label="Sections"></nav>
+
     <div class="topbar-actions">
+      <div class="edition-toggle" role="group" aria-label="Text edition">
+        <button class="edition-btn active" data-ed="updated" title="Updated wording from the latest revision">Updated</button>
+        <button class="edition-btn" data-ed="orig" title="Original wording, before the revision">Original</button>
+      </div>
       <div class="version-select-container">
         <select id="version-select" aria-label="Select Bible translation" title="Select Bible version">
           <option value="NIV" selected>NIV</option>
@@ -1681,7 +1744,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
       </button>
     </div>
   </div>
-  <nav class="navstrip" id="nav" aria-label="Sections"></nav>
 </header>
 
 <main id="view" class="wrap"></main>
@@ -1972,30 +2034,30 @@ const PATTERN = {
         { k: 'What it is', v: 'The assignment and inheritance you were delivered FOR — fruitfulness, authority, giving instead of surviving. Not heaven: it has giants in it.' },
         { k: 'It feels like', v: 'Battles fought FROM victory rather than for it. “Every place the sole of your foot treads, I have given you” (Josh 1:3) — given, then walked.' },
         { k: 'God’s move', v: 'Partnership. The Jordan parts only after the priests step in (Josh 3:13-17). The Red Sea was done TO you; the Jordan is done WITH you.' },
-        { k: 'Provision', v: 'Manna stops the day they eat the land’s produce (Josh 5:12). Not abandonment — promotion. Provision changes shape by season.' }
+        { k: 'Provision', v: ver('Manna stops the day they eat the land’s produce (Josh 5:12). Not abandonment — promotion. Provision changes shape by season.', 'Manna stops the day after they eat the land’s produce (Josh 5:12). Not abandonment — promotion. Provision changes shape by season.') }
       ]
     }
   ],
   insights: [
     { t: 'The exit is fast; the formation is slow.', x: 'One night out of Egypt; forty years getting Egypt out of them. Conversion is instant — renewal takes seasons (Rom 12:2). Don’t despise the slow part; it’s load-bearing.' },
-    { t: 'Identity comes before the test, never after it.', x: '“You are my beloved Son” (Matt 3:17) — before a single miracle or sermon. Then the very first attack: “IF you are the Son of God…” (Matt 4:3). The wilderness doesn’t ask what you can do. It asks whether you believe what the Voice said.' },
+    { t: 'Identity comes before the test, never after it.', x: ver('“You are my beloved Son” (Matt 3:17) — before a single miracle or sermon. Then the very first attack: “IF you are the Son of God…” (Matt 4:3). The wilderness doesn’t ask what you can do. It asks whether you believe what the Voice said.', '“You are my beloved Son” (Mark 1:11) — before a single miracle or sermon. Then the very first attack: “IF you are the Son of God…” (Matt 4:3). The wilderness doesn’t ask what you can do. It asks whether you believe what the Voice said.') },
     { t: 'Jesus re-ran Israel’s whole journey — and passed.', x: 'Carried into Egypt as a child (“out of Egypt I called my son,” Hos 11:1 / Matt 2:15), forty days in the wilderness matching forty years, answering every temptation from Deuteronomy 6–8 — Israel’s exact exam, retaken and aced. At the transfiguration, Moses and Elijah discuss His coming death — Luke calls it His “EXODUS” (Luke 9:31, Greek exodos). The cross is the true exodus.' },
     { t: 'Two crossings, two baptisms.', x: 'Red Sea: out of slavery — God does it while you stand still (Ex 14:13-14). Jordan: into inheritance — nothing moves until feet get wet (Josh 3:13). Paul calls the first crossing a baptism (1 Cor 10:2). Deliverance is received; inheritance is stepped into.' },
     { t: 'An 11-day trip took 40 years.', x: 'Deut 1:2 quietly notes: it’s eleven days from Horeb to Kadesh-barnea. The delay wasn’t geography — it was unbelief (Heb 3:19). The promise never expired; the generation did. God’s promises don’t have deadlines, but wandering has a cost.' },
-    { t: 'The giants were never the problem; the mirror was.', x: 'Ten spies: “We seemed like grasshoppers IN OUR OWN EYES, and so we were in theirs” (Num 13:33). Same giants, same God — Caleb just did different math (“they are bread for us,” Num 14:9). Your self-image sets your ceiling more than your circumstances do.' },
+    { t: 'The giants were never the problem; the mirror was.', x: ver('Ten spies: “We seemed like grasshoppers IN OUR OWN EYES, and so we were in theirs” (Num 13:33). Same giants, same God — Caleb just did different math (“they are bread for us,” Num 14:9). Your self-image sets your ceiling more than your circumstances do.', 'Ten spies: “We seemed like grasshoppers IN OUR OWN EYES, and so we were in theirs” (Num 13:33). Same giants, same God — Caleb and Joshua just did different math (“they are bread for us,” Num 14:9). Your self-image sets your ceiling more than your circumstances do.') },
     { t: 'Manna is seasonal; don’t build a theology on a season.', x: 'Manna in the desert, produce in the land (Josh 5:12). When provision changes shape, it usually means the season changed — read the map before assuming God left.' },
     { t: 'The presence was in every season.', x: 'The pillar of cloud and fire showed up IN the wilderness (Ex 13:21-22) and never once left. The promised land is not where God starts loving you. He’s in the desert, on purpose, with you.' },
     { t: 'You can camp at the wrong address.', x: 'Some wanted to go back to Egypt (Num 14:4). Some settled east of the Jordan, close enough to see the land but not in it (Num 32). And a whole generation died within walking distance of the promise. The land is entered by rest and faith, not by intensity (Heb 4:9-11) — and it’s always still on offer: “TODAY, if you hear his voice” (Heb 4:7).' }
   ],
   cases: [
-    { name: 'Israel', sub: 'the master case study', p1: '400 years of slavery — bricks, quotas, and a pharaoh who decides your worth (Ex 1).', p2: '40 years of manna, water from rocks, and a syllabus called Deuteronomy 8:2 — humbled, tested, fathered.', p3: 'Jordan parts, Jericho falls, and the fight is FROM promise, not for it (Josh 1:3).' },
+    { name: 'Israel', sub: 'the master case study', p1: ver('400 years of slavery — bricks, quotas, and a pharaoh who decides your worth (Ex 1).', '400 years of slavery — bricks, quotas, and a pharaoh who decides your worth (Ex 1; the 400 years, Gen 15:13).'), p2: '40 years of manna, water from rocks, and a syllabus called Deuteronomy 8:2 — humbled, tested, fathered.', p3: 'Jordan parts, Jericho falls, and the fight is FROM promise, not for it (Josh 1:3).' },
     { name: 'Joseph', sub: 'the pit-to-palace arc', p1: 'Favored and naive in his father’s house; then the pit and the slave caravan (Gen 37).', p2: 'Potiphar’s house and prison — 13 years where “the word of the LORD tested him” (Ps 105:19).', p3: 'Palace at 30: feeding nations, forgiving brothers — “you meant evil; God meant good” (Gen 50:20).' },
-    { name: 'Moses', sub: 'the 40-40-40 life', p1: '40 years as a prince of Egypt — power, education, and a murder that proved zeal isn’t readiness (Ex 2).', p2: '40 years keeping sheep in Midian — the résumé God was actually building (Ex 3:1).', p3: '40 years leading the exodus, face-to-face with God, “as a man speaks to his friend” (Ex 33:11).' },
+    { name: 'Moses', sub: 'the 40-40-40 life', p1: ver('40 years as a prince of Egypt — power, education, and a murder that proved zeal isn’t readiness (Ex 2).', '40 years as a prince of Egypt — power, education, and a murder that proved zeal isn’t readiness (Ex 2; the 40 years, Acts 7:23).'), p2: ver('40 years keeping sheep in Midian — the résumé God was actually building (Ex 3:1).', '40 years keeping sheep in Midian — the résumé God was actually building (Ex 3:1; Acts 7:30).'), p3: '40 years leading the exodus, face-to-face with God, “as a man speaks to his friend” (Ex 33:11).' },
     { name: 'David', sub: 'anointed long before crowned', p1: 'Overlooked in Jesse’s house — the kid they didn’t bother calling in from the field (1 Sam 16:11).', p2: 'Anointed, then hunted — years of caves, Adullam, and psalms written on the run (1 Sam 22–26).', p3: 'Crowned at Hebron, then Jerusalem — a shepherd’s heart with a king’s authority (2 Sam 5).' },
-    { name: 'Ruth', sub: 'famine to family tree', p1: 'Moab: famine, three funerals, and a mother-in-law who renamed herself “Bitter” (Ruth 1).', p2: 'Gleaning leftover barley in a stranger’s field — faithful obscurity, one row at a time (Ruth 2).', p3: 'Redeemed and married by Boaz — grandmother of kings, name in the genealogy of Jesus (Ruth 4; Matt 1:5).' },
+    { name: 'Ruth', sub: 'famine to family tree', p1: 'Moab: famine, three funerals, and a mother-in-law who renamed herself “Bitter” (Ruth 1).', p2: 'Gleaning leftover barley in a stranger’s field — faithful obscurity, one row at a time (Ruth 2).', p3: ver('Redeemed and married by Boaz — grandmother of kings, name in the genealogy of Jesus (Ruth 4; Matt 1:5).', 'Redeemed and married by Boaz — great-grandmother of kings, name in the genealogy of Jesus (Ruth 4; Matt 1:5).') },
     { name: 'Elijah', sub: 'hidden before public', p1: 'Gilead obscurity — a nobody from nowhere with one conviction: “the LORD before whom I stand” (1 Kings 17:1).', p2: 'Cherith’s drying brook and a widow’s empty pantry — provision lessons in hiding (1 Kings 17).', p3: 'Carmel: one prayer, fire falls, a nation turns (1 Kings 18).' },
     { name: 'Peter', sub: 'the compressed desert', p1: 'Boats and nets and a temper — competence in a small pond (Luke 5).', p2: 'One catastrophic night: three denials, a rooster, and bitter weeping — his whole wilderness in a weekend (Luke 22:54-62).', p3: 'Breakfast on the beach, restored three times, then Pentecost: one sermon, three thousand people (John 21; Acts 2).' },
-    { name: 'Paul', sub: 'zeal, then formation, then fire', p1: 'Rising star of the Pharisees — impeccable credentials aimed in exactly the wrong direction (Phil 3:4-6).', p2: 'Damascus, then Arabia, then roughly a decade of Tarsus silence before the story needs him (Gal 1:17-18; Acts 11:25).', p3: 'The apostle to the nations — letters from prisons that became half the New Testament.' },
+    { name: 'Paul', sub: 'zeal, then formation, then fire', p1: 'Rising star of the Pharisees — impeccable credentials aimed in exactly the wrong direction (Phil 3:4-6).', p2: ver('Damascus, then Arabia, then roughly a decade of Tarsus silence before the story needs him (Gal 1:17-18; Acts 11:25).', 'Damascus, then Arabia, then years of Tarsus silence before the story needs him (Gal 1:17-18; Acts 11:25).'), p3: 'The apostle to the nations — letters from prisons that became half the New Testament.' },
     { name: 'Jesus', sub: 'the pattern, perfected', p1: 'A refugee child in Egypt (Matt 2:14-15) and thirty years of Nazareth obscurity — a carpenter nobody quoted.', p2: 'Forty days, no bread, one open question: “IF you are the Son…” Answered entirely from Deuteronomy (Matt 4:1-11).', p3: 'Ministry in the Spirit’s power (Luke 4:14) — and His death called His “exodus” (Luke 9:31): the crossing that opens the land for everyone.' },
     { name: 'You', sub: 'same map, your dot', p1: 'Whatever raised you and named you before Jesus did — the systems, wounds, and paychecks of the old life.', p2: 'The unglamorous middle you may be in right now: daily bread, identity questions, no highlight reel. It is not punishment. It is formation — and He speaks sonship over you IN it, not after it.', p3: 'The inheritance side: walking in freedom, health, assignment, and rest — giants included, outcome not in doubt (Rom 8:37).' }
   ]
@@ -2535,7 +2597,13 @@ const REF_RE = /((?:[123]\s)?(?:Gen|Ex|Lev|Num|Deut|Josh|Judg|Ruth|Sam|Kings|Chr
 function refLink(r) {
   return '<a class="ref-link" target="_blank" rel="noopener" href="' + BG + encodeURIComponent(r) + '" data-ref="' + r + '">' + r + '</a>';
 }
-function linkRefs(html) { return html.replace(REF_RE, (m) => refLink(m)); }
+/* text edition: 'updated' (default) or 'orig'. ver(a,b) marks a field whose
+   wording changed in this pass; pick() resolves it for the active edition.
+   linkRefs unwraps it, so any text routed through linkRefs is edition-aware. */
+let TEXT_EDITION = 'updated';
+function ver(a, b) { return { __ed: true, a: a, b: b }; }
+function pick(x) { return (x && x.__ed) ? (TEXT_EDITION === 'orig' ? x.a : x.b) : x; }
+function linkRefs(html) { return pick(html).replace(REF_RE, (m) => refLink(m)); }
 function refRow(refs) {
   return '<div class="pillar-refs">' + refs.map(refLink).join(' · ') + '</div>';
 }
@@ -2599,36 +2667,105 @@ function buildHeroChart() {
     '</svg>';
 }
 
-/* ================= journey chart (pattern) ================= */
+/* ================= journey diorama (pattern) — isometric 3-tier scene ================= */
 function buildJourneySVG() {
-  const zone = (x, w, c, o) => '<rect x="' + x + '" y="26" width="' + w + '" height="192" fill="var(' + c + ')" opacity="' + o + '"/>';
-  const water = (x, name) =>
-    '<rect x="' + x + '" y="26" width="15" height="192" fill="var(--t-water)" opacity="0.3"/>' +
-    '<text x="' + (x + 10) + '" y="122" font-size="8" letter-spacing="1.8" fill="var(--t-water)" transform="rotate(-90 ' + (x + 10) + ' 122)" text-anchor="middle" style="font-family:var(--font-label);font-weight:700">' + name + '</text>';
-  const wp = (x, y, line1, line2, dy, align, dx) => {
-    const tx = x + (dx || 0);
-    const ty = y + (dy || -12);
-    const ta = align || 'middle';
-    return '<circle cx="' + x + '" cy="' + y + '" r="4.5" fill="var(--card)" stroke="var(--thread)" stroke-width="2.5"/>' +
-      '<text x="' + tx + '" y="' + ty + '" text-anchor="' + ta + '" font-size="8.5" letter-spacing="1.2" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:700">' + line1 +
-      (line2 ? '<tspan x="' + tx + '" dy="10">' + line2 + '</tspan>' : '') + '</text>';
+  const P = n => n.map(a => a.map(Math.round).join(',')).join(' '); // polygon points
+  // an isometric slab (raised 3D block): returns its faces + a point-on-top helper
+  function slab(x, y, W, D, cvar) {
+    const dx = D * 0.72, dy = D * 0.5, T = 26;
+    const A = [x, y], B = [x + W, y], C = [x + W + dx, y - dy], Dp = [x + dx, y - dy];
+    const svg =
+      '<polygon points="' + P([B, C, [C[0], C[1] + T], [B[0], B[1] + T]]) + '" fill="var(' + cvar + ')"/>' +
+      '<polygon points="' + P([B, C, [C[0], C[1] + T], [B[0], B[1] + T]]) + '" fill="#000" opacity="0.24"/>' +
+      '<polygon points="' + P([A, B, [B[0], B[1] + T], [A[0], A[1] + T]]) + '" fill="var(' + cvar + ')"/>' +
+      '<polygon points="' + P([A, B, [B[0], B[1] + T], [A[0], A[1] + T]]) + '" fill="#000" opacity="0.1"/>' +
+      '<polygon points="' + P([A, B, C, Dp]) + '" fill="var(' + cvar + ')"/>' +
+      '<polygon points="' + P([A, B, C, Dp]) + '" fill="#fff" opacity="0.16"/>';
+    return { svg, T, pt: (u, v) => [x + u * W + v * dx, y - v * dy] };
+  }
+  // upright sprite helpers (2.5D: they stand on the slab top)
+  const pyramid = (bx, by, w, h) =>
+    '<polygon points="' + P([[bx, by - h], [bx - w, by], [bx, by + 5]]) + '" fill="#c9a86a"/>' +
+    '<polygon points="' + P([[bx, by - h], [bx + w, by], [bx, by + 5]]) + '" fill="#a9884d"/>';
+  const tent = (bx, by, w, h) =>
+    '<polygon points="' + P([[bx, by - h], [bx - w, by], [bx + w, by]]) + '" fill="#d8c39a"/>' +
+    '<polygon points="' + P([[bx, by - h], [bx + w * 0.15, by], [bx + w, by]]) + '" fill="#b79a63"/>' +
+    '<path d="M' + (bx - 5) + ' ' + by + ' L' + bx + ' ' + (by - h * 0.5) + ' L' + (bx + 5) + ' ' + by + '" fill="#5b4a2a"/>';
+  const hill = (bx, by, w, h, c) =>
+    '<path d="M' + (bx - w) + ' ' + by + ' Q' + bx + ' ' + (by - h) + ' ' + (bx + w) + ' ' + by + ' Z" fill="' + c + '"/>';
+  const grapes = (bx, by) => {
+    let g = '<path d="M' + bx + ' ' + (by - 26) + ' q7 -6 3 -13" stroke="#6a7f3a" stroke-width="2" fill="none"/>';
+    const rows = [[-8, -20], [0, -20], [8, -20], [-4, -13], [4, -13], [0, -6]];
+    rows.forEach(o => { g += '<circle cx="' + (bx + o[0]) + '" cy="' + (by + o[1]) + '" r="5" fill="#7d5aa0"/>'; });
+    return g;
   };
-  const zlabel = (x, l, c) => '<text x="' + x + '" y="238" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="var(' + c + ')" style="font-family:var(--font-label);font-weight:700">' + l + '</text>';
-  const route = 'M14 196 H160 L196 190 C230 184 238 160 256 148 L300 172 L348 166 ' +
-    'a21 21 0 1 1 14 5 ' +
-    'L470 152 L516 140 L552 124 L610 112 C660 102 690 96 730 88';
-  return '<svg viewBox="0 0 760 250" role="img" aria-label="The journey from Egypt through the wilderness into the promised land">' +
-    zone(0, 180, '--s-egypt', 0.12) + zone(195, 325, '--s-desert', 0.1) + zone(535, 225, '--s-land', 0.12) +
-    water(180, 'RED SEA') + water(520, 'JORDAN') +
-    '<path class="journey-route-path" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="2.4" stroke-linecap="round"/>' +
-    '<path d="M244 148 l12 -18 12 18z" fill="none" stroke="var(--s-desert)" stroke-width="1.8" stroke-linejoin="round"/>' +
-    wp(160, 196, 'GOSHEN', '', 16, 'end', -8) +
-    wp(256, 148, 'SINAI', 'IDENTITY SPOKEN', -14, 'start', 10) +
-    wp(348, 166, 'KADESH · THE CHOICE', '', 22, 'middle') +
-    '<text x="376" y="204" text-anchor="middle" font-size="8" letter-spacing="1.4" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700">40 YEARS</text>' +
-    wp(552, 124, 'JERICHO', '', -4, 'start', 10) +
-    wp(730, 88, 'FRUITFULNESS', '', -10, 'end', -8) +
-    zlabel(90, 'EGYPT · BONDAGE', '--s-egypt') + zlabel(357, 'WILDERNESS · FORMATION', '--s-desert') + zlabel(647, 'THE LAND · INHERITANCE', '--s-land') +
+  const sun = (cx, cy, r) => {
+    let rays = '';
+    for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; rays += '<line x1="' + (cx + Math.cos(a) * (r + 4)) + '" y1="' + (cy + Math.sin(a) * (r + 4)) + '" x2="' + (cx + Math.cos(a) * (r + 11)) + '" y2="' + (cy + Math.sin(a) * (r + 11)) + '" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" opacity="0.7"/>'; }
+    return rays + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="var(--gold)" opacity="0.9"/>';
+  };
+  const cityWall = (bx, by) =>
+    '<rect x="' + (bx - 26) + '" y="' + (by - 26) + '" width="52" height="26" fill="#cdb98f"/>' +
+    '<rect x="' + (bx - 26) + '" y="' + (by - 26) + '" width="52" height="26" fill="#000" opacity="0.08"/>' +
+    '<path d="M' + (bx - 26) + ' ' + (by - 26) + ' h6 v-5 h5 v5 h6 v-5 h5 v5 h6 v-5 h5 v5 h6 v-5 h5 v5 h5" fill="#b8a271"/>' +
+    '<rect x="' + (bx - 6) + '" y="' + (by - 16) + '" width="12" height="16" fill="#6b5836"/>';
+  const pins = []; // waypoint pins drawn last, on top of the route
+  const pin = (x, y, n) => pins.push('<g class="journey-pin"><circle cx="' + x + '" cy="' + y + '" r="9" fill="var(--card)" stroke="var(--thread)" stroke-width="2.5"/><text x="' + x + '" y="' + (y + 3.2) + '" text-anchor="middle" font-size="9" fill="var(--thread)" style="font-family:var(--font-label);font-weight:700">' + n + '</text></g>');
+  const flag = (x, y, txt, c) =>
+    '<text x="' + x + '" y="' + y + '" text-anchor="middle" font-size="9" letter-spacing="1.4" fill="' + (c || 'var(--ink-soft)') + '" style="font-family:var(--font-label);font-weight:700">' + txt + '</text>';
+  const seaGap = (x0, x1, yTop, name) => {
+    const w = x1 - x0;
+    let waves = '';
+    for (let i = 0; i < 3; i++) waves += '<path d="M' + (x0 + 6) + ' ' + (yTop + 10 + i * 8) + ' q' + (w / 4) + ' -6 ' + (w / 2) + ' 0 t' + (w / 2) + ' 0" stroke="#e9f2f6" stroke-width="1.5" fill="none" opacity="0.5"/>';
+    return '<polygon points="' + P([[x0, yTop], [x1, yTop - 16], [x1, yTop + 34], [x0, yTop + 50]]) + '" fill="var(--t-water)" opacity="0.85"/>' + waves +
+      '<text x="' + (x0 + w / 2) + '" y="' + (yTop + 24) + '" text-anchor="middle" font-size="8" letter-spacing="1" fill="#fff" style="font-family:var(--font-label);font-weight:700" transform="rotate(-9 ' + (x0 + w / 2) + ' ' + (yTop + 24) + ')">' + name + '</text>';
+  };
+
+  const eg = slab(34, 322, 168, 84, '--s-egypt');
+  const de = slab(320, 276, 196, 90, '--s-desert');
+  const la = slab(628, 224, 188, 90, '--s-land');
+
+  // route across the tops, dipping through each sea
+  const rEg = eg.pt(0.62, 0.5), aEg = eg.pt(0.12, 0.42);
+  const rDe1 = de.pt(0.14, 0.5), rDeMid = de.pt(0.5, 0.55), rDe2 = de.pt(0.9, 0.5);
+  const rLa1 = la.pt(0.12, 0.5), rLa2 = la.pt(0.86, 0.55);
+  const route = 'M' + aEg.map(Math.round).join(' ') + ' L' + rEg.map(Math.round).join(' ') +
+    ' Q' + Math.round(rEg[0] + 40) + ' ' + Math.round(rEg[1] + 24) + ' ' + rDe1.map(Math.round).join(' ') +
+    ' L' + rDeMid.map(Math.round).join(' ') + ' L' + rDe2.map(Math.round).join(' ') +
+    ' Q' + Math.round(rDe2[0] + 40) + ' ' + Math.round(rDe2[1] + 20) + ' ' + rLa1.map(Math.round).join(' ') +
+    ' L' + rLa2.map(Math.round).join(' ');
+
+  // pins on key points
+  pin(aEg[0], aEg[1], 1); pin(rDe1[0], rDe1[1], 2); pin(rDeMid[0], rDeMid[1], 3); pin(rLa1[0], rLa1[1], 4); pin(rLa2[0], rLa2[1], 5);
+
+  const eL = eg.pt(0.4, 0.55), eL2 = eg.pt(0.75, 0.5);
+  const dT = de.pt(0.55, 0.55), dFire = de.pt(0.28, 0.6);
+  const lH = la.pt(0.35, 0.6), lG = la.pt(0.62, 0.5), lC = la.pt(0.85, 0.62);
+
+  return '<svg viewBox="0 0 900 430" role="img" aria-label="An isometric journey from Egypt through the wilderness into the promised land">' +
+    sun(150, 70, 16) +
+    // pillar of cloud (day) & fire (night) over the wilderness
+    (function () {
+      var px = Math.round(dFire[0]), pb = Math.round(dFire[1] - 2), ptop = pb - 138;
+      return '<rect x="' + (px - 9) + '" y="' + ptop + '" width="18" height="' + (pb - ptop) + '" rx="9" fill="var(--s-desert)" opacity="0.26"/>' +
+        '<rect x="' + (px - 9) + '" y="' + (pb - 44) + '" width="18" height="42" rx="9" fill="var(--thread)" opacity="0.5"/>' +
+        '<g fill="var(--s-desert)" opacity="0.42"><circle cx="' + px + '" cy="' + ptop + '" r="13"/><circle cx="' + (px - 11) + '" cy="' + (ptop + 5) + '" r="9"/><circle cx="' + (px + 11) + '" cy="' + (ptop + 5) + '" r="9"/></g>' +
+        '<path d="M' + px + ' ' + (pb - 3) + ' q-9 -13 0 -24 q3 7 4 4 q4 -9 -1 -17 q13 9 8 25 q-2 8 -11 12z" fill="var(--thread)" opacity="0.72"/>';
+    })() +
+    la.svg + seaGap(560, 626, 300, 'JORDAN') +
+    de.svg + seaGap(250, 318, 350, 'RED SEA') +
+    eg.svg +
+    // elements
+    pyramid(eL[0], eL[1], 30, 62) + pyramid(eL2[0], eL2[1], 20, 42) +
+    tent(dT[0], dT[1], 26, 40) +
+    hill(lH[0] - 14, lH[1], 30, 26, 'color-mix(in srgb, var(--s-land) 78%, #000 10%)') + hill(lH[0] + 16, lH[1], 34, 34, 'var(--s-land)') +
+    grapes(lG[0], lG[1]) + cityWall(lC[0], lC[1]) +
+    '<path class="journey-route-path" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>' +
+    pins.join('') +
+    // zone banners
+    flag(eg.pt(0.5, -0.05)[0], 405, 'EGYPT', 'var(--s-egypt)') + flag(eg.pt(0.5, -0.05)[0], 417, 'BONDAGE') +
+    flag(de.pt(0.5, -0.05)[0], 405, 'WILDERNESS', 'var(--s-desert)') + flag(de.pt(0.5, -0.05)[0], 417, 'FORMATION') +
+    flag(la.pt(0.5, -0.05)[0], 405, 'PROMISED LAND', 'var(--s-land)') + flag(la.pt(0.5, -0.05)[0], 417, 'INHERITANCE') +
     '</svg>';
 }
 
@@ -2704,7 +2841,12 @@ function vStart() {
     '<a class="trailhead" href="#/' + t.id + '" style="--c:var(' + t.cvar + ')">' +
     '<span class="icon-chip">' + icon(t.icon) + '</span>' +
     '<span><h3>' + t.label + '</h3><p>' + t.blurb + '</p><span class="go">Open the chart →</span></span></a>').join('');
-  const tips = START.howTo.tips.map(i => '<div class="idea-row"><span class="idea-num" style="background:color-mix(in srgb, var(--c-walk) 11%, transparent);color:var(--c-walk)"></span><div><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div></div>').join('');
+  const howOrder = [5, 0, 1, 2, 3, 4];
+  const howIcon = { 0: 'scroll', 1: 'lamb', 2: 'wind', 3: 'covenant', 4: 'walk', 5: 'cross' };
+  const howSpan = { 5: 'feature', 0: 'wide', 1: 'wide', 2: 'reg', 3: 'reg', 4: 'reg' };
+  const tips = howOrder.map(ix => { const i = START.howTo.tips[ix];
+    return '<div class="bento-tile bento-' + howSpan[ix] + '"><span class="bento-ic">' + icon(howIcon[ix]) + '</span>' +
+      '<div class="bento-txt"><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div></div>'; }).join('');
   return '<div class="view">' +
     '<div class="hero">' +
     '<div class="eyebrow" style="--c:var(--thread)">' + icon('thread') + 'A field manual to the Bible</div>' +
@@ -2731,7 +2873,7 @@ function vStart() {
     '<div class="home-section-title"><h2>Pick a trailhead</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<div class="grid grid-2">' + trails + '</div>' +
     '<div class="home-section-title"><h2>' + START.howTo.title + '</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
-    '<div class="big-idea">' + tips + '</div>' +
+    '<div class="bento">' + tips + '</div>' +
     '</div>';
 }
 
@@ -2925,6 +3067,7 @@ function vLibrary() {
 /* ================= search ================= */
 let INDEX = [];
 function buildIndex() {
+  INDEX.length = 0;
   const add = (view, anchor, whereLabel, cvar, title, sub, extra) =>
     INDEX.push({ view, anchor, where: whereLabel, cvar, title, sub: sub || '', hay: (title + ' ' + (sub || '') + ' ' + (extra || '')).toLowerCase() });
   THREADS.forEach(t => add('threads', 't-' + t.id, 'Threads', t.cvar, t.name, t.tag, t.way.map(w => w.ref + ' ' + w.note).join(' ') + ' ' + t.landsOn));
@@ -3488,6 +3631,28 @@ function hideTooltip() {
   }, 200);
 }
 
+function renderSections() {
+  const container = document.getElementById('view');
+  let html = '';
+  NAV.forEach(n => {
+    const fn = VIEWS[n.id];
+    if (fn) html += '<section id="' + n.id + '" class="section-block">' + fn() + '</section>';
+  });
+  container.innerHTML = html;
+  measureThreadPreviewHeight();
+  wireAllSections();
+}
+
+function applyEdition(ed) {
+  TEXT_EDITION = (ed === 'orig') ? 'orig' : 'updated';
+  localStorage.setItem('thread-edition', TEXT_EDITION);
+  const y = window.scrollY;
+  renderSections();
+  window.scrollTo(0, y);
+  setupScrollspy();
+  document.querySelectorAll('.edition-btn').forEach(b => b.classList.toggle('active', b.dataset.ed === TEXT_EDITION));
+}
+
 function boot() {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
@@ -3527,17 +3692,15 @@ function boot() {
     localStorage.setItem('thread-version', select.value);
   });
 
-  // Render all views sequentially on the page
-  const container = document.getElementById('view');
-  let html = '';
-  NAV.forEach(n => {
-    const fn = VIEWS[n.id];
-    if (fn) {
-      html += '<section id="' + n.id + '" class="section-block">' + fn() + '</section>';
-    }
+  // text edition toggle (original vs updated wording) — restore before first render
+  if (localStorage.getItem('thread-edition') === 'orig') TEXT_EDITION = 'orig';
+  document.querySelectorAll('.edition-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.ed === TEXT_EDITION);
+    btn.addEventListener('click', () => applyEdition(btn.dataset.ed));
   });
-  container.innerHTML = html;
-  measureThreadPreviewHeight();
+
+  // Render all sections (edition-aware) on the single page
+  renderSections();
 
   buildIndex();
   const input = document.getElementById('search-input');
@@ -3557,7 +3720,6 @@ function boot() {
   }
 
   // Wire events, then handle the initial route before enabling scrollspy.
-  wireAllSections();
   initTooltip();
 
   window.addEventListener('hashchange', route);

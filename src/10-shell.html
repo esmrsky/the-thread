@@ -9,7 +9,13 @@
       <span class="brand-sub">A field manual to the Bible</span>
     </a>
 
+    <nav class="navstrip" id="nav" aria-label="Sections"></nav>
+
     <div class="topbar-actions">
+      <div class="edition-toggle" role="group" aria-label="Text edition">
+        <button class="edition-btn active" data-ed="updated" title="Updated wording from the latest revision">Updated</button>
+        <button class="edition-btn" data-ed="orig" title="Original wording, before the revision">Original</button>
+      </div>
       <div class="version-select-container">
         <select id="version-select" aria-label="Select Bible translation" title="Select Bible version">
           <option value="NIV" selected>NIV</option>
@@ -28,7 +34,6 @@
       </button>
     </div>
   </div>
-  <nav class="navstrip" id="nav" aria-label="Sections"></nav>
 </header>
 
 <main id="view" class="wrap"></main>

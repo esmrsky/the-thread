@@ -5,7 +5,13 @@ const REF_RE = /((?:[123]\s)?(?:Gen|Ex|Lev|Num|Deut|Josh|Judg|Ruth|Sam|Kings|Chr
 function refLink(r) {
   return '<a class="ref-link" target="_blank" rel="noopener" href="' + BG + encodeURIComponent(r) + '" data-ref="' + r + '">' + r + '</a>';
 }
-function linkRefs(html) { return html.replace(REF_RE, (m) => refLink(m)); }
+/* text edition: 'updated' (default) or 'orig'. ver(a,b) marks a field whose
+   wording changed in this pass; pick() resolves it for the active edition.
+   linkRefs unwraps it, so any text routed through linkRefs is edition-aware. */
+let TEXT_EDITION = 'updated';
+function ver(a, b) { return { __ed: true, a: a, b: b }; }
+function pick(x) { return (x && x.__ed) ? (TEXT_EDITION === 'orig' ? x.a : x.b) : x; }
+function linkRefs(html) { return pick(html).replace(REF_RE, (m) => refLink(m)); }
 function refRow(refs) {
   return '<div class="pillar-refs">' + refs.map(refLink).join(' · ') + '</div>';
 }
@@ -69,36 +75,105 @@ function buildHeroChart() {
     '</svg>';
 }
 
-/* ================= journey chart (pattern) ================= */
+/* ================= journey diorama (pattern) — isometric 3-tier scene ================= */
 function buildJourneySVG() {
-  const zone = (x, w, c, o) => '<rect x="' + x + '" y="26" width="' + w + '" height="192" fill="var(' + c + ')" opacity="' + o + '"/>';
-  const water = (x, name) =>
-    '<rect x="' + x + '" y="26" width="15" height="192" fill="var(--t-water)" opacity="0.3"/>' +
-    '<text x="' + (x + 10) + '" y="122" font-size="8" letter-spacing="1.8" fill="var(--t-water)" transform="rotate(-90 ' + (x + 10) + ' 122)" text-anchor="middle" style="font-family:var(--font-label);font-weight:700">' + name + '</text>';
-  const wp = (x, y, line1, line2, dy, align, dx) => {
-    const tx = x + (dx || 0);
-    const ty = y + (dy || -12);
-    const ta = align || 'middle';
-    return '<circle cx="' + x + '" cy="' + y + '" r="4.5" fill="var(--card)" stroke="var(--thread)" stroke-width="2.5"/>' +
-      '<text x="' + tx + '" y="' + ty + '" text-anchor="' + ta + '" font-size="8.5" letter-spacing="1.2" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:700">' + line1 +
-      (line2 ? '<tspan x="' + tx + '" dy="10">' + line2 + '</tspan>' : '') + '</text>';
+  const P = n => n.map(a => a.map(Math.round).join(',')).join(' '); // polygon points
+  // an isometric slab (raised 3D block): returns its faces + a point-on-top helper
+  function slab(x, y, W, D, cvar) {
+    const dx = D * 0.72, dy = D * 0.5, T = 26;
+    const A = [x, y], B = [x + W, y], C = [x + W + dx, y - dy], Dp = [x + dx, y - dy];
+    const svg =
+      '<polygon points="' + P([B, C, [C[0], C[1] + T], [B[0], B[1] + T]]) + '" fill="var(' + cvar + ')"/>' +
+      '<polygon points="' + P([B, C, [C[0], C[1] + T], [B[0], B[1] + T]]) + '" fill="#000" opacity="0.24"/>' +
+      '<polygon points="' + P([A, B, [B[0], B[1] + T], [A[0], A[1] + T]]) + '" fill="var(' + cvar + ')"/>' +
+      '<polygon points="' + P([A, B, [B[0], B[1] + T], [A[0], A[1] + T]]) + '" fill="#000" opacity="0.1"/>' +
+      '<polygon points="' + P([A, B, C, Dp]) + '" fill="var(' + cvar + ')"/>' +
+      '<polygon points="' + P([A, B, C, Dp]) + '" fill="#fff" opacity="0.16"/>';
+    return { svg, T, pt: (u, v) => [x + u * W + v * dx, y - v * dy] };
+  }
+  // upright sprite helpers (2.5D: they stand on the slab top)
+  const pyramid = (bx, by, w, h) =>
+    '<polygon points="' + P([[bx, by - h], [bx - w, by], [bx, by + 5]]) + '" fill="#c9a86a"/>' +
+    '<polygon points="' + P([[bx, by - h], [bx + w, by], [bx, by + 5]]) + '" fill="#a9884d"/>';
+  const tent = (bx, by, w, h) =>
+    '<polygon points="' + P([[bx, by - h], [bx - w, by], [bx + w, by]]) + '" fill="#d8c39a"/>' +
+    '<polygon points="' + P([[bx, by - h], [bx + w * 0.15, by], [bx + w, by]]) + '" fill="#b79a63"/>' +
+    '<path d="M' + (bx - 5) + ' ' + by + ' L' + bx + ' ' + (by - h * 0.5) + ' L' + (bx + 5) + ' ' + by + '" fill="#5b4a2a"/>';
+  const hill = (bx, by, w, h, c) =>
+    '<path d="M' + (bx - w) + ' ' + by + ' Q' + bx + ' ' + (by - h) + ' ' + (bx + w) + ' ' + by + ' Z" fill="' + c + '"/>';
+  const grapes = (bx, by) => {
+    let g = '<path d="M' + bx + ' ' + (by - 26) + ' q7 -6 3 -13" stroke="#6a7f3a" stroke-width="2" fill="none"/>';
+    const rows = [[-8, -20], [0, -20], [8, -20], [-4, -13], [4, -13], [0, -6]];
+    rows.forEach(o => { g += '<circle cx="' + (bx + o[0]) + '" cy="' + (by + o[1]) + '" r="5" fill="#7d5aa0"/>'; });
+    return g;
   };
-  const zlabel = (x, l, c) => '<text x="' + x + '" y="238" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="var(' + c + ')" style="font-family:var(--font-label);font-weight:700">' + l + '</text>';
-  const route = 'M14 196 H160 L196 190 C230 184 238 160 256 148 L300 172 L348 166 ' +
-    'a21 21 0 1 1 14 5 ' +
-    'L470 152 L516 140 L552 124 L610 112 C660 102 690 96 730 88';
-  return '<svg viewBox="0 0 760 250" role="img" aria-label="The journey from Egypt through the wilderness into the promised land">' +
-    zone(0, 180, '--s-egypt', 0.12) + zone(195, 325, '--s-desert', 0.1) + zone(535, 225, '--s-land', 0.12) +
-    water(180, 'RED SEA') + water(520, 'JORDAN') +
-    '<path class="journey-route-path" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="2.4" stroke-linecap="round"/>' +
-    '<path d="M244 148 l12 -18 12 18z" fill="none" stroke="var(--s-desert)" stroke-width="1.8" stroke-linejoin="round"/>' +
-    wp(160, 196, 'GOSHEN', '', 16, 'end', -8) +
-    wp(256, 148, 'SINAI', 'IDENTITY SPOKEN', -14, 'start', 10) +
-    wp(348, 166, 'KADESH · THE CHOICE', '', 22, 'middle') +
-    '<text x="376" y="204" text-anchor="middle" font-size="8" letter-spacing="1.4" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700">40 YEARS</text>' +
-    wp(552, 124, 'JERICHO', '', -4, 'start', 10) +
-    wp(730, 88, 'FRUITFULNESS', '', -10, 'end', -8) +
-    zlabel(90, 'EGYPT · BONDAGE', '--s-egypt') + zlabel(357, 'WILDERNESS · FORMATION', '--s-desert') + zlabel(647, 'THE LAND · INHERITANCE', '--s-land') +
+  const sun = (cx, cy, r) => {
+    let rays = '';
+    for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; rays += '<line x1="' + (cx + Math.cos(a) * (r + 4)) + '" y1="' + (cy + Math.sin(a) * (r + 4)) + '" x2="' + (cx + Math.cos(a) * (r + 11)) + '" y2="' + (cy + Math.sin(a) * (r + 11)) + '" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" opacity="0.7"/>'; }
+    return rays + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="var(--gold)" opacity="0.9"/>';
+  };
+  const cityWall = (bx, by) =>
+    '<rect x="' + (bx - 26) + '" y="' + (by - 26) + '" width="52" height="26" fill="#cdb98f"/>' +
+    '<rect x="' + (bx - 26) + '" y="' + (by - 26) + '" width="52" height="26" fill="#000" opacity="0.08"/>' +
+    '<path d="M' + (bx - 26) + ' ' + (by - 26) + ' h6 v-5 h5 v5 h6 v-5 h5 v5 h6 v-5 h5 v5 h6 v-5 h5 v5 h5" fill="#b8a271"/>' +
+    '<rect x="' + (bx - 6) + '" y="' + (by - 16) + '" width="12" height="16" fill="#6b5836"/>';
+  const pins = []; // waypoint pins drawn last, on top of the route
+  const pin = (x, y, n) => pins.push('<g class="journey-pin"><circle cx="' + x + '" cy="' + y + '" r="9" fill="var(--card)" stroke="var(--thread)" stroke-width="2.5"/><text x="' + x + '" y="' + (y + 3.2) + '" text-anchor="middle" font-size="9" fill="var(--thread)" style="font-family:var(--font-label);font-weight:700">' + n + '</text></g>');
+  const flag = (x, y, txt, c) =>
+    '<text x="' + x + '" y="' + y + '" text-anchor="middle" font-size="9" letter-spacing="1.4" fill="' + (c || 'var(--ink-soft)') + '" style="font-family:var(--font-label);font-weight:700">' + txt + '</text>';
+  const seaGap = (x0, x1, yTop, name) => {
+    const w = x1 - x0;
+    let waves = '';
+    for (let i = 0; i < 3; i++) waves += '<path d="M' + (x0 + 6) + ' ' + (yTop + 10 + i * 8) + ' q' + (w / 4) + ' -6 ' + (w / 2) + ' 0 t' + (w / 2) + ' 0" stroke="#e9f2f6" stroke-width="1.5" fill="none" opacity="0.5"/>';
+    return '<polygon points="' + P([[x0, yTop], [x1, yTop - 16], [x1, yTop + 34], [x0, yTop + 50]]) + '" fill="var(--t-water)" opacity="0.85"/>' + waves +
+      '<text x="' + (x0 + w / 2) + '" y="' + (yTop + 24) + '" text-anchor="middle" font-size="8" letter-spacing="1" fill="#fff" style="font-family:var(--font-label);font-weight:700" transform="rotate(-9 ' + (x0 + w / 2) + ' ' + (yTop + 24) + ')">' + name + '</text>';
+  };
+
+  const eg = slab(34, 322, 168, 84, '--s-egypt');
+  const de = slab(320, 276, 196, 90, '--s-desert');
+  const la = slab(628, 224, 188, 90, '--s-land');
+
+  // route across the tops, dipping through each sea
+  const rEg = eg.pt(0.62, 0.5), aEg = eg.pt(0.12, 0.42);
+  const rDe1 = de.pt(0.14, 0.5), rDeMid = de.pt(0.5, 0.55), rDe2 = de.pt(0.9, 0.5);
+  const rLa1 = la.pt(0.12, 0.5), rLa2 = la.pt(0.86, 0.55);
+  const route = 'M' + aEg.map(Math.round).join(' ') + ' L' + rEg.map(Math.round).join(' ') +
+    ' Q' + Math.round(rEg[0] + 40) + ' ' + Math.round(rEg[1] + 24) + ' ' + rDe1.map(Math.round).join(' ') +
+    ' L' + rDeMid.map(Math.round).join(' ') + ' L' + rDe2.map(Math.round).join(' ') +
+    ' Q' + Math.round(rDe2[0] + 40) + ' ' + Math.round(rDe2[1] + 20) + ' ' + rLa1.map(Math.round).join(' ') +
+    ' L' + rLa2.map(Math.round).join(' ');
+
+  // pins on key points
+  pin(aEg[0], aEg[1], 1); pin(rDe1[0], rDe1[1], 2); pin(rDeMid[0], rDeMid[1], 3); pin(rLa1[0], rLa1[1], 4); pin(rLa2[0], rLa2[1], 5);
+
+  const eL = eg.pt(0.4, 0.55), eL2 = eg.pt(0.75, 0.5);
+  const dT = de.pt(0.55, 0.55), dFire = de.pt(0.28, 0.6);
+  const lH = la.pt(0.35, 0.6), lG = la.pt(0.62, 0.5), lC = la.pt(0.85, 0.62);
+
+  return '<svg viewBox="0 0 900 430" role="img" aria-label="An isometric journey from Egypt through the wilderness into the promised land">' +
+    sun(150, 70, 16) +
+    // pillar of cloud (day) & fire (night) over the wilderness
+    (function () {
+      var px = Math.round(dFire[0]), pb = Math.round(dFire[1] - 2), ptop = pb - 138;
+      return '<rect x="' + (px - 9) + '" y="' + ptop + '" width="18" height="' + (pb - ptop) + '" rx="9" fill="var(--s-desert)" opacity="0.26"/>' +
+        '<rect x="' + (px - 9) + '" y="' + (pb - 44) + '" width="18" height="42" rx="9" fill="var(--thread)" opacity="0.5"/>' +
+        '<g fill="var(--s-desert)" opacity="0.42"><circle cx="' + px + '" cy="' + ptop + '" r="13"/><circle cx="' + (px - 11) + '" cy="' + (ptop + 5) + '" r="9"/><circle cx="' + (px + 11) + '" cy="' + (ptop + 5) + '" r="9"/></g>' +
+        '<path d="M' + px + ' ' + (pb - 3) + ' q-9 -13 0 -24 q3 7 4 4 q4 -9 -1 -17 q13 9 8 25 q-2 8 -11 12z" fill="var(--thread)" opacity="0.72"/>';
+    })() +
+    la.svg + seaGap(560, 626, 300, 'JORDAN') +
+    de.svg + seaGap(250, 318, 350, 'RED SEA') +
+    eg.svg +
+    // elements
+    pyramid(eL[0], eL[1], 30, 62) + pyramid(eL2[0], eL2[1], 20, 42) +
+    tent(dT[0], dT[1], 26, 40) +
+    hill(lH[0] - 14, lH[1], 30, 26, 'color-mix(in srgb, var(--s-land) 78%, #000 10%)') + hill(lH[0] + 16, lH[1], 34, 34, 'var(--s-land)') +
+    grapes(lG[0], lG[1]) + cityWall(lC[0], lC[1]) +
+    '<path class="journey-route-path" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>' +
+    pins.join('') +
+    // zone banners
+    flag(eg.pt(0.5, -0.05)[0], 405, 'EGYPT', 'var(--s-egypt)') + flag(eg.pt(0.5, -0.05)[0], 417, 'BONDAGE') +
+    flag(de.pt(0.5, -0.05)[0], 405, 'WILDERNESS', 'var(--s-desert)') + flag(de.pt(0.5, -0.05)[0], 417, 'FORMATION') +
+    flag(la.pt(0.5, -0.05)[0], 405, 'PROMISED LAND', 'var(--s-land)') + flag(la.pt(0.5, -0.05)[0], 417, 'INHERITANCE') +
     '</svg>';
 }
 
@@ -174,7 +249,12 @@ function vStart() {
     '<a class="trailhead" href="#/' + t.id + '" style="--c:var(' + t.cvar + ')">' +
     '<span class="icon-chip">' + icon(t.icon) + '</span>' +
     '<span><h3>' + t.label + '</h3><p>' + t.blurb + '</p><span class="go">Open the chart →</span></span></a>').join('');
-  const tips = START.howTo.tips.map(i => '<div class="idea-row"><span class="idea-num" style="background:color-mix(in srgb, var(--c-walk) 11%, transparent);color:var(--c-walk)"></span><div><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div></div>').join('');
+  const howOrder = [5, 0, 1, 2, 3, 4];
+  const howIcon = { 0: 'scroll', 1: 'lamb', 2: 'wind', 3: 'covenant', 4: 'walk', 5: 'cross' };
+  const howSpan = { 5: 'feature', 0: 'wide', 1: 'wide', 2: 'reg', 3: 'reg', 4: 'reg' };
+  const tips = howOrder.map(ix => { const i = START.howTo.tips[ix];
+    return '<div class="bento-tile bento-' + howSpan[ix] + '"><span class="bento-ic">' + icon(howIcon[ix]) + '</span>' +
+      '<div class="bento-txt"><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div></div>'; }).join('');
   return '<div class="view">' +
     '<div class="hero">' +
     '<div class="eyebrow" style="--c:var(--thread)">' + icon('thread') + 'A field manual to the Bible</div>' +
@@ -201,7 +281,7 @@ function vStart() {
     '<div class="home-section-title"><h2>Pick a trailhead</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<div class="grid grid-2">' + trails + '</div>' +
     '<div class="home-section-title"><h2>' + START.howTo.title + '</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
-    '<div class="big-idea">' + tips + '</div>' +
+    '<div class="bento">' + tips + '</div>' +
     '</div>';
 }
 
@@ -395,6 +475,7 @@ function vLibrary() {
 /* ================= search ================= */
 let INDEX = [];
 function buildIndex() {
+  INDEX.length = 0;
   const add = (view, anchor, whereLabel, cvar, title, sub, extra) =>
     INDEX.push({ view, anchor, where: whereLabel, cvar, title, sub: sub || '', hay: (title + ' ' + (sub || '') + ' ' + (extra || '')).toLowerCase() });
   THREADS.forEach(t => add('threads', 't-' + t.id, 'Threads', t.cvar, t.name, t.tag, t.way.map(w => w.ref + ' ' + w.note).join(' ') + ' ' + t.landsOn));
@@ -958,6 +1039,28 @@ function hideTooltip() {
   }, 200);
 }
 
+function renderSections() {
+  const container = document.getElementById('view');
+  let html = '';
+  NAV.forEach(n => {
+    const fn = VIEWS[n.id];
+    if (fn) html += '<section id="' + n.id + '" class="section-block">' + fn() + '</section>';
+  });
+  container.innerHTML = html;
+  measureThreadPreviewHeight();
+  wireAllSections();
+}
+
+function applyEdition(ed) {
+  TEXT_EDITION = (ed === 'orig') ? 'orig' : 'updated';
+  localStorage.setItem('thread-edition', TEXT_EDITION);
+  const y = window.scrollY;
+  renderSections();
+  window.scrollTo(0, y);
+  setupScrollspy();
+  document.querySelectorAll('.edition-btn').forEach(b => b.classList.toggle('active', b.dataset.ed === TEXT_EDITION));
+}
+
 function boot() {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
@@ -997,17 +1100,15 @@ function boot() {
     localStorage.setItem('thread-version', select.value);
   });
 
-  // Render all views sequentially on the page
-  const container = document.getElementById('view');
-  let html = '';
-  NAV.forEach(n => {
-    const fn = VIEWS[n.id];
-    if (fn) {
-      html += '<section id="' + n.id + '" class="section-block">' + fn() + '</section>';
-    }
+  // text edition toggle (original vs updated wording) — restore before first render
+  if (localStorage.getItem('thread-edition') === 'orig') TEXT_EDITION = 'orig';
+  document.querySelectorAll('.edition-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.ed === TEXT_EDITION);
+    btn.addEventListener('click', () => applyEdition(btn.dataset.ed));
   });
-  container.innerHTML = html;
-  measureThreadPreviewHeight();
+
+  // Render all sections (edition-aware) on the single page
+  renderSections();
 
   buildIndex();
   const input = document.getElementById('search-input');
@@ -1027,7 +1128,6 @@ function boot() {
   }
 
   // Wire events, then handle the initial route before enabling scrollspy.
-  wireAllSections();
   initTooltip();
 
   window.addEventListener('hashchange', route);
