@@ -1,0 +1,3299 @@
+<title>The Thread — A Field Manual to the Bible</title>
+<style>
+/* ================= THE THREAD — map-room design system ================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; }
+
+:root {
+  /* chart paper + sepia ink */
+  --paper: #f1f0e6;
+  --paper-deep: #e9e7d7;
+  --card: #faf9f2;
+  --card-2: #f4f3e8;
+  --ink: #2b2620;
+  --ink-soft: #675f4e;
+  --ink-faint: #918a75;
+  --line: #d7d3c0;
+  --line-soft: #e5e2d2;
+  --grat: rgba(43, 38, 32, 0.055);
+
+  /* the scarlet route + lamplight gold */
+  --thread: #b3242f;
+  --gold: #a1791f;
+
+  /* section hues (muted map inks) */
+  --c-start: #b3242f;
+  --c-pattern: #a06b1e;
+  --c-threads: #b3242f;
+  --c-codes: #8f6c12;
+  --c-walk: #3f7a44;
+  --c-detour: #a8502f;
+  --c-mind: #5b5a93;
+  --c-library: #2f6f8c;
+
+  /* thread route hues */
+  --t-lamb: #b3242f;
+  --t-bread: #a97b23;
+  --t-water: #2e6f8e;
+  --t-light: #a8851c;
+  --t-shepherd: #4a7c46;
+  --t-king: #6f4d8f;
+  --t-temple: #2f7a70;
+  --t-rest: #55648c;
+  --t-covenant: #8a5a2b;
+  --t-bride: #b0506e;
+  --t-exile: #5a6472;
+  --t-name: #bf5b22;
+
+  /* pattern season hues */
+  --s-egypt: #5a6472;
+  --s-desert: #a06b1e;
+  --s-land: #3f7a44;
+
+  --shadow: 0 1px 2px rgba(43,38,32,.05), 0 10px 28px -14px rgba(43,38,32,.22);
+  --shadow-sm: 0 1px 2px rgba(43,38,32,.05), 0 8px 20px -16px rgba(43,38,32,.2);
+  --shadow-md: 0 2px 4px rgba(43,38,32,.06), 0 14px 30px -16px rgba(43,38,32,.26);
+  --shadow-lift: 0 2px 4px rgba(43,38,32,.06), 0 16px 36px -14px rgba(43,38,32,.28);
+
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+  --font-label: "Avenir Next", Avenir, Futura, "Gill Sans", "Trebuchet MS", system-ui, sans-serif;
+
+  --r: 10px;
+  --r-lg: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171d;
+    --paper-deep: #10131a;
+    --card: #1b1f27;
+    --card-2: #171b22;
+    --ink: #e6e0d1;
+    --ink-soft: #a89f8a;
+    --ink-faint: #7c7566;
+    --line: #303642;
+    --line-soft: #252b35;
+    --grat: rgba(230, 224, 209, 0.045);
+    --thread: #e05a66;
+    --gold: #cfa648;
+    --c-start: #e05a66;
+    --c-pattern: #d09c40;
+    --c-threads: #e05a66;
+    --c-codes: #cfa73e;
+    --c-walk: #6fb075;
+    --c-detour: #dd8358;
+    --c-mind: #9d9cd6;
+    --c-library: #6caccb;
+    --t-lamb: #e05a66;
+    --t-bread: #d4a447;
+    --t-water: #62a3c4;
+    --t-light: #d6b23f;
+    --t-shepherd: #79b475;
+    --t-king: #a481c9;
+    --t-temple: #5fada1;
+    --t-rest: #8b9cc9;
+    --t-covenant: #c08d55;
+    --t-bride: #d97f9c;
+    --t-exile: #93a0b1;
+    --t-name: #e08a4e;
+    --s-egypt: #8fa0b4;
+    --s-desert: #d09c40;
+    --s-land: #6fb075;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.28), 0 8px 18px -14px rgba(0,0,0,.5);
+    --shadow-md: 0 2px 4px rgba(0,0,0,.32), 0 14px 30px -14px rgba(0,0,0,.62);
+    --shadow-lift: 0 2px 4px rgba(0,0,0,.35), 0 18px 38px -14px rgba(0,0,0,.7);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #14171d;
+  --paper-deep: #10131a;
+  --card: #1b1f27;
+  --card-2: #171b22;
+  --ink: #e6e0d1;
+  --ink-soft: #a89f8a;
+  --ink-faint: #7c7566;
+  --line: #303642;
+  --line-soft: #252b35;
+  --grat: rgba(230, 224, 209, 0.045);
+  --thread: #e05a66;
+  --gold: #cfa648;
+  --c-start: #e05a66;
+  --c-pattern: #d09c40;
+  --c-threads: #e05a66;
+  --c-codes: #cfa73e;
+  --c-walk: #6fb075;
+  --c-detour: #dd8358;
+  --c-mind: #9d9cd6;
+  --c-library: #6caccb;
+  --t-lamb: #e05a66;
+  --t-bread: #d4a447;
+  --t-water: #62a3c4;
+  --t-light: #d6b23f;
+  --t-shepherd: #79b475;
+  --t-king: #a481c9;
+  --t-temple: #5fada1;
+  --t-rest: #8b9cc9;
+  --t-covenant: #c08d55;
+  --t-bride: #d97f9c;
+  --t-exile: #93a0b1;
+  --t-name: #e08a4e;
+  --s-egypt: #8fa0b4;
+  --s-desert: #d09c40;
+  --s-land: #6fb075;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.28), 0 8px 18px -14px rgba(0,0,0,.5);
+  --shadow-md: 0 2px 4px rgba(0,0,0,.32), 0 14px 30px -14px rgba(0,0,0,.62);
+  --shadow-lift: 0 2px 4px rgba(0,0,0,.35), 0 18px 38px -14px rgba(0,0,0,.7);
+}
+
+/* ---------- base ---------- */
+html, body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  font-family: var(--font-serif);
+  font-size: 1.08rem;
+  line-height: 1.75;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grat) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grat) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+h1, h2, h3, h4 { font-family: var(--font-serif); line-height: 1.18; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+a { color: inherit; }
+svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; padding: 0; }
+p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
+
+::selection { background: color-mix(in srgb, var(--thread) 25%, transparent); }
+
+:focus-visible { outline: 2px solid var(--thread); outline-offset: 2px; border-radius: 4px; }
+
+.wrap {
+  width: min(1080px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+@media (max-width: 560px) {
+  .wrap { width: min(100% - 28px, 1080px); }
+}
+
+.label {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ref-link { color: var(--ink-soft); text-decoration: none; border-bottom: 1px dotted var(--ink-faint); white-space: nowrap; }
+.ref-link:hover { color: var(--thread); border-bottom-color: var(--thread); }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 24px;
+  width: 100%;
+  min-width: 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.brand svg {
+  width: 26px;
+  height: 26px;
+  color: var(--thread);
+}
+.brand-name {
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.brand-sub {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-left: 4px;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.theme-toggle {
+  flex-shrink: 0; width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 50%;
+  color: var(--ink-soft); background: var(--card-2);
+}
+.theme-toggle:hover { color: var(--ink); border-color: var(--ink-faint); }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .ic-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .ic-sun { display: block; }
+:root[data-theme="dark"] .theme-toggle .ic-moon { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .ic-sun { display: block; }
+  :root:not([data-theme="light"]) .theme-toggle .ic-moon { display: none; }
+}
+
+.navstrip {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  justify-content: center;
+  max-width: 1080px;
+  min-width: 0;
+}
+.navstrip::-webkit-scrollbar { display: none; }
+
+@media (max-width: 990px) {
+  .topbar-row {
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    padding: 10px 16px;
+  }
+  .navstrip {
+    order: 3;
+    width: 100%;
+    flex: 0 0 100%;
+    max-width: 100%;
+    justify-content: flex-start;
+    border-top: 1px solid var(--line-soft);
+    padding: 10px 0 2px;
+  }
+  .topbar-actions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .topbar-row {
+    gap: 10px 12px;
+    padding: 9px 14px;
+  }
+  .brand {
+    flex: 1 1 auto;
+  }
+  .brand-name {
+    font-size: 1.02rem;
+  }
+  .topbar-actions {
+    gap: 8px;
+  }
+  .version-select-container select {
+    max-width: 82px;
+    padding-right: 24px;
+  }
+  .navstrip {
+    padding-top: 8px;
+  }
+  .nav-link {
+    font-size: 0.66rem;
+    padding: 6px 9px;
+  }
+}
+.nav-link {
+  font-family: var(--font-label);
+  font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding: 6px 11px;
+  border-radius: 999px;
+  display: flex; align-items: center; gap: 7px;
+  white-space: nowrap;
+}
+.nav-link .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); opacity: 0.85; flex-shrink: 0; }
+.nav-link:hover { color: var(--ink); background: var(--card-2); }
+.nav-link.active { color: var(--c); background: color-mix(in srgb, var(--c) 11%, transparent); }
+
+/* ---------- views & section headers ---------- */
+.view { padding: clamp(32px, 4.5vw, 52px) 0 clamp(24px, 3vw, 34px); }
+@media (prefers-reduced-motion: no-preference) {
+  .view { animation: view-in 0.35s ease both; }
+  @keyframes view-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+}
+
+.section-head { max-width: 720px; margin-bottom: clamp(30px, 4vw, 46px); }
+.eyebrow {
+  font-family: var(--font-label);
+  font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--c, var(--thread));
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+.eyebrow svg { width: 18px; height: 18px; }
+.section-head h2 { font-size: clamp(1.75rem, 4vw, 2.4rem); font-weight: 700; margin-bottom: 12px; }
+.lede { font-size: 1.1rem; color: var(--ink-soft); max-width: 65ch; }
+
+.route-rule { margin: 26px 0; height: 14px; color: var(--thread); opacity: 0.75; }
+.route-rule svg { width: 100%; height: 14px; }
+
+/* ---------- chart panels ---------- */
+.chart-panel {
+  position: relative;
+  background: var(--card);
+  background-image:
+    linear-gradient(var(--grat) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grat) 1px, transparent 1px);
+  background-size: 42px 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.chart-corner {
+  position: absolute;
+  font-family: var(--font-label); font-size: 0.6rem; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 10px 14px;
+  pointer-events: none;
+}
+.chart-corner.tl { top: 0; left: 0; }
+.chart-corner.br { bottom: 0; right: 0; }
+
+/* ---------- cards ---------- */
+.grid { display: grid; gap: clamp(20px, 3vw, 30px); }
+.grid-1 { grid-template-columns: 1fr; }
+.grid-2 { grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr)); }
+
+.card {
+  background: color-mix(in srgb, var(--c, var(--card)) 4%, var(--card));
+  border: 1.5px solid color-mix(in srgb, var(--c, var(--line)) 18%, var(--line));
+  border-top: 4.5px solid var(--c, var(--line));
+  border-radius: var(--r-lg);
+  padding: clamp(22px, 3.2vw, 32px);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-top-color 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-2.5px);
+  box-shadow: var(--shadow-lift);
+}
+
+.icon-chip {
+  width: 40px; height: 40px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  color: var(--c, var(--ink));
+  background: color-mix(in srgb, var(--c, var(--ink)) 12%, transparent);
+}
+.icon-chip svg { width: 21px; height: 21px; }
+
+/* trailhead cards (home) */
+.trailhead {
+  display: flex; gap: 14px; align-items: flex-start;
+  text-decoration: none;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.trailhead > span:last-child,
+.idea-row > div,
+.shelf-item > span:last-child,
+.station-meta > * {
+  min-width: 0;
+}
+.trailhead:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: color-mix(in srgb, var(--c) 45%, var(--line)); }
+.trailhead h3 { font-size: 1.08rem; margin-bottom: 3px; }
+.trailhead p { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.5; }
+.trailhead .go { font-family: var(--font-label); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--c); margin-top: 8px; display: inline-block; }
+
+/* ---------- thread cards ---------- */
+.thread-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  min-width: 0;
+}
+.thread-grid {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 900px;
+  align-items: start;
+}
+.thread-head {
+  width: 100%; display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px; text-align: left;
+  min-width: 0;
+}
+.thread-head > span:not(.icon-chip):not(.chev) {
+  min-width: 0;
+}
+.thread-head:hover { background: var(--card-2); }
+.thread-head h3 { font-size: 1.14rem; }
+.thread-tag { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.45; display: block; }
+.thread-head .chev { margin-left: auto; color: var(--ink-faint); transition: transform 0.2s ease; flex-shrink: 0; }
+.thread-head .chev svg { width: 17px; height: 17px; }
+.thread-card.open .thread-head .chev { transform: rotate(90deg); }
+.thread-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  border-top: 1px dashed transparent;
+  transition: grid-template-rows 0.28s ease, border-color 0.2s ease;
+}
+.thread-body-inner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 20px;
+  transition: padding 0.28s ease;
+}
+.thread-card.open .thread-body {
+  grid-template-rows: 1fr;
+  border-top-color: var(--line);
+}
+.thread-card.open .thread-body-inner {
+  padding: 4px 20px 20px;
+}
+
+.trail { list-style: none; margin: 14px 0 0; padding: 0; position: relative; }
+.trail::before {
+  content: ""; position: absolute; left: 5px; top: 8px; bottom: 8px;
+  border-left: 2px dashed color-mix(in srgb, var(--c) 55%, transparent);
+}
+.trail li { position: relative; padding: 0 0 13px 26px; }
+.trail li:last-child { padding-bottom: 0; }
+.trail li::before {
+  content: ""; position: absolute; left: 0; top: 7px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--card);
+  border: 3px solid var(--c);
+}
+.trail .wp-ref { font-family: var(--font-label); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--c); }
+.trail .wp-note { font-size: 0.94rem; color: var(--ink); }
+.trail li.wp-cross::before { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 30%, var(--card)); }
+
+.lands-on {
+  margin-top: 16px; padding: 13px 16px;
+  border-left: 3px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 8%, transparent);
+  border-radius: 0 var(--r) var(--r) 0;
+  font-size: 0.96rem;
+}
+.lands-on .label { color: var(--gold); display: block; margin-bottom: 4px; }
+.for-you { margin-top: 12px; font-size: 0.94rem; color: var(--ink-soft); font-style: italic; }
+.for-you b { color: var(--ink); font-style: normal; }
+
+/* ---------- pattern / seasons ---------- */
+.season-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 14px; }
+.season-card { border-top: 4px solid var(--c); }
+.season-card h3 { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; margin-bottom: 4px; color: var(--c); }
+.season-card h3 svg { width: 20px; height: 20px; }
+.season-sub { font-size: 0.88rem; color: var(--ink-soft); font-style: italic; margin-bottom: 12px; }
+.season-rows { display: grid; gap: 8px; font-size: 0.92rem; }
+.season-rows .row b { font-family: var(--font-label); font-size: 0.63rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-faint); display: block; }
+
+.insight-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.insight-list li { display: flex; gap: 13px; align-items: flex-start; }
+.insight-marker {
+  flex-shrink: 0; width: 26px; height: 26px; margin-top: 2px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 2px dashed color-mix(in srgb, var(--c-pattern) 60%, transparent);
+  color: var(--c-pattern);
+  font-family: var(--font-label); font-size: 0.7rem; font-weight: 700;
+}
+.insight-list b { display: block; }
+.insight-list .ins-txt { font-size: 0.96rem; color: var(--ink-soft); }
+.insight-list .ins-txt b { display: inline; color: var(--ink); }
+
+.case-card .case-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+.case-card h3 { font-size: 1.15rem; }
+.case-card .case-sub { font-size: 0.82rem; color: var(--ink-faint); font-style: italic; }
+.phase-bar { display: flex; height: 7px; border-radius: 999px; overflow: hidden; margin-bottom: 18px; }
+.phase-bar span { flex: 1; }
+.phase-bar .p1 { background: var(--s-egypt); }
+.phase-bar .p2 { background: var(--s-desert); }
+.phase-bar .p3 { background: var(--s-land); }
+.case-rows { display: flex; flex-direction: column; gap: 16px; font-size: 0.94rem; }
+.case-rows .row { display: flex; flex-direction: column; gap: 4px; }
+.case-rows .row b { font-family: var(--font-label); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; }
+.case-rows .row.r1 b { color: var(--s-egypt); }
+.case-rows .row.r2 b { color: var(--s-desert); }
+.case-rows .row.r3 b { color: var(--s-land); }
+.case-rows .row span { color: var(--ink-soft); line-height: 1.55; }
+
+/* ---------- codes ---------- */
+.subtabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 22px; }
+.subtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  font-family: var(--font-label); font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 8px 18px; border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-soft); background: var(--card);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.subtab svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.2px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.subtab:hover { border-color: var(--ink-faint); color: var(--ink); }
+.subtab.active { background: color-mix(in srgb, var(--c-codes) 13%, transparent); border-color: color-mix(in srgb, var(--c-codes) 50%, var(--line)); color: var(--c-codes); }
+
+.badge {
+  display: inline-block;
+  font-family: var(--font-label); font-size: 0.58rem; font-weight: 700;
+  letter-spacing: 0.11em; text-transform: uppercase;
+  padding: 2.5px 8px; border-radius: 999px;
+  white-space: nowrap; vertical-align: middle;
+}
+.badge.explicit { color: var(--c-walk); background: color-mix(in srgb, var(--c-walk) 13%, transparent); }
+.badge.classical { color: var(--c-library); background: color-mix(in srgb, var(--c-library) 13%, transparent); }
+.badge.loose { color: var(--c-detour); background: color-mix(in srgb, var(--c-detour) 14%, transparent); }
+
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--card); box-shadow: var(--shadow); }
+table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; min-width: 640px; }
+.map-table th {
+  font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  text-align: left; color: var(--ink-faint);
+  padding: 12px 14px; border-bottom: 1px solid var(--line);
+}
+.map-table td { padding: 10px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; line-height: 1.5; }
+.map-table tr:last-child td { border-bottom: none; }
+.map-table td:first-child { font-weight: 700; }
+
+.type-card h3 { font-size: 1.02rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.type-card .type-refs { font-family: var(--font-label); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-codes); margin: 4px 0 8px; }
+.type-card p { font-size: 0.93rem; color: var(--ink-soft); }
+
+.feast-row { display: grid; grid-template-columns: 118px 1fr; gap: 14px; padding: 14px 0; border-bottom: 1px dashed var(--line); }
+.feast-row:last-child { border-bottom: none; }
+.feast-when { font-family: var(--font-label); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); padding-top: 5px; }
+.feast-row h4 { font-size: 1.02rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.feast-row p { font-size: 0.93rem; color: var(--ink-soft); margin-top: 3px; }
+
+/* tabernacle walk */
+.tabernacle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 20px;
+}
+.tabernacle-zone {
+  background: var(--card);
+  border: 1.2px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.tabernacle-zone.zone-court {
+  border-color: color-mix(in srgb, var(--s-desert) 28%, var(--line));
+  background: color-mix(in srgb, var(--s-desert) 3%, var(--card));
+  --zone-c: var(--s-desert);
+}
+.tabernacle-zone.zone-holy {
+  border-color: color-mix(in srgb, var(--s-egypt) 28%, var(--line));
+  background: color-mix(in srgb, var(--s-egypt) 3%, var(--card));
+  --zone-c: var(--s-egypt);
+}
+.tabernacle-zone.zone-most-holy {
+  border-color: color-mix(in srgb, var(--c-codes) 32%, var(--line));
+  background: color-mix(in srgb, var(--c-codes) 4%, var(--card));
+  --zone-c: var(--c-codes);
+}
+.zone-header {
+  font-family: var(--font-label);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1.5px dashed color-mix(in srgb, var(--zone-c) 30%, var(--line));
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+}
+.zone-header .zone-sub {
+  font-size: 0.65rem;
+  color: var(--ink-faint);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-style: italic;
+}
+.zone-stations {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tab-station-card {
+  background: var(--card-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.tab-station-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--zone-c) 35%, var(--line));
+  box-shadow: var(--shadow-sm);
+}
+.station-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.station-num {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--zone-c);
+  background: color-mix(in srgb, var(--zone-c) 11%, transparent);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.station-desc {
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  font-style: italic;
+}
+.tab-station-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 2px 0 0 0;
+}
+.station-jesus {
+  font-size: 0.93rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 2px 0 0 0;
+}
+
+@media (max-width: 990px) {
+  .tabernacle-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* ---------- walk it out (pillars) ---------- */
+.pillar-card .pillar-body { font-size: 0.94rem; color: var(--ink-soft); }
+.pillar-refs { margin-top: 10px; font-family: var(--font-label); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; color: var(--ink-faint); }
+
+/* ---------- detours ---------- */
+.detour-card h3 {
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* ---------- mind & body ---------- */
+.mind-card {
+  display: grid;
+  gap: 22px;
+  padding: clamp(24px, 4vw, 38px);
+}
+.mind-card h3 {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--c-mind) 30%, var(--line));
+}
+.neuro-primer {
+  display: grid;
+  gap: 22px;
+  margin-bottom: clamp(22px, 3vw, 32px);
+}
+.neuro-primer h3 {
+  font-size: 1.35rem;
+}
+.neuro-primer .lede {
+  font-size: 1rem;
+}
+.mind-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 16px;
+}
+.mind-panel {
+  font-size: 0.96rem;
+  color: var(--ink-soft);
+  line-height: 1.72;
+  background: color-mix(in srgb, var(--c-mind) 4%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--c-mind) 12%, var(--line));
+  border-radius: var(--r);
+  padding: clamp(16px, 2.5vw, 22px);
+  min-width: 0;
+}
+.mind-panel .label {
+  color: var(--c-mind);
+  display: block;
+  margin-bottom: 10px;
+}
+.mind-panel h4 {
+  font-size: 1.02rem;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.mind-panel p {
+  line-height: inherit;
+}
+.mind-panel p + p {
+  margin-top: 12px;
+}
+.mind-card .mind-body-txt {
+  display: grid;
+  gap: 16px;
+}
+.mind-card .pillar-refs {
+  margin-top: 0;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line-soft);
+}
+.mind-panel .pillar-refs {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line-soft);
+  font-size: 0.64rem;
+}
+
+.callout {
+  border: 1px dashed color-mix(in srgb, var(--c-mind) 50%, var(--line));
+  background: color-mix(in srgb, var(--c-mind) 6%, transparent);
+  border-radius: var(--r-lg);
+  padding: 18px 22px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.callout .label { color: var(--c-mind); display: block; margin-bottom: 8px; }
+
+.tv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 16px;
+}
+.tv-box {
+  border-radius: var(--r);
+  padding: 16px 20px;
+  font-size: 0.96rem;
+  line-height: 1.55;
+  border: 1.2px solid transparent;
+}
+.tv-box.treasure {
+  background: color-mix(in srgb, var(--s-land) 8%, var(--card));
+  border-color: color-mix(in srgb, var(--s-land) 28%, var(--line));
+}
+.tv-box.ditch {
+  background: color-mix(in srgb, var(--c-detour) 6%, var(--card));
+  border-color: color-mix(in srgb, var(--c-detour) 22%, var(--line));
+}
+.tv-box .label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.tv-box.treasure .label {
+  color: var(--s-land);
+}
+.tv-box.ditch .label {
+  color: var(--c-detour);
+}
+.tv-box ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--ink-soft);
+}
+.tv-box li {
+  line-height: 1.55;
+}
+
+/* ---------- library ---------- */
+.shelf { margin-bottom: 26px; }
+.shelf-title { display: flex; align-items: center; gap: 10px; font-size: 1.15rem; margin-bottom: 12px; }
+.shelf-title svg { width: 19px; height: 19px; color: var(--c-library); }
+.shelf-items { display: grid; gap: 8px; }
+.shelf-item {
+  display: flex; gap: 12px; align-items: baseline;
+  padding: 10px 14px;
+  background: var(--card);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r);
+  font-size: 0.94rem;
+}
+.shelf-item .kind {
+  flex-shrink: 0;
+  font-family: var(--font-label); font-size: 0.58rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--c-library);
+  background: color-mix(in srgb, var(--c-library) 11%, transparent);
+  padding: 2.5px 8px; border-radius: 999px;
+  position: relative; top: -2px;
+}
+.shelf-item b a { text-decoration-color: color-mix(in srgb, var(--c-library) 50%, transparent); }
+.shelf-item span { color: var(--ink-soft); }
+
+/* ---------- home / hero ---------- */
+.hero { padding: clamp(40px, 6vw, 58px) 0 10px; }
+.hero .eyebrow { justify-content: center; }
+.hero h1 {
+  font-size: clamp(2.2rem, 5.4vw, 3.5rem);
+  font-weight: 700; text-align: center;
+  max-width: 17ch; margin: 0 auto 16px;
+}
+.hero h1 em { font-style: italic; color: var(--thread); }
+.hero .lede { text-align: center; margin: 0 auto 34px; }
+
+.hero-chart { padding: 12px; }
+.hero-chart svg { width: 100%; height: auto; }
+.hero-legend { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; padding: 4px 12px 14px; }
+.legend-chip {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-label); font-size: 0.64rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-soft);
+}
+.legend-chip:hover, .legend-chip.hot { color: var(--c); border-color: color-mix(in srgb, var(--c) 55%, var(--line)); background: color-mix(in srgb, var(--c) 9%, transparent); }
+.legend-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+
+.hero-verse { text-align: center; max-width: 56ch; margin: 30px auto 0; font-style: italic; color: var(--ink-soft); font-size: 1.02rem; }
+.hero-verse .vref { font-family: var(--font-label); font-style: normal; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--thread); display: block; margin-top: 8px; }
+
+.home-section-title { display: flex; align-items: center; gap: 12px; margin: clamp(46px, 6vw, 64px) 0 20px; }
+.home-section-title h2 { font-size: 1.3rem; }
+.home-section-title .rr { flex: 1; height: 12px; color: var(--thread); opacity: 0.5; }
+
+.big-idea { display: grid; gap: 12px; counter-reset: idea; }
+.idea-row { display: flex; gap: 14px; align-items: flex-start; }
+.idea-num {
+  counter-increment: idea; flex-shrink: 0;
+  width: 30px; height: 30px; margin-top: 2px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--thread) 11%, transparent);
+  color: var(--thread);
+  font-family: var(--font-label); font-size: 0.78rem; font-weight: 700;
+}
+.idea-num::before { content: counter(idea); }
+.idea-row b { display: block; font-size: 1.04rem; }
+.idea-row p { font-size: 0.95rem; color: var(--ink-soft); }
+
+/* ---------- journey svg ---------- */
+.journey-panel { padding: 10px 10px 4px; margin: 8px 0 clamp(30px, 4vw, 42px); }
+.journey-panel svg { width: 100%; height: auto; min-width: 0; }
+.journey-scroll { overflow: clip; }
+
+/* ---------- misc ---------- */
+.note {
+  font-size: 0.88rem; color: var(--ink-soft);
+  border-left: 3px solid var(--line);
+  padding: 8px 14px; margin-top: 18px;
+}
+.mt { margin-top: 26px; }
+.mt-lg { margin-top: 40px; }
+
+footer.site-foot {
+  border-top: 1px solid var(--line);
+  margin-top: 50px;
+  padding: 30px 0 44px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+footer.site-foot .foot-verse { font-style: italic; max-width: 58ch; margin: 0 auto 10px; }
+footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: block; }
+
+/* hero thread interactions */
+.hero-scroll { overflow: clip; min-width: 0; }
+.hero-scroll svg { min-width: 0; width: 100%; height: auto; display: block; }
+.hero-thread { opacity: 0.7; cursor: pointer; transition: opacity 0.25s ease, stroke-width 0.25s ease; }
+.hero-thread:hover, .hero-thread.hot { opacity: 1; stroke-width: 3.6; }
+
+.flash { animation: flash-ring 2.2s ease; }
+@keyframes flash-ring {
+  0% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--thread) 55%, transparent); }
+  100% { box-shadow: 0 0 0 3px transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .view { animation: none; }
+  .flash { animation: none; outline: 2px solid var(--thread); }
+}
+
+@media (max-width: 640px) {
+  .brand-sub { display: none; }
+  .view { padding: 30px 0 20px; }
+  .feast-row { grid-template-columns: 1fr; gap: 4px; }
+  .case-rows .row { grid-template-columns: 64px 1fr; }
+  .thread-head {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+  .thread-card.open .thread-body-inner {
+    padding: 2px 16px 18px;
+  }
+  .trail {
+    margin-top: 12px;
+  }
+  .trail li {
+    padding-left: 22px;
+  }
+  .lands-on {
+    padding: 12px 14px;
+  }
+  .shelf-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* ================= NEW COMPONENT STYLES ================= */
+
+/* Version select dropdown */
+.version-select-container {
+  position: relative;
+  flex-shrink: 0;
+}
+.version-select-container select {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 28px 6px 12px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.version-select-container select:hover {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+  background: var(--card);
+}
+.version-select-container::after {
+  content: "▾";
+  font-size: 0.75rem;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-faint);
+  pointer-events: none;
+}
+
+/* Section block and scrolling */
+.section-block {
+  padding: clamp(64px, 8vw, 104px) 0;
+  border-bottom: 2px dashed var(--line-soft);
+  scroll-margin-top: 128px;
+}
+.section-block:last-of-type {
+  border-bottom: none;
+}
+
+/* Verse hover tooltip */
+.verse-tooltip {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  max-width: 340px;
+  background: color-mix(in srgb, var(--card) 95%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-lift);
+  pointer-events: none;
+  font-family: var(--font-serif);
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.verse-tooltip.open {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+.verse-tooltip .tooltip-ref {
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--thread);
+  margin-bottom: 6px;
+  display: block;
+}
+.verse-tooltip .tooltip-text {
+  font-style: normal;
+}
+.verse-tooltip .tooltip-note {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  color: var(--ink-faint);
+  margin-top: 8px;
+  display: block;
+  line-height: 1.35;
+}
+.verse-tooltip .tooltip-note a {
+  text-decoration: underline;
+  color: var(--thread);
+}
+
+/* ================= PREVIEW CARD & THREAD HOVER STYLES ================= */
+
+/* Navigation link icons */
+.nav-link svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2.2px;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+  margin-right: 6px;
+  display: inline-block;
+}
+.nav-link:hover svg {
+  transform: scale(1.18) rotate(5deg);
+}
+
+/* Hero chart layout grid */
+.chart-panel.hero-chart {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
+  gap: clamp(16px, 2.5vw, 24px);
+  align-items: stretch;
+  background-image: none;
+  min-height: clamp(520px, 56vw, 640px);
+  height: auto;
+  overflow: hidden;
+}
+
+@media (min-width: 1600px) {
+  .chart-panel.hero-chart {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+@media (min-width: 1100px) and (max-width: 1599px) {
+  .chart-panel.hero-chart {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+  }
+}
+
+.chart-main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  border-left: 1px dashed var(--line-soft);
+  padding: 16px 0 12px 24px;
+  background-image:
+    linear-gradient(var(--grat) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grat) 1px, transparent 1px);
+  background-size: 42px 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Responsive collapse */
+@media (max-width: 960px) {
+  .chart-panel.hero-chart {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    overflow: visible;
+  }
+  .chart-main {
+    border-left: none;
+    padding-left: 0;
+    padding-top: 24px;
+    height: auto;
+    justify-content: flex-start;
+    gap: 24px;
+    overflow: visible;
+  }
+  .hero-scroll svg {
+    min-width: 0;
+  }
+}
+
+/* Thread preview card styling */
+.thread-preview-card {
+  background: var(--card-2);
+  border: 1px dashed var(--line);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Keeps active preview title at a static vertical position */
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+@media (max-width: 720px) {
+  .table-scroll {
+    overflow: visible;
+  }
+  table.map-table,
+  .map-table thead,
+  .map-table tbody,
+  .map-table tr,
+  .map-table td {
+    display: block;
+    width: 100%;
+  }
+  table.map-table {
+    min-width: 0;
+    border-collapse: separate;
+  }
+  .map-table thead {
+    display: none;
+  }
+  .map-table tr {
+    padding: 14px 16px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .map-table tr:last-child {
+    border-bottom: none;
+  }
+  .map-table td {
+    border-bottom: none;
+    padding: 5px 0;
+  }
+  .map-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-family: var(--font-label);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 2px;
+  }
+  .hero-chart {
+    padding: 10px;
+  }
+  .thread-preview-card {
+    height: auto;
+    padding: 18px;
+  }
+}
+
+.thread-preview-card .preview-placeholder {
+  margin: auto 0; /* Centers placeholder vertically in the fixed-height container */
+  text-align: center;
+  color: var(--ink-faint);
+  padding: 20px;
+}
+.thread-preview-card .preview-placeholder-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  stroke: var(--line);
+  stroke-width: 1.5;
+}
+.thread-preview-card .preview-placeholder h3 {
+  font-family: var(--font-label);
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.thread-preview-card .preview-placeholder p {
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+/* Active preview content styling */
+.preview-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  animation: fade-in 0.2s ease-out;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.preview-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r);
+  background: color-mix(in srgb, var(--c) 12%, transparent);
+  color: var(--c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.preview-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.preview-header h3 {
+  font-family: var(--font-serif);
+  font-size: 1.38rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.preview-tag {
+  font-size: 0.98rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line-soft);
+  padding-bottom: 14px;
+}
+.preview-body {
+  font-size: 0.96rem;
+  line-height: 1.6;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.preview-body h4 {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0;
+}
+.preview-body ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.preview-body li {
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+.preview-body li b {
+  color: var(--c);
+  font-family: var(--font-serif);
+}
+.preview-lands {
+  margin-top: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--c);
+  border-radius: var(--r);
+  padding: 12px 14px;
+}
+.preview-lands strong {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c);
+  display: block;
+  margin-bottom: 6px;
+}
+.preview-lands p {
+  font-size: 0.94rem;
+  line-height: 1.55;
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+
+
+/* ================= NESTED CARDS & TEXT READABILITY POLISH ================= */
+
+/* Walk It Out nested cards */
+.pillar-card .case-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+.pillar-card .case-top .icon-chip {
+  margin-bottom: 4px;
+}
+.pillar-card .lie {
+  background: color-mix(in srgb, var(--c-detour) 6%, var(--card));
+  border: 1.2px solid color-mix(in srgb, var(--c-detour) 22%, var(--line));
+  border-radius: var(--r);
+  padding: 14px 18px;
+  margin-top: 18px;
+  margin-bottom: 16px;
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.pillar-card .truth {
+  background: color-mix(in srgb, var(--s-land) 8%, var(--card));
+  border: 1.2px solid color-mix(in srgb, var(--s-land) 28%, var(--line));
+  border-radius: var(--r);
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  font-weight: 600;
+  color: var(--ink);
+}
+.pillar-card .pillar-body {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  line-height: 1.65;
+}
+.pillar-card .practice {
+  background: color-mix(in srgb, var(--c) 8%, var(--card));
+  border: 1.2px dashed color-mix(in srgb, var(--c) 30%, var(--line));
+  border-radius: var(--r);
+  padding: 14px 18px;
+  margin: 22px 0 16px;
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+.pillar-card .practice .label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--c);
+}
+
+/* Detours nested cards */
+.detour-card .detour-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+  margin-top: 18px;
+}
+.detour-card .row {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 18px;
+  border-radius: var(--r);
+  font-size: 0.94rem;
+  line-height: 1.55;
+  border: 1.2px solid transparent;
+}
+.detour-card .row.pull {
+  background: color-mix(in srgb, var(--c) 6%, var(--card));
+  border-color: color-mix(in srgb, var(--c) 20%, var(--line));
+}
+.detour-card .row.cost {
+  background: color-mix(in srgb, var(--c-detour) 6%, var(--card));
+  border-color: color-mix(in srgb, var(--c-detour) 20%, var(--line));
+}
+.detour-card .row.home {
+  background: color-mix(in srgb, var(--s-land) 8%, var(--card));
+  border-color: color-mix(in srgb, var(--s-land) 25%, var(--line));
+}
+.detour-card .row b {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.detour-card .row.pull b { color: var(--c); }
+.detour-card .row.cost b { color: #d9534f; }
+.detour-card .row.home b { color: var(--s-land); }
+
+/* SVG thread trigger styles */
+.hero-thread-trigger {
+  cursor: pointer;
+  pointer-events: stroke;
+}
+.hero-thread {
+  pointer-events: none;
+  will-change: opacity, stroke-width;
+}
+
+/* Journey route path animation */
+.journey-route-path {
+  stroke-dasharray: 6 5;
+  animation: journey-march 85s linear infinite;
+}
+@keyframes journey-march {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+/* Tabernacle animated blueprint graphic container */
+.tabernacle-graphic-container {
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 24px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  background-size: 16px 16px;
+  background-image: 
+    linear-gradient(to right, color-mix(in srgb, var(--line) 40%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--line) 40%, transparent) 1px, transparent 1px);
+}
+.tabernacle-svg {
+  width: 100%;
+  max-width: 960px;
+  height: auto;
+  display: block;
+}
+.tabernacle-route {
+  stroke-dasharray: 6 5;
+  animation: tabernacle-march 25s linear infinite;
+}
+@keyframes tabernacle-march {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+.svg-station-node {
+  transition: transform 0.2s ease;
+}
+.svg-station-node circle {
+  transition: r 0.2s ease, fill 0.2s ease, stroke-width 0.2s ease;
+}
+.svg-station-node text {
+  transition: fill 0.2s ease, opacity 0.2s ease;
+}
+.svg-station-node.active circle {
+  r: 12px;
+  fill: color-mix(in srgb, var(--zone-c) 15%, var(--card));
+  stroke-width: 3.5px;
+}
+.svg-station-node.active text {
+  fill: var(--ink);
+}
+
+.tab-station-card.active-hover {
+  transform: translateY(-4px) !important;
+  border-color: color-mix(in srgb, var(--zone-c) 50%, var(--line)) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+</style>
+<header class="topbar">
+  <div class="topbar-row">
+    <a class="brand" href="#/">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8" stroke-dasharray="3 2.4"/>
+        <path d="M18.5 4.5v6M15.8 7h5.4"/>
+      </svg>
+      <span class="brand-name">The Thread</span>
+      <span class="brand-sub">A field manual to the Bible</span>
+    </a>
+    
+    <nav class="navstrip" id="nav" aria-label="Sections"></nav>
+    
+    <div class="topbar-actions">
+      <div class="version-select-container">
+        <select id="version-select" aria-label="Select Bible translation" title="Select Bible version">
+          <option value="NIV" selected>NIV</option>
+          <option value="NASB">NASB</option>
+          <option value="ESV">ESV</option>
+          <option value="KJV">KJV</option>
+          <option value="NLT">NLT</option>
+          <option value="AMP">AMP</option>
+          <option value="MSG">MSG</option>
+          <option value="TPT">TPT</option>
+        </select>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light or dark theme" title="Toggle theme">
+        <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 13.5A8.5 8.5 0 1 1 10.5 4a7 7 0 0 0 9.5 9.5z"/></svg>
+        <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="view" class="wrap"></main>
+
+<footer class="site-foot wrap">
+  <p class="foot-verse">“You search the Scriptures because you think that in them you have eternal life; and it is they that bear witness about me — yet you refuse to come to me that you may have life.” <span style="white-space:nowrap">— <a class="ref-link" target="_blank" rel="noopener" href="https://www.biblegateway.com/passage/?search=John+5%3A39-40" data-ref="John 5:39-40">John 5:39–40</a></span></p>
+  <p>This site is a map, not the territory. The goal was never the map. The goal is Him.</p>
+  <span class="label">The Thread · a field manual to the Bible</span>
+</footer>
+
+<noscript><div class="wrap" style="padding:40px 20px"><p>This field manual needs JavaScript to unfold its maps. Please enable it and reload.</p></div></noscript>
+<script>
+/* ================= icon set — map-legend stroke style ================= */
+const _ic = (inner) =>
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>';
+
+const ICONS = {
+  cross: _ic('<path d="M12 3.5v17M6.5 9h11"/>'),
+  thread: _ic('<path d="M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8" stroke-dasharray="3 2.4"/><path d="M18.5 4.5v6M15.8 7h5.4"/>'),
+  lamb: _ic('<path d="M12 3.5C15 7.5 18 10.4 18 13.2a6 6 0 1 1-12 0C6 10.4 9 7.5 12 3.5z"/>'),
+  bread: _ic('<path d="M4.5 13.5a7.5 5.8 0 0 1 15 0V17H4.5z"/><path d="M9 10.2v2.4M12 9.6v3M15 10.2v2.4"/>'),
+  water: _ic('<path d="M3 9c1.5-1.6 3.5-1.6 5 0s3.5 1.6 5 0 3.5-1.6 5 0 2 .8 3 .4M3 15c1.5-1.6 3.5-1.6 5 0s3.5 1.6 5 0 3.5-1.6 5 0 2 .8 3 .4"/>'),
+  light: _ic('<circle cx="12" cy="12" r="3.6"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"/>'),
+  shepherd: _ic('<path d="M9.5 21V7.5a4 4 0 0 1 8 0v1.3"/><path d="M6 21h7"/>'),
+  king: _ic('<path d="M4.5 18.5 3.5 9.5l4.9 3.3L12 6.4l3.6 6.4 4.9-3.3-1 9z"/>'),
+  temple: _ic('<path d="M12 4.5 3 19.5h18z"/><path d="M12 12.5 8.5 19.5h7z"/>'),
+  rest: _ic('<path d="M20 13.8A8.3 8.3 0 1 1 10.2 4a6.8 6.8 0 0 0 9.8 9.8z"/>'),
+  covenant: _ic('<path d="M3.5 16.5a8.5 8.5 0 0 1 17 0M7.5 16.5a4.5 4.5 0 0 1 9 0"/><path d="M2.5 19.5h3.2M18.3 19.5h3.2"/>'),
+  bride: _ic('<circle cx="9.2" cy="13.6" r="5"/><circle cx="14.8" cy="10.4" r="5"/>'),
+  exile: _ic('<path d="M17.5 20.5V10a4.75 4.75 0 0 0-9.5 0v2.4"/><path d="M4.8 9.6 8 13l3.2-3.4"/>'),
+  name: _ic('<path d="M12 3.5c.8 2.8-3.2 4.6-3.2 8.2a3.9 3.9 0 0 0 7.8 0c0-1.7-.9-2.9-1.8-4-.9-1.2-1.9-2.4-2.8-4.2z"/>'),
+  pyramid: _ic('<path d="M12 5 21 19H3z"/><path d="M12 5 9.4 19"/>'),
+  dune: _ic('<circle cx="17.5" cy="6.5" r="2.5"/><path d="M2.5 18.5C5.5 13 9 13 11.5 17.2M8.5 18.5C11 14 15 14 21.5 18.5"/>'),
+  grapes: _ic('<path d="M12 9.6c-.4-2.6 1-4.6 3.6-5.6.4 2.6-1 4.6-3.6 5.6z"/><path d="M12 9.6C10.5 8 9 7.5 7.5 7.6"/><circle cx="12" cy="11.6" r="2"/><circle cx="8.7" cy="15" r="2"/><circle cx="15.3" cy="15" r="2"/><circle cx="12" cy="18.4" r="2"/>'),
+  key: _ic('<circle cx="7.2" cy="12" r="3.7"/><path d="M10.9 12H21M17.3 12v3M20.5 12v2.3"/>'),
+  scroll: _ic('<rect x="5.5" y="3.5" width="13" height="17" rx="2"/><path d="M9 8.5h6M9 12h6M9 15.5h4"/>'),
+  calendar: _ic('<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.4"/>'),
+  gate: _ic('<path d="M5.5 20.5V10a6.5 6.5 0 0 1 13 0v10.5"/><path d="M3 20.5h18"/>'),
+  walk: _ic('<path d="M4 20.5C4 15.5 20 16.5 20 11 20 7.5 14 6.5 10.5 8.4" stroke-dasharray="3.2 2.6"/><path d="M10.5 8.4V3.8M10.5 3.8h4.2l-1.3 1.6 1.3 1.6h-4.2"/>'),
+  fork: _ic('<path d="M12 21v-5.5"/><path d="M12 15.5c0-4-6-3.5-6-8V3.8M12 15.5c0-4 6-3.5 6-8V3.8"/><path d="M4.2 5.6 6 3.6l1.8 2M16.2 5.6 18 3.6l1.8 2"/>'),
+  brain: _ic('<path d="M11.8 3.6a3.3 3.3 0 0 0-3.3 3.3A3.6 3.6 0 0 0 5 10.4a3.6 3.6 0 0 0 .6 5.9A3.4 3.4 0 0 0 9 20.4h2.8V3.6z"/><path d="M12.2 3.6a3.3 3.3 0 0 1 3.3 3.3 3.6 3.6 0 0 1 3.5 3.5 3.6 3.6 0 0 1-.6 5.9 3.4 3.4 0 0 1-3.4 4.1h-2.8V3.6z"/>'),
+  book: _ic('<path d="M12 6.2C10 4.4 7 4.1 4 4.6V19c3-.5 6-.2 8 1.6 2-1.8 5-2.1 8-1.6V4.6c-3-.5-6-.2-8 1.6z"/><path d="M12 6.2v14.4"/>'),
+  compass: _ic('<circle cx="12" cy="12" r="8.5"/><path d="M15 9 13.2 13.2 9 15l1.8-4.2z"/>'),
+  heart: _ic('<path d="M12 20C6 15.5 3.5 12.4 3.5 9.3a4.3 4.3 0 0 1 8.5-1 4.3 4.3 0 0 1 8.5 1c0 3.1-2.5 6.2-8.5 10.7z"/>'),
+  music: _ic('<path d="M9.2 17.9V6.8l9-1.8v10.6"/><circle cx="7" cy="17.9" r="2.2"/><circle cx="16" cy="15.6" r="2.2"/>'),
+  wind: _ic('<path d="M3.5 8.3h8.6a2.3 2.3 0 1 0-2.3-2.3M3.5 12.2h13.6a2.5 2.5 0 1 1-2.5 2.5M3.5 16.2h6.2"/>'),
+  ear: _ic('<path d="M6.5 8.7a5.5 5.5 0 0 1 11 0c0 3-2 3.8-3 5.6-.8 1.4-.6 3.4-2.6 3.4a2.6 2.6 0 0 1-2.5-1.9"/><path d="M10 8.7a2.6 2.6 0 0 1 5.2 0c0 1.6-1 2.3-1.7 3.2"/>'),
+  linkout: _ic('<path d="M14 4.5h5.5V10M19.5 4.5 11 13"/><path d="M9 6.5H6.5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V15"/>'),
+  chevron: _ic('<path d="m9.2 5.8 6.3 6.2-6.3 6.2"/>'),
+  mountain: _ic('<path d="m3 19.5 6-10.5 3.6 6 2.4-3.5 6 8z"/>'),
+  star: _ic('<path d="m12 4 2.2 4.7 5.2.7-3.8 3.6.9 5.1L12 15.7l-4.5 2.4.9-5.1-3.8-3.6 5.2-.7z"/>'),
+  search: _ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>')
+};
+
+function icon(name) { return ICONS[name] || ICONS.cross; }
+/* ================= THREADS — twelve routes through the whole Bible ================= */
+const THREADS = [
+  {
+    id: 'lamb', name: 'The Lamb & the Blood', icon: 'lamb', cvar: '--t-lamb',
+    tag: 'From the first covering to the throne — the scarlet thread itself.',
+    way: [
+      { ref: 'Gen 3:21', note: 'Sin’s first cost: God clothes Adam and Eve with skins. Something died so the guilty could be covered.' },
+      { ref: 'Gen 22:7-14', note: 'Isaac asks, “Where is the lamb?” Abraham: “God himself will provide the lamb.” The question hangs in the air for two thousand years.' },
+      { ref: 'Ex 12:13', note: 'Passover: “When I see the blood, I will pass over you.” Not when I see your résumé — the blood.' },
+      { ref: 'Lev 16', note: 'Day of Atonement: one goat dies, one carries sin far away. Two halves of one picture.' },
+      { ref: 'Isa 53:7', note: '“Like a lamb led to the slaughter” — a Servant who bears our griefs and carries our sorrows.' },
+      { ref: 'John 1:29', j: true, note: '“Behold, the Lamb of God, who takes away the sin of the world!” Genesis 22’s question, finally answered out loud.' },
+      { ref: '1 Cor 5:7', note: '“Christ, our Passover lamb, has been sacrificed” — crucified at Passover, right on schedule.' },
+      { ref: 'Rev 5:6-13', note: 'A Lamb, looking slain, standing on the throne — and heaven’s forever-anthem: “Worthy is the Lamb.”' }
+    ],
+    landsOn: 'The Bible’s oldest question — “where is the lamb?” — is answered at the Jordan: “Behold the Lamb.” Every altar, every Passover, every morning sacrifice was a rehearsal for one Friday.',
+    forYou: 'You never cover yourself again. No fig leaves, no image management — <b>you are covered once, for good</b> (Heb 10:14).'
+  },
+  {
+    id: 'bread', name: 'Bread', icon: 'bread', cvar: '--t-bread',
+    tag: 'Manna, showbread, Bethlehem — the God who is the meal.',
+    way: [
+      { ref: 'Ex 16:4', note: 'Manna: bread from heaven, enough for today, every day, for forty years.' },
+      { ref: 'Ex 25:30', note: 'The Bread of the Presence — always on the table, always before His face.' },
+      { ref: 'Micah 5:2', note: 'The Messiah’s promised birthplace: Bethlehem — Hebrew for “house of bread.”' },
+      { ref: '2 Kings 4:42-44', note: 'Elisha feeds a hundred men with twenty loaves — with leftovers. A trailer for a bigger scene.' },
+      { ref: 'Matt 14:19-20', note: 'Jesus feeds thousands with five loaves. Twelve baskets left over.' },
+      { ref: 'John 6:35', j: true, note: '“I am the bread of life.” Manna was the shadow; He is the meal.' },
+      { ref: 'Luke 22:19', note: '“This is my body, given for you.” The table becomes the covenant.' },
+      { ref: 'Luke 24:30-31', note: 'Emmaus: they recognize the risen Jesus “in the breaking of the bread.”' }
+    ],
+    landsOn: '“Your fathers ate the manna and died… I am the living bread — whoever eats this bread will live forever” (John 6:49-51). Born in the house of bread, laid in a feeding trough. Not subtle, once you see it.',
+    forYou: 'Manna didn’t keep overnight (Ex 16:19-20). Neither does yesterday’s grace — <b>He’s daily bread, not a pantry item</b>.'
+  },
+  {
+    id: 'water', name: 'Living Water', icon: 'water', cvar: '--t-water',
+    tag: 'Rivers, wells, and rain — the Spirit flowing under the whole story.',
+    way: [
+      { ref: 'Gen 1:2', note: 'Before anything else: the Spirit of God hovering over the waters.' },
+      { ref: 'Gen 2:10', note: 'A river runs out of Eden to water the whole earth.' },
+      { ref: 'Ex 17:6', note: 'Israel drinks from the struck rock — and Paul names it: “the Rock was Christ” (1 Cor 10:4).' },
+      { ref: 'Jer 2:13', note: 'God’s grief: “They abandoned me, the spring of living water, and dug their own leaky cisterns.”' },
+      { ref: 'Ezek 47:1-9', note: 'A river flows from the temple — ankle-deep, knee-deep, then water to swim in. Everything it touches lives.' },
+      { ref: 'John 4:13-14', note: 'At the well: “The water I give will become a spring inside you, welling up to eternal life.”' },
+      { ref: 'John 7:37-39', j: true, note: '“If anyone thirsts, let him come to me and drink.” John adds: He said this about the Spirit.' },
+      { ref: 'John 19:34', note: 'At the cross, blood and water flow from His pierced side. The temple’s river has a source.' },
+      { ref: 'Rev 22:1', note: 'The river of the water of life, flowing from the throne of God and of the Lamb. Eden, finished.' }
+    ],
+    landsOn: 'Ezekiel saw water pouring from the temple. Jesus said the true temple was His body (John 2:21). At the cross, water poured from His side. The maps line up.',
+    forYou: 'You’re not hauling buckets from meeting to meeting — <b>the well moved inside you</b> (John 4:14). Ask, drink, repeat.'
+  },
+  {
+    id: 'light', name: 'Light', icon: 'light', cvar: '--t-light',
+    tag: 'The light that existed before the sun and outlasts it.',
+    way: [
+      { ref: 'Gen 1:3', note: '“Let there be light” — three days before the sun exists. Light is older than lamps.' },
+      { ref: 'Ex 13:21', note: 'A pillar of fire: light that leads, stays, and stands between you and Egypt.' },
+      { ref: 'Ex 27:20-21', note: 'The lampstand — the only light in the Holy Place. No windows. Just the lamp.' },
+      { ref: 'Isa 9:2', note: '“The people walking in darkness have seen a great light” — addressed, oddly, to Galilee.' },
+      { ref: 'Isa 49:6', note: 'The Servant’s job description: “a light for the nations, that my salvation may reach the ends of the earth.”' },
+      { ref: 'John 8:12', j: true, note: '“I am the light of the world” — announced in the temple courts during the festival of lamps.' },
+      { ref: 'Matt 5:14', note: 'Then the handoff: “YOU are the light of the world.” Present tense. Not “try to be.”' },
+      { ref: 'Rev 21:23', note: 'The city needs no sun — “the glory of God gives it light, and its lamp is the Lamb.”' }
+    ],
+    landsOn: 'Genesis opens with light before the sun; Revelation closes with light after it. Same light. “In him was life, and the life was the light of men” (John 1:4).',
+    forYou: 'You don’t generate brightness; you’re plugged in. “Now you ARE light in the Lord” (Eph 5:8) — <b>hiding is the only way to fail at this</b>.'
+  },
+  {
+    id: 'shepherd', name: 'The Shepherd', icon: 'shepherd', cvar: '--t-shepherd',
+    tag: 'God keeps hiring shepherds — then takes the job Himself.',
+    way: [
+      { ref: 'Gen 48:15', note: 'Jacob, dying, names Him: “the God who has been my shepherd all my life long.”' },
+      { ref: 'Ex 3:1', note: 'Moses keeps sheep for forty years before he leads people. The desert is a shepherd school.' },
+      { ref: '1 Sam 17:34-36', note: 'David learns king-craft on lions and bears, guarding sheep nobody bothered to count.' },
+      { ref: 'Ps 23', note: '“The LORD is my shepherd” — a shepherd-king writes the ultimate job description.' },
+      { ref: 'Ezek 34:11-16', note: 'God fires the hireling shepherds: “I MYSELF will search for my sheep… I myself will be their shepherd.”' },
+      { ref: 'Zech 13:7', note: '“Strike the shepherd and the sheep scatter” — quoted by Jesus on the night of His arrest.' },
+      { ref: 'John 10:11', j: true, note: '“I am the good shepherd. The good shepherd lays down his life for the sheep.” Ezekiel’s promise, standing in sandals.' },
+      { ref: 'Heb 13:20', note: 'Risen: “the great Shepherd of the sheep.” Returning: “the chief Shepherd” (1 Pet 5:4).' },
+      { ref: 'Rev 7:17', note: 'The plot twist: “the Lamb… will be their shepherd.” Two threads tie off in one knot.' }
+    ],
+    landsOn: 'Ezekiel 34 is God promising to shepherd His people personally. John 10 is Him doing it. “I myself will” became “I am.”',
+    forYou: 'Sheep aren’t driven; they’re led — by voice (John 10:27). <b>If it drives you with fear and shame, it isn’t the Shepherd.</b>'
+  },
+  {
+    id: 'king', name: 'The King & the Seed', icon: 'king', cvar: '--t-king',
+    tag: 'A crown promised in Eden, tracked through one family tree.',
+    way: [
+      { ref: 'Gen 3:15', note: 'The first promise in the Bible: her Seed will crush the serpent’s head. One Offspring. Game on.' },
+      { ref: 'Gen 49:10', note: 'Jacob’s deathbed GPS: the scepter belongs to Judah — “until he comes to whom it belongs.”' },
+      { ref: '2 Sam 7:12-16', note: 'God to David: your offspring’s throne will stand forever. (Solomon dies. So it’s Someone else.)' },
+      { ref: 'Ps 2; Ps 110', note: '“You are my Son”… “Sit at my right hand.” Coronation psalms waiting a thousand years for a head to fit the crown.' },
+      { ref: 'Isa 9:6-7', note: '“Unto us a child is born… the government upon his shoulder… on the throne of David, forever.”' },
+      { ref: 'Luke 1:32-33', j: true, note: 'Gabriel to Mary: “The Lord God will give him the throne of his father David… and of his kingdom there will be no end.”' },
+      { ref: 'Matt 27:37', note: 'The charge nailed above His head: THE KING OF THE JEWS. Rome wrote the sign; heaven meant it.' },
+      { ref: 'Matt 28:18', note: '“All authority in heaven and on earth has been given to me.” Not “will be.” Has been.' },
+      { ref: 'Rev 19:16', note: 'On His robe: KING OF KINGS AND LORD OF LORDS.' }
+    ],
+    landsOn: 'The Bible tracks one royal line for four thousand years — Eve’s Seed, Judah’s scepter, David’s Son — and hands the crown to a carpenter from Bethlehem.',
+    forYou: 'Prayer isn’t shouting at the sky. <b>You’re seated with the King</b> (Eph 2:6) — speak from the throne room, not the waiting room.'
+  },
+  {
+    id: 'temple', name: 'Temple & Presence', icon: 'temple', cvar: '--t-temple',
+    tag: 'God keeps moving closer: garden, tent, temple, flesh — you.',
+    way: [
+      { ref: 'Gen 3:8', note: 'Eden, the first temple: God walking with humans in the cool of the day.' },
+      { ref: 'Ex 25:8', note: '“Make me a sanctuary, that I may dwell AMONG them.” A tent — so He can camp with His people.' },
+      { ref: '1 Kings 8:10-11', note: 'Glory fills Solomon’s temple so thick the priests can’t stand up to serve.' },
+      { ref: 'Ezek 10:18', note: 'The heartbreak scene: the glory lifts off the temple and leaves.' },
+      { ref: 'Hag 2:9', note: 'A strange promise over a lesser building: “The latter glory of this house shall be greater than the former.”' },
+      { ref: 'John 1:14', j: true, note: '“The Word became flesh and dwelt” — literally, TABERNACLED — “among us, and we beheld his glory.”' },
+      { ref: 'John 2:19-21', note: '“Destroy this temple, and in three days I will raise it up.” He was talking about His body.' },
+      { ref: 'Matt 27:51', note: 'The veil tears, top to bottom. God’s own handwriting: the room is open.' },
+      { ref: '1 Cor 6:19', note: '“Your body is a temple of the Holy Spirit.” The address changed. It’s you now.' },
+      { ref: 'Rev 21:3,22', note: '“I saw no temple in the city… its temple is the Lord God the Almighty and the Lamb.” Dwelling restored, for good.' }
+    ],
+    landsOn: 'Haggai promised a lesser building greater glory than Solomon’s gold. Then a Galilean walked into it. The glory was never the gold — it was the Guest.',
+    forYou: 'You don’t go to the presence; <b>you carry it</b> (1 Cor 3:16). Stop commuting to where you already live.'
+  },
+  {
+    id: 'rest', name: 'Rest & Sabbath', icon: 'rest', cvar: '--t-rest',
+    tag: 'The finish line of Genesis 1 — and of the gospel.',
+    way: [
+      { ref: 'Gen 2:2-3', note: 'Day seven: God rests. Not tired — finished. The only day with no “evening and morning.”' },
+      { ref: 'Ex 20:8-11', note: 'Sabbath: a weekly national rehearsal of “it is finished” — stop, because God completed it.' },
+      { ref: 'Ex 33:14', note: '“My presence will go with you, and I will give you rest.” Presence and rest travel together.' },
+      { ref: 'Ps 95:11', note: 'A generation misses the promised land — “they shall not enter my rest.” Hebrews 3:19 gives the autopsy: unbelief.' },
+      { ref: 'Isa 30:15', note: '“In returning and rest you shall be saved… but you were unwilling.”' },
+      { ref: 'Matt 11:28-30', j: true, note: '“Come to ME, all who labor and are heavy laden, and I will give you rest.” A Person offering what the day only pictured.' },
+      { ref: 'John 19:30', note: '“It is finished.” The sixth day’s work ends; the true Sabbath begins.' },
+      { ref: 'Col 2:16-17', note: 'Sabbath was “a shadow of the things to come — but the substance belongs to Christ.”' },
+      { ref: 'Heb 4:9-11', note: '“A Sabbath rest remains for the people of God… strive to enter that rest.” The only striving left is the refusal to strive.' }
+    ],
+    landsOn: 'God’s seventh-day rest wasn’t recovery — it was completion. The cross speaks the same word over your standing with God: finished.',
+    forYou: 'Hurry and striving are not fruits of the Spirit. <b>Work FROM rest, not FOR it</b> (Heb 4:10) — that’s the whole trick of the Christian life.'
+  },
+  {
+    id: 'covenant', name: 'Covenant', icon: 'covenant', cvar: '--t-covenant',
+    tag: 'God keeps making promises — then signs both lines Himself.',
+    way: [
+      { ref: 'Gen 9:13', note: 'After the flood: a war-bow hung in the clouds — pointed away from the earth.' },
+      { ref: 'Gen 15:12-17', note: 'The strangest scene in Genesis: Abraham asleep while God alone walks between the covenant pieces. One signature.' },
+      { ref: 'Ex 24:7-8', note: 'Sinai: “All this we will do!” A two-signature covenant. It lasts about six weeks (see: golden calf).' },
+      { ref: 'Jer 31:31-34', note: '“Behold, the days are coming… a NEW covenant… I will remember their sins no more.”' },
+      { ref: 'Ezek 36:26-27', note: 'The spec sheet: a new heart, a new spirit, “I will CAUSE you to walk in my statutes.” He does the causing.' },
+      { ref: 'Luke 22:20', j: true, note: '“This cup is the new covenant in my blood.” Jeremiah’s promise, poured out at a table.' },
+      { ref: 'Heb 6:13-18', note: 'God swears by Himself — two unchangeable things, “a sure and steadfast anchor of the soul.”' },
+      { ref: 'Heb 8:6', note: '“A better covenant, enacted on better promises” — better because every promise is God’s to keep.' }
+    ],
+    landsOn: 'Genesis 15 is the key that unlocks the gospel: God put Abraham to sleep and walked the covenant path alone. At the cross He did it again — the new covenant is cut between the Father and the Son. You’re not a signatory. You’re the beneficiary.',
+    forYou: 'An inheritance doesn’t depend on the heir’s mood swings (Heb 9:16-17). <b>Your standing rests on His performance, not yours.</b>'
+  },
+  {
+    id: 'bride', name: 'The Bride', icon: 'bride', cvar: '--t-bride',
+    tag: 'The Bible opens with a wedding and closes with one.',
+    way: [
+      { ref: 'Gen 2:21-23', note: 'The first bride comes from a wound in the side of a sleeping man. Remember that detail.' },
+      { ref: 'Gen 24', note: 'A father sends his servant to bring back a bride for the promised son. The pattern hides in plain sight.' },
+      { ref: 'Ruth 4', note: 'Boaz the kinsman-redeemer: related, able, willing — he redeems the field to marry the foreigner.' },
+      { ref: 'Hos 3:1-2', note: 'Hosea buys back his own unfaithful wife from the auction block. God says: that’s me and my people.' },
+      { ref: 'Isa 54:5', note: '“Your Maker is your husband” — spoken to a people at their lowest.' },
+      { ref: 'John 2:1-11', note: 'Jesus’s first sign: rescuing a wedding that ran dry. Of course it was a wedding.' },
+      { ref: 'Eph 5:25-32', j: true, note: '“Christ loved the church and GAVE HIMSELF UP for her… This mystery is profound — I am saying it refers to Christ and the church.”' },
+      { ref: 'Rev 19:7', note: 'The marriage supper of the Lamb — “his Bride has made herself ready.”' },
+      { ref: 'Rev 22:17', note: 'The Bible’s last invitation: “The Spirit and the Bride say, Come.”' }
+    ],
+    landsOn: 'Adam slept, his side was opened, and a bride was formed. Christ slept in death, His side was opened, and the church was born. Paul says the first was always about the second (Eph 5:32).',
+    forYou: 'You are not God’s employee on probation. <b>You’re the Bride He crossed everything to get</b> — loved, wanted, pursued.'
+  },
+  {
+    id: 'exile', name: 'Exile & Homecoming', icon: 'exile', cvar: '--t-exile',
+    tag: 'East of Eden, and the long road home.',
+    way: [
+      { ref: 'Gen 3:24', note: 'The first exile: humanity walks out of Eden eastward; cherubim guard the way back in.' },
+      { ref: 'Gen 4:16', note: 'Cain settles further “east of Eden.” Sin’s compass always points away.' },
+      { ref: 'Ps 137:1', note: 'Babylon: “By the rivers of Babylon, there we sat down and wept.” The garden feels very far away.' },
+      { ref: 'Isa 40:3', note: 'Hope files a flight plan: “In the wilderness prepare the way of the LORD” — a highway home.' },
+      { ref: 'Ezra 6; Neh 6', note: 'A partial return: the house gets rebuilt — but no glory-cloud is ever said to fill it. Something is still missing.' },
+      { ref: 'Matt 3:1-3', note: 'John the Baptist appears IN THE WILDERNESS with Isaiah 40 on his lips. The real return is starting.' },
+      { ref: 'Luke 15:11-24', j: true, note: 'The prodigal son: the whole exile story in one parable — far country, famine, “he came to himself,” and a father who RUNS.' },
+      { ref: 'Heb 13:12', note: 'Jesus suffers “outside the gate” — exiled in our place, so exiles can come home.' },
+      { ref: 'Rev 21:3', note: '“Behold, the dwelling place of God is with man.” Eden’s door reopened. Nobody lives east anymore.' }
+    ],
+    landsOn: 'Every exile in the Bible replays Eden, and every homecoming preaches the gospel. He was cast out so the cast-out could come home.',
+    forYou: 'Shame says “keep your distance and rehearse your speech.” The Father says “bring the robe” — <b>He runs before you finish the apology</b> (Luke 15:20-22).'
+  },
+  {
+    id: 'name', name: 'The Name', icon: 'name', cvar: '--t-name',
+    tag: 'I AM — carried, guarded, and finally given away.',
+    way: [
+      { ref: 'Ex 3:14', note: 'The burning bush: “I AM WHO I AM. Say this: I AM has sent me to you.” A name that’s a claim — self-existent, present tense.' },
+      { ref: 'Ex 20:7', note: 'Don’t “take” (literally: CARRY) the Name in vain — less about swear words, more about wearing it emptily.' },
+      { ref: 'Num 6:24-27', note: 'The priestly blessing: “So shall they PUT MY NAME on the people.” The Name is placed on people like a garment.' },
+      { ref: 'Prov 18:10', note: '“The name of the LORD is a strong tower; the righteous man runs into it and is safe.”' },
+      { ref: 'John 8:58', j: true, note: '“Before Abraham was, I AM.” They pick up stones — they know exactly which Name He just used.' },
+      { ref: 'John 17:6,26', note: 'Jesus’s own mission summary: “I have manifested your NAME to the people you gave me.”' },
+      { ref: 'Phil 2:9-11', note: '“God has highly exalted him and given him the name above every name — at the name of Jesus every knee will bow.”' },
+      { ref: 'Rev 22:4', note: 'The story’s last page: “His name will be on their foreheads.” Numbers 6, made permanent.' }
+    ],
+    landsOn: 'The unspeakable Name of the burning bush shows up in Galilee saying “I AM” — bread, light, door, shepherd, resurrection, way, truth, life, vine. Eight predicates, one claim.',
+    forYou: 'You were baptized INTO the Name (Matt 28:19). <b>You don’t drop it to fit in — you carry it, and it carries you.</b>'
+  }
+];
+/* ================= THE PATTERN — Egypt → Wilderness → Promised Land ================= */
+const PATTERN = {
+  intro: 'The Bible’s master pattern: God brings people out of bondage, forms them in a wilderness, and walks them into an inheritance. It happened to a nation once — and Paul says it was written down on purpose: “These things happened to them as examples, and they were written down for OUR instruction” (1 Cor 10:11). The Old Testament is a case-study library, and one of its biggest lessons is this three-season map. You are on it somewhere right now.',
+  seasons: [
+    {
+      id: 'egypt', name: 'Egypt', cvar: '--s-egypt', icon: 'pyramid',
+      sub: 'Bondage — the life that raised you',
+      rows: [
+        { k: 'What it is', v: 'The system you were born into or built before God got your attention: slavery with a paycheck, identity assigned by pharaohs (culture, family, fear, sin).' },
+        { k: 'It feels like', v: 'Familiar. Predictable. Leeks and onions on the table (Num 11:5) — real comfort, real chains.' },
+        { k: 'God’s move', v: 'Deliverance. Done TO you, not by you — nobody fights their own way out of Egypt. “Stand still and see the salvation of the LORD” (Ex 14:13).' },
+        { k: 'The exit', v: 'Overnight, through blood and water (Ex 12; 1 Cor 10:1-2). Getting out of Egypt takes one night. Getting Egypt out of you takes the next season.' }
+      ]
+    },
+    {
+      id: 'desert', name: 'The Wilderness', cvar: '--s-desert', icon: 'dune',
+      sub: 'Formation — where identity gets settled',
+      rows: [
+        { k: 'What it is', v: 'The in-between. Deut 8:2 gives the syllabus: “to humble you, to test you, to know what was in your heart.” Not punishment — formation.' },
+        { k: 'It feels like', v: 'Slow, hidden, repetitive. Daily bread but no visible progress. This is where almost everyone panics and either builds a calf or plans a trip back to Egypt.' },
+        { k: 'God’s move', v: 'Fathering. He speaks identity BEFORE testing it — Israel is called “my firstborn son” (Ex 4:22) before Sinai; Jesus hears “my beloved Son” (Matt 3:17) before the wilderness. The desert doesn’t decide who you are; it reveals whether you believe who He said you are.' },
+        { k: 'Provision', v: 'Manna, daily. Water from rocks. Clothes that don’t wear out (Deut 8:4). Strange, humble, and never late.' }
+      ]
+    },
+    {
+      id: 'land', name: 'The Promised Land', cvar: '--s-land', icon: 'grapes',
+      sub: 'Inheritance — living what He promised',
+      rows: [
+        { k: 'What it is', v: 'The assignment and inheritance you were delivered FOR — fruitfulness, authority, giving instead of surviving. Not heaven: it has giants in it.' },
+        { k: 'It feels like', v: 'Battles fought FROM victory rather than for it. “Every place the sole of your foot treads, I have given you” (Josh 1:3) — given, then walked.' },
+        { k: 'God’s move', v: 'Partnership. The Jordan parts only after the priests step in (Josh 3:13-17). The Red Sea was done TO you; the Jordan is done WITH you.' },
+        { k: 'Provision', v: 'Manna stops the day they eat the land’s produce (Josh 5:12). Not abandonment — promotion. Provision changes shape by season.' }
+      ]
+    }
+  ],
+  insights: [
+    { t: 'The exit is fast; the formation is slow.', x: 'One night out of Egypt; forty years getting Egypt out of them. Conversion is instant — renewal takes seasons (Rom 12:2). Don’t despise the slow part; it’s load-bearing.' },
+    { t: 'Identity comes before the test, never after it.', x: '“You are my beloved Son” (Matt 3:17) — before a single miracle or sermon. Then the very first attack: “IF you are the Son of God…” (Matt 4:3). The wilderness doesn’t ask what you can do. It asks whether you believe what the Voice said.' },
+    { t: 'Jesus re-ran Israel’s whole journey — and passed.', x: 'Carried into Egypt as a child (“out of Egypt I called my son,” Hos 11:1 / Matt 2:15), forty days in the wilderness matching forty years, answering every temptation from Deuteronomy 6–8 — Israel’s exact exam, retaken and aced. At the transfiguration, Moses and Elijah discuss His coming death — Luke calls it His “EXODUS” (Luke 9:31, Greek exodos). The cross is the true exodus.' },
+    { t: 'Two crossings, two baptisms.', x: 'Red Sea: out of slavery — God does it while you stand still (Ex 14:13-14). Jordan: into inheritance — nothing moves until feet get wet (Josh 3:13). Paul calls the first crossing a baptism (1 Cor 10:2). Deliverance is received; inheritance is stepped into.' },
+    { t: 'An 11-day trip took 40 years.', x: 'Deut 1:2 quietly notes: it’s eleven days from Horeb to Kadesh-barnea. The delay wasn’t geography — it was unbelief (Heb 3:19). The promise never expired; the generation did. God’s promises don’t have deadlines, but wandering has a cost.' },
+    { t: 'The giants were never the problem; the mirror was.', x: 'Ten spies: “We seemed like grasshoppers IN OUR OWN EYES, and so we were in theirs” (Num 13:33). Same giants, same God — Caleb just did different math (“they are bread for us,” Num 14:9). Your self-image sets your ceiling more than your circumstances do.' },
+    { t: 'Manna is seasonal; don’t build a theology on a season.', x: 'Manna in the desert, produce in the land (Josh 5:12). When provision changes shape, it usually means the season changed — read the map before assuming God left.' },
+    { t: 'The presence was in every season.', x: 'The pillar of cloud and fire showed up IN the wilderness (Ex 13:21-22) and never once left. The promised land is not where God starts loving you. He’s in the desert, on purpose, with you.' },
+    { t: 'You can camp at the wrong address.', x: 'Some wanted to go back to Egypt (Num 14:4). Some settled east of the Jordan, close enough to see the land but not in it (Num 32). And a whole generation died within walking distance of the promise. The land is entered by rest and faith, not by intensity (Heb 4:9-11) — and it’s always still on offer: “TODAY, if you hear his voice” (Heb 4:7).' }
+  ],
+  cases: [
+    { name: 'Israel', sub: 'the master case study', p1: '400 years of slavery — bricks, quotas, and a pharaoh who decides your worth (Ex 1).', p2: '40 years of manna, water from rocks, and a syllabus called Deuteronomy 8:2 — humbled, tested, fathered.', p3: 'Jordan parts, Jericho falls, and the fight is FROM promise, not for it (Josh 1:3).' },
+    { name: 'Joseph', sub: 'the pit-to-palace arc', p1: 'Favored and naive in his father’s house; then the pit and the slave caravan (Gen 37).', p2: 'Potiphar’s house and prison — 13 years where “the word of the LORD tested him” (Ps 105:19).', p3: 'Palace at 30: feeding nations, forgiving brothers — “you meant evil; God meant good” (Gen 50:20).' },
+    { name: 'Moses', sub: 'the 40-40-40 life', p1: '40 years as a prince of Egypt — power, education, and a murder that proved zeal isn’t readiness (Ex 2).', p2: '40 years keeping sheep in Midian — the résumé God was actually building (Ex 3:1).', p3: '40 years leading the exodus, face-to-face with God, “as a man speaks to his friend” (Ex 33:11).' },
+    { name: 'David', sub: 'anointed long before crowned', p1: 'Overlooked in Jesse’s house — the kid they didn’t bother calling in from the field (1 Sam 16:11).', p2: 'Anointed, then hunted — years of caves, Adullam, and psalms written on the run (1 Sam 22–26).', p3: 'Crowned at Hebron, then Jerusalem — a shepherd’s heart with a king’s authority (2 Sam 5).' },
+    { name: 'Ruth', sub: 'famine to family tree', p1: 'Moab: famine, three funerals, and a mother-in-law who renamed herself “Bitter” (Ruth 1).', p2: 'Gleaning leftover barley in a stranger’s field — faithful obscurity, one row at a time (Ruth 2).', p3: 'Redeemed and married by Boaz — grandmother of kings, name in the genealogy of Jesus (Ruth 4; Matt 1:5).' },
+    { name: 'Elijah', sub: 'hidden before public', p1: 'Gilead obscurity — a nobody from nowhere with one conviction: “the LORD before whom I stand” (1 Kings 17:1).', p2: 'Cherith’s drying brook and a widow’s empty pantry — provision lessons in hiding (1 Kings 17).', p3: 'Carmel: one prayer, fire falls, a nation turns (1 Kings 18).' },
+    { name: 'Peter', sub: 'the compressed desert', p1: 'Boats and nets and a temper — competence in a small pond (Luke 5).', p2: 'One catastrophic night: three denials, a rooster, and bitter weeping — his whole wilderness in a weekend (Luke 22:54-62).', p3: 'Breakfast on the beach, restored three times, then Pentecost: one sermon, three thousand people (John 21; Acts 2).' },
+    { name: 'Paul', sub: 'zeal, then formation, then fire', p1: 'Rising star of the Pharisees — impeccable credentials aimed in exactly the wrong direction (Phil 3:4-6).', p2: 'Damascus, then Arabia, then roughly a decade of Tarsus silence before the story needs him (Gal 1:17-18; Acts 11:25).', p3: 'The apostle to the nations — letters from prisons that became half the New Testament.' },
+    { name: 'Jesus', sub: 'the pattern, perfected', p1: 'A refugee child in Egypt (Matt 2:14-15) and thirty years of Nazareth obscurity — a carpenter nobody quoted.', p2: 'Forty days, no bread, one open question: “IF you are the Son…” Answered entirely from Deuteronomy (Matt 4:1-11).', p3: 'Ministry in the Spirit’s power (Luke 4:14) — and His death called His “exodus” (Luke 9:31): the crossing that opens the land for everyone.' },
+    { name: 'You', sub: 'same map, your dot', p1: 'Whatever raised you and named you before Jesus did — the systems, wounds, and paychecks of the old life.', p2: 'The unglamorous middle you may be in right now: daily bread, identity questions, no highlight reel. It is not punishment. It is formation — and He speaks sonship over you IN it, not after it.', p3: 'The inheritance side: walking in freedom, health, assignment, and rest — giants included, outcome not in doubt (Rom 8:37).' }
+  ]
+};
+/* ================= THE CODES — prophecies, types & shadows, feasts ================= */
+const CODES = {
+  intro: 'The Old Testament is loaded with forward references — some spoken straight out by prophets, some built into events, people, and furniture. Jesus treated this as the Bible’s main feature: “Beginning with Moses and all the Prophets, he interpreted to them in ALL the Scriptures the things concerning himself” (Luke 24:27). Each item below carries an honesty badge, because a map you can trust marks which trails are paved and which are scenic.',
+  badges: {
+    explicit: { label: 'NT-explicit', cls: 'explicit', tip: 'The New Testament itself makes this exact connection.' },
+    classical: { label: 'Classic reading', cls: 'classical', tip: 'Church teachers have seen this for centuries; the NT doesn’t spell it out.' },
+    loose: { label: 'Hold loosely', cls: 'loose', tip: 'Beautiful, popular — and debated. Enjoy it without building on it.' }
+  },
+  prophecies: [
+    { what: 'The Seed of the woman crushes the serpent', ot: 'Gen 3:15', nt: 'Gal 4:4; Rom 16:20', kind: 'typo' },
+    { what: 'All nations blessed through Abraham’s Seed', ot: 'Gen 22:18', nt: 'Gal 3:16', kind: 'direct' },
+    { what: 'The scepter stays with Judah until He comes', ot: 'Gen 49:10', nt: 'Rev 5:5', kind: 'typo' },
+    { what: 'Born of a virgin, called Immanuel', ot: 'Isa 7:14', nt: 'Matt 1:22-23', kind: 'direct' },
+    { what: 'Born in Bethlehem, “whose origins are from of old”', ot: 'Micah 5:2', nt: 'Matt 2:1-6', kind: 'direct' },
+    { what: 'Called out of Egypt', ot: 'Hos 11:1', nt: 'Matt 2:15', kind: 'typo' },
+    { what: 'A forerunner cries in the wilderness', ot: 'Isa 40:3; Mal 3:1', nt: 'Matt 3:1-3', kind: 'direct' },
+    { what: 'A great light dawns in Galilee', ot: 'Isa 9:1-2', nt: 'Matt 4:13-16', kind: 'direct' },
+    { what: 'Heals our diseases and carries our pains', ot: 'Isa 53:4-5', nt: 'Matt 8:16-17; 1 Pet 2:24', kind: 'direct' },
+    { what: 'The King arrives humble, riding a donkey', ot: 'Zech 9:9', nt: 'Matt 21:1-9', kind: 'direct' },
+    { what: 'Betrayed by a close friend who shared his bread', ot: 'Ps 41:9', nt: 'John 13:18', kind: 'typo' },
+    { what: 'Thirty pieces of silver, thrown to the potter', ot: 'Zech 11:12-13', nt: 'Matt 27:3-10', kind: 'direct' },
+    { what: 'Silent before his accusers', ot: 'Isa 53:7', nt: 'Matt 27:12-14', kind: 'direct' },
+    { what: 'Hands and feet pierced; mocked with Psalm 22’s words', ot: 'Ps 22:1,7-8,16', nt: 'Matt 27:35-46', kind: 'typo' },
+    { what: 'Soldiers cast lots for his clothing', ot: 'Ps 22:18', nt: 'John 19:23-24', kind: 'direct' },
+    { what: 'Not one bone broken', ot: 'Ex 12:46; Ps 34:20', nt: 'John 19:33-36', kind: 'direct' },
+    { what: 'They look on the one they pierced', ot: 'Zech 12:10', nt: 'John 19:34-37', kind: 'direct' },
+    { what: 'Buried in a rich man’s tomb', ot: 'Isa 53:9', nt: 'Matt 27:57-60', kind: 'typo' },
+    { what: 'Not abandoned to the grave — resurrection', ot: 'Ps 16:10', nt: 'Acts 2:25-32', kind: 'direct' },
+    { what: 'Ascends and is seated at God’s right hand, a priest forever', ot: 'Ps 110:1,4', nt: 'Acts 2:33-36; Heb 7', kind: 'direct' }
+  ],
+  prophecyNote: 'Two kinds of fulfillment, both honest: <b>direct predictions</b> (Micah names the town) and <b>typological fulfillment</b> (Hosea 11:1 is about Israel — Matthew reads Jesus as the true Israel re-running the story and getting it right). The second kind isn’t cheating; it’s the pattern principle. The apostles read their Bibles that way because Jesus taught them to (Luke 24:27). Note the math on Psalm 22: a detailed crucifixion scene written centuries before crucifixion was invented. (One famous footnote: Matthew attributes the thirty-silver quote to “Jeremiah” though the wording is Zechariah’s — ancient collections were often cited by their lead book, and Matthew blends in Jeremiah’s potter-and-field imagery. A known feature of ancient citation, not a slip.)',
+  types: [
+    { name: 'The bronze serpent', refs: 'Num 21:8-9 → John 3:14-15', badge: 'explicit', body: 'Snake-bitten people healed by LOOKING at the problem lifted up on a pole. Jesus, to Nicodemus: “As Moses lifted up the serpent in the wilderness, so must the Son of Man be lifted up.” Healing by looking, not climbing.' },
+    { name: 'The Passover lamb', refs: 'Ex 12 → 1 Cor 5:7', badge: 'explicit', body: 'Spotless, examined four days (as Jesus was examined in the temple that final week), killed at twilight, no bone broken. Paul writes the caption: “Christ, our Passover lamb, has been sacrificed.”' },
+    { name: 'The manna', refs: 'Ex 16 → John 6:32-35', badge: 'explicit', body: 'Bread from heaven that came down daily and kept a nation alive. Jesus: “My Father gives you the TRUE bread from heaven… I am the bread of life.”' },
+    { name: 'The struck rock', refs: 'Ex 17:6 → 1 Cor 10:4', badge: 'explicit', body: 'Struck once, water for everyone. Paul, casually dropping the key: “they drank from the spiritual Rock that followed them, and the Rock was Christ.”' },
+    { name: 'Jonah’s three days', refs: 'Jonah 1:17 → Matt 12:40', badge: 'explicit', body: 'Jesus picked His own sign: “As Jonah was three days and three nights in the belly of the great fish, so will the Son of Man be in the heart of the earth.”' },
+    { name: 'The temple', refs: '1 Kings 8 → John 2:19-21', badge: 'explicit', body: '“Destroy this temple, and in three days I will raise it up… he was speaking about the temple of his body.” Every stone pointed at a Person.' },
+    { name: 'Jacob’s ladder', refs: 'Gen 28:12 → John 1:51', badge: 'explicit', body: 'A stairway between heaven and earth with angels on it. Jesus to Nathanael: “You will see heaven opened, and the angels of God ascending and descending ON THE SON OF MAN.” He is the ladder.' },
+    { name: 'Adam', refs: 'Gen 2-3 → Rom 5:14', badge: 'explicit', body: 'Paul calls Adam “a TYPE of the one to come.” One man’s act shaping everyone in him — trespass and death through the first Adam, righteousness and life through the last (1 Cor 15:45).' },
+    { name: 'Melchizedek', refs: 'Gen 14:18-20 → Heb 7', badge: 'explicit', body: 'King of Salem (“peace”), priest of God Most High, bringing out bread and wine, no recorded genealogy — Hebrews spends a chapter showing he’s the sketch of a priesthood older and better than Levi’s.' },
+    { name: 'The Day of Atonement & the tabernacle', refs: 'Lev 16 → Heb 9:11-24', badge: 'explicit', body: 'Hebrews says the whole tent system was “a copy and shadow of the heavenly things.” One day a year, one man, behind the veil with blood — until the true High Priest entered once, for all.' },
+    { name: 'Isaac on Moriah', refs: 'Gen 22 → Heb 11:17-19', badge: 'explicit', body: 'A beloved only son carrying the wood for his own sacrifice up a hill, and a father who believed God could raise the dead — Hebrews says Abraham “figuratively” received him back as a picture of resurrection. Abraham names the place “The LORD Will Provide.” He did.' },
+    { name: 'The flood & the ark', refs: 'Gen 6-9 → 1 Pet 3:20-21', badge: 'explicit', body: 'One door, one vessel through judgment waters into a new world. Peter explicitly ties it to baptism — brought safely through, not around.' },
+    { name: 'Joseph', refs: 'Gen 37-50 → Acts 7:9-14', badge: 'classical', body: 'Beloved son, betrayed by brothers, sold for silver, stripped of his robe, falsely accused, numbered with two criminals (one lifted up, one not — Gen 40), raised from a pit to the right hand of the throne, given a gentile bride, feeding the nations bread, forgiving his betrayers: “you meant evil against me, but God meant it for good” (Gen 50:20). And Stephen’s pointed detail: his brothers didn’t recognize him the FIRST time — he revealed himself on the SECOND visit (Acts 7:13).' },
+    { name: 'Boaz, the kinsman-redeemer', refs: 'Ruth 4 → Eph 1:7', badge: 'classical', body: 'The go’el had to be three things: RELATED to the one being redeemed, ABLE to pay, and WILLING. The incarnation, the sinless life, and Gethsemane, sitting quietly in a Bethlehem love story.' },
+    { name: 'The ark of the covenant', refs: 'Ex 25:10-22 → Rom 3:25', badge: 'classical', body: 'Inside: the law humanity broke. On top: the mercy seat, sprinkled with blood, where God meets man. Paul uses the mercy-seat word (hilastērion) for Jesus — the meeting place between a broken law and a satisfied God.' },
+    { name: 'Cities of refuge', refs: 'Num 35 → Heb 6:18', badge: 'classical', body: 'Six cities, roads kept clear, gates never shut — where the guilty ran and were safe as long as they stayed. Hebrews echoes the picture: “we who have FLED FOR REFUGE… have strong encouragement.”' },
+    { name: 'The scapegoat & atonement goat', refs: 'Lev 16:7-22 → Heb 9:12; 13:12', badge: 'explicit', body: 'One goat was sacrificed for blood atonement (expiation); the second (the scapegoat) had sins confessed over it and was led away to wander in the wilderness, bearing guilt far out of sight. Jesus is both: the blood payment and the sin-bearer carrying our debt outside the camp.' },
+    { name: 'The red heifer', refs: 'Num 19:1-10 → Heb 9:13-14', badge: 'explicit', body: 'Slaughtered outside the camp, its ashes were mixed with water to cleanse anyone defiled by contact with death. Hebrews contrasts it: if heifer ashes could outwardly purify, how much more does the blood of Christ cleanse our conscience from dead works.' },
+    { name: 'Abel’s blood vs. Jesus’s blood', refs: 'Gen 4:10 → Heb 12:24', badge: 'explicit', body: 'Abel’s spilled blood cried out from the ground for vengeance, justice, and condemnation against his brother. Jesus’s sprinkled blood speaks a better word, crying out to the Father for mercy, forgiveness, and peace.' },
+    { name: 'The covenant cuts', refs: 'Gen 15:7-21 → Gal 3:13', badge: 'classical', body: 'In ancient treaty cuts, both parties walked between split animals, swearing death if they failed. God put Abraham to sleep and walked through alone as fire. When humanity failed the covenant, God Himself took the "cut" on the cross.' },
+    { name: 'Moses: the double encounter', refs: 'Ex 2:11-15; 3 → Acts 7:23-35', badge: 'explicit', body: 'At his first attempt to deliver Israel, Moses is rejected: “Who made you a ruler and judge over us?” (Acts 7:27). He flees to the wilderness. The second time, forty years later, he returns commissioned by God and is accepted as their deliverer. Stephen argues this is the exact pattern of Jesus: rejected at His first coming, recognized at His second.' },
+    { name: 'Linguistic convergence on the cross', refs: 'John 19:19-20 → Eph 2:14-16', badge: 'loose', body: 'The cross inscription was written in Hebrew/Aramaic (which reads right-to-left, representing the Semitic East and the Law) and Greek and Latin (which read left-to-right, representing the Gentile West, culture, and power). Visually, the languages of the East and the West flow from opposite margins and physically converge at the central figure of Jesus—reconciling both in one body.' },
+    { name: 'The bronze serpent', refs: 'Num 21:4-9 → John 3:14-15', badge: 'explicit', body: 'Israel is bitten by venomous snakes under judgment. Moses lifts a bronze serpent on a pole; whoever looks at it is healed. Jesus claims this explicitly: “As Moses lifted up the serpent in the wilderness, so must the Son of Man be lifted up, that whoever believes in him may have eternal life.” The very symbol of the curse, made of bronze (judgment), becomes the source of life when lifted up.' },
+    { name: 'The pillar of cloud and fire', refs: 'Ex 13:21-22 → 1 Cor 10:1-2', badge: 'classical', body: 'A pillar of cloud by day and fire by night, guiding Israel through the trackless desert, giving light while throwing their enemies into darkness. Paul notes they were “baptized into Moses in the cloud,” and Jesus fulfills this as the true Light who guides us through the wilderness of this life and never leaves us.' },
+    { name: 'Noah’s dove and the olive branch', refs: 'Gen 8:8-12 → Matt 3:16', badge: 'classical', body: 'The dove sent from the ark finds no place to rest on the flooded earth, returning with an olive leaf showing the judgment has subsided. At Jesus’s baptism, as He emerges from the judgment waters of Jordan, the Spirit descends “like a dove” and rests on Him, declaring that the flood of wrath is over and peace between God and man has arrived.' }
+  ],
+  tabernacle: {
+    intro: 'The tabernacle wasn’t random furniture — it’s a walkable diagram of approach to God, and every station is Jesus (Heb 8:5; 10:19-22). Walk it east to west:',
+    stations: [
+      { name: 'The gate', what: 'One entrance, east side', jesus: '“I am the door” (John 10:9). One way in — and it faces the direction of exile, where the people actually are.' },
+      { name: 'Bronze altar', what: 'Sacrifice, first thing inside', jesus: 'The cross. You can’t get one step further without blood (Heb 9:22).' },
+      { name: 'The laver', what: 'Washing before service', jesus: 'Cleansed “by the washing of water with the word” (Eph 5:26).' },
+      { name: 'Table of bread', what: 'Twelve loaves in the Presence', jesus: '“I am the bread of life” (John 6:35) — fellowship, at a table.' },
+      { name: 'The lampstand', what: 'Only light in the room', jesus: '“I am the light of the world” (John 8:12) — Spirit-fed fire on a golden tree.' },
+      { name: 'Altar of incense', what: 'Smoke rising before the veil', jesus: '“He always lives to intercede” (Heb 7:25). Prayer as fragrance (Rev 8:4).' },
+      { name: 'The veil', what: 'The barrier before the Presence', jesus: 'Torn top to bottom at His death (Matt 27:51) — “through the veil, that is, his flesh” (Heb 10:20).' },
+      { name: 'Mercy seat', what: 'Blood-sprinkled throne above the law', jesus: 'The destination. “Let us then with confidence draw near to the throne of grace” (Heb 4:16).' }
+    ]
+  },
+  feasts: [
+    { name: 'Passover', when: 'Nisan 14 · spring', badge: 'explicit', body: 'The lamb dies, the blood shields, the slaves go free. Jesus is crucified at Passover — “Christ, our Passover lamb, has been sacrificed” (1 Cor 5:7).' },
+    { name: 'Unleavened Bread', when: 'Nisan 15-21', badge: 'classical', body: 'Seven days with no leaven — sin’s picture — in the house. Paul spiritualizes the leaven explicitly (“celebrate with sincerity and truth,” 1 Cor 5:7-8); the classic reading adds the sinless one lying in the tomb during the feast. Beautiful, though the burial link is inference rather than quotation.' },
+    { name: 'Firstfruits', when: 'During Unleavened Bread', badge: 'explicit', body: 'The first sheaf of harvest waved before God — on the morning after the Sabbath. Resurrection morning. “Christ has been raised from the dead, the FIRSTFRUITS of those who have fallen asleep” (1 Cor 15:20-23). The first sheaf guarantees the rest of the field.' },
+    { name: 'Pentecost (Shavuot)', when: '50 days later', badge: 'explicit', body: 'The Spirit falls on the feast day itself — “when the day of Pentecost came” (Acts 2:1). Later Jewish tradition ties Shavuot to the giving of the law at Sinai, which makes the echo sing: at Sinai, 3,000 fell (Ex 32:28); at Pentecost, 3,000 came alive (Acts 2:41). The Sinai link and the body-count contrast are tradition and preacher’s pattern-spotting rather than stated cross-references — but they pair unforgettably with Paul’s line: “the letter kills, but the Spirit gives life” (2 Cor 3:6).' },
+    { name: 'Trumpets', when: 'Tishri 1 · fall', badge: 'classical', body: 'A day of awakening blasts. The classic reading looks forward: “the trumpet will sound, and the dead will be raised imperishable” (1 Cor 15:52; 1 Thess 4:16).' },
+    { name: 'Day of Atonement', when: 'Tishri 10', badge: 'classical', body: 'Already fulfilled at the cross in substance (Heb 9) — and classically read as awaiting its national moment: “they will look on me, on him whom they have pierced” (Zech 12:10; Rom 11:26).' },
+    { name: 'Tabernacles', when: 'Tishri 15-21', badge: 'classical', body: 'A week of camping in booths, remembering God-with-us in tents. The ending the whole Bible leans toward: “Behold, the dwelling place of God is with man” (Rev 21:3).' }
+  ],
+  feastNote: 'The spring feasts were fulfilled at the first coming — to the day. The fall feasts are classically read as the shape of what’s ahead. Enjoy the pattern; hold every date-setting impulse loosely (Acts 1:7). The point was never the calendar — it’s the Person the calendar rehearses (Col 2:16-17).',
+  loose: [
+    { name: 'The gospel in the Genesis 5 genealogy', badge: 'loose', body: 'Read the traditional meanings of the ten names from Adam to Noah in a row — Man / appointed / mortal / sorrow / the blessed God / shall come down / teaching / his death shall bring / the despairing / rest — and a sentence appears: “Man is appointed mortal sorrow; the blessed God shall come down teaching; His death shall bring the despairing rest.” Genuinely lovely — and here’s the honest ledger: two of the meanings are given by scripture itself (Seth, “appointed,” Gen 4:25; Noah, “rest/comfort,” Gen 5:29), several are reasonable lexicon reconstructions, and Hebrew scholars seriously dispute a few (Methuselah likely isn’t “his death shall bring,” and Mahalalel parses closer to “praising God”). Tellingly, no New Testament writer — arguing hard for Jesus everywhere — ever cites it. File under wonder, not proof.' },
+    { name: 'Numbers, codes & date math', badge: 'loose', body: 'Sevens and twelves and forties carry real, intended meaning in scripture — completion, government, testing. But number-hunting has a long history of embarrassing Christians (every predicted rapture date so far: 0 for all of them). Rule of thumb: if a “code” makes you love and trust Jesus more, fine; if it makes you buy freeze-dried food and distrust your church, it’s a detour (Acts 1:7; Matt 24:36).' },
+    { name: 'Hebrew alphabet word pictographs', badge: 'loose', body: 'The theory that paleo-Hebrew letters (like Aleph = ox/strength, Tav = cross/covenant) form hidden visual sentences inside normal words. While poetic and popular in sermons, Hebrew linguists note that root definitions are based on phonetic sounds, not letter pictographs. Spellings changed over time, meaning these "hidden meanings" are reader reconstructions. Beautiful for devotional reflection; hold it lightly.' },
+    { name: 'Bible codes & Equidistant Letter Sequences (ELS)', badge: 'loose', body: 'Using math to skip letters in the Hebrew text to find encoded names and predictions (like "Torah" spelled out every 50 letters in Genesis). While mathematically true, statistical audits show that any large book (including Moby Dick) contains similar ELS word patterns by pure probability. The true message of the Bible is written in plain sight, not codes (Deut 29:29).' }
+  ]
+};
+/* ================= WALK IT OUT — new covenant life ================= */
+const TEN_WORDS = ['Loved', 'Forgiven', 'Saved', 'Union', 'Accepted', 'Holy', 'Righteous', 'Dead to sin', 'New', 'Royal'];
+
+const WALKING = {
+  intro: 'The gospel isn’t just your ticket out of Egypt — it’s a whole new operating system. Most Christian frustration comes from running new-covenant life on old-covenant software: earning what’s already given, begging for what’s already yours, working toward an identity instead of from one. Here are the load-bearing walls of walking it out.',
+  tenWordsNote: 'One good summary of who you now are — ten words, all already true, none earned (framework from Paul Ellis’s <i>The Gospel in Ten Words</i>): “In union with Christ you are loved, forgiven, saved, accepted, holy, righteous, dead to sin, new, and royal.” Not steps. Not levels. Pearls on one necklace.',
+  pillars: [
+    {
+      name: 'Union: you are IN Christ', icon: 'thread',
+      lie: 'God is up there somewhere; I connect when I perform well enough.',
+      truth: 'You are in Christ — that’s your permanent address.',
+      body: '“In Christ,” “in him,” “with him” — Paul can hardly write a paragraph without it (read Ephesians 1 and start circling). Union isn’t a mood you achieve in a good worship set; it’s the fact under your feet. His history became yours: crucified with him, raised with him, seated with him (Gal 2:20; Eph 2:5-6).',
+      refs: ['John 15:4-5', 'Gal 2:20', 'Eph 1:3-14', 'Col 3:3'],
+      practice: 'Read Ephesians 1:3-14 and circle every “in Christ / in him.” Then read your day through that address.'
+    },
+    {
+      name: 'Righteousness is a gift, not a grade', icon: 'king',
+      lie: 'God’s mood toward me tracks my latest performance.',
+      truth: 'He was made sin so you’d be made righteousness. The swap already happened.',
+      body: '“God made him who had no sin to be sin for us, so that in him we might become the righteousness of God” (2 Cor 5:21). Romans calls it “the GIFT of righteousness” and says the ones who RECEIVE it are the ones who reign in life (Rom 5:17). You can’t earn a gift; you can only take it — and then live like it’s true.',
+      refs: ['2 Cor 5:21', 'Rom 5:17', 'Phil 3:9', 'Rom 4:5'],
+      practice: 'The moment you blow it, say thank-you instead of hiding: “I’m still the righteousness of God in Christ.” That’s not license — that’s the advocate’s courtroom (1 John 2:1).'
+    },
+    {
+      name: 'It is finished — so sit down', icon: 'rest',
+      lie: 'God is mostly waiting for me to do more.',
+      truth: 'The work is done. Your first job is to trust it.',
+      body: 'There were no chairs in the tabernacle — priests stood, because the work was never done (Heb 10:11). Then Jesus offered one sacrifice for all time “and SAT DOWN” (Heb 10:12-14). Christianity is the only faith whose founder’s last word on your standing was “finished” (John 19:30). Everything you do now flows downhill from that — work FROM rest, never for it.',
+      refs: ['Heb 10:11-14', 'John 19:30', 'Heb 4:9-11', 'Matt 11:28-30'],
+      practice: 'Take a real weekly rest on purpose — not as a rule, but as a protest: a declaration that your world runs on His finished work, not your hustle.'
+    },
+    {
+      name: 'Healed at the same cross', icon: 'lamb',
+      lie: 'God sent this sickness to teach me something.',
+      truth: 'Jesus is what God thinks about sickness — and he healed them all.',
+      body: 'Jesus is “the exact imprint” of the Father (Heb 1:3), and his ministry record is unambiguous: he “went around doing good and healing ALL who were oppressed by the devil” (Acts 10:38) — sickness filed under oppression, not curriculum. Matthew explicitly ties his healing ministry to Isaiah 53: “He took up our infirmities and bore our diseases” (Matt 8:16-17; Isa 53:4-5; 1 Pet 2:24). Communion even puts it on the table: a body broken and blood shed, worth discerning (1 Cor 11:23-30). Honest footnotes: theologians genuinely debate how much arrives now versus at resurrection; faith and doctors are teammates, not rivals (1 Tim 5:23); and condemnation over unanswered healing is never from God — the same gospel says “no condemnation” (Rom 8:1). But start where Jesus stood: God is not the author of your sickness.',
+      refs: ['Isa 53:4-5', 'Matt 8:16-17', '1 Pet 2:24', 'Acts 10:38', 'Matt 9:35'],
+      practice: 'Pray from the promise, not for it: thank him for what the cross already covered, speak to the mountain (Mark 11:23-24), and take communion like it means something.'
+    },
+    {
+      name: 'Sonship, not employment', icon: 'bride',
+      lie: 'I’m God’s employee — useful, or unwanted.',
+      truth: 'You’re a son or daughter in the house forever.',
+      body: 'Both prodigal brothers missed the father’s heart — one ran from the house, one worked in it like a hired hand (“all these years I’ve been SLAVING for you,” Luke 15:29). Neither trusted the love. “You did not receive a spirit of slavery to fall back into fear, but the Spirit of adoption, by whom we cry Abba” (Rom 8:15). Service is what sons do because they’re loved — never how orphans earn a bed.',
+      refs: ['Luke 15:11-32', 'Rom 8:15-17', 'Gal 4:6-7', 'John 15:15'],
+      practice: 'Once a week, do something with God that produces nothing — no ministry output, no content, no résumé line. Sons get to just be home.'
+    },
+    {
+      name: 'Pray from the throne, not the waiting room', icon: 'temple',
+      lie: 'Prayer is begging a reluctant God to maybe act.',
+      truth: 'Prayer is agreeing with a willing King — from a seated position.',
+      body: 'You were “raised up with him and SEATED with him in the heavenly places” (Eph 2:6), so the invitation is to come to the throne “with confidence” — boldly, not groveling (Heb 4:16). Jesus explicitly ruled out the pagan strategy of wearing God down with word-count: “your Father knows what you need before you ask him” (Matt 6:7-8). Ask, believe you’ve received, act like the Father is good — because he is.',
+      refs: ['Eph 2:6', 'Heb 4:16', 'Mark 11:24', 'Matt 7:9-11'],
+      practice: 'Open prayers with identity and thanks instead of apologies and throat-clearing. Watch how it changes what you ask for.'
+    },
+    {
+      name: 'Holiness is fruit, not the entry fee', icon: 'grapes',
+      lie: 'Clean up first, then you can come close.',
+      truth: 'You come close, and the closeness cleans you up.',
+      body: '“Abide in me… apart from me you can do nothing” (John 15:4-5) — fruit grows from connection, never the other way around. The new covenant’s wildest clause: “I will put my Spirit within you and CAUSE you to walk in my statutes” (Ezek 36:27). Your part is the reckoning — count yourself dead to sin and alive to God (Rom 6:11) — and behavior follows belief the way a boat follows its rudder.',
+      refs: ['John 15:4-5', 'Ezek 36:26-27', 'Rom 6:11-14', 'Phil 2:13'],
+      practice: 'When a behavior won’t budge, stop whipping it. Find the lie underneath it (“God’s holding out on me,” “I’m on my own”) and put a truth there instead.'
+    },
+    {
+      name: 'Grace is the trainer', icon: 'walk',
+      lie: 'Too much grace makes people lazy and sinful.',
+      truth: 'Grace is the only thing that has ever actually trained anyone.',
+      body: '“The grace of God has appeared… TRAINING us to renounce ungodliness” (Titus 2:11-12) — grace isn’t the opposite of transformation; it’s the engine of it. “Sin shall not be your master, BECAUSE you are not under law but under grace” (Rom 6:14) — the verse everyone quotes backwards. And the hardest-working apostle credited his output the same way: “I worked harder than any of them — yet not I, but the grace of God with me” (1 Cor 15:10). Law pressures from outside; grace grows from inside.',
+      refs: ['Titus 2:11-12', 'Rom 6:1-2,14', '1 Cor 15:10', 'Gal 5:22-23'],
+      practice: 'Audit your motivations for a week: every “have to,” ask whether a “get to” is available. That swap is the whole gearbox.'
+    }
+  ]
+};
+
+/* ================= DETOURS — sincere wrong turns, marked on the map ================= */
+const DETOURS = {
+  intro: 'Every detour here is something sincere people do, usually with verses attached — that’s exactly what makes them sticky. None of this is written to sneer; most of us have parked at several of these addresses (your field-manual authors included). The test of a teaching was never sincerity or intensity. It’s freedom (Gal 5:1), fruit (Matt 7:16), and whether it makes God look like Jesus (Heb 1:3). Each card ends with the on-ramp back.',
+  items: [
+    {
+      name: 'Covenant mixture',
+      pull: 'It feels balanced — a little law to keep grace “safe,” Sinai’s rules with Calvary’s comfort. Most of us were handed this blend and never told there were two covenants in the cup.',
+      cost: 'Galatians calls mixture “falling away from grace” (Gal 5:4) — not into wild sin, but into exhausting self-effort. You get the condemnation of the law without its power to save, and the language of grace without its rest. It’s why so much Christianity feels like a gym membership used out of guilt.',
+      home: 'Learn which covenant you’re under. The old ran on “we will” (Ex 19:8) and broke; the new runs on “I will” (Jer 31:31-34; Heb 8:6-13) and can’t. Read Galatians in one sitting and let it be as blunt as it actually is.',
+      refs: ['Gal 3:1-3', 'Gal 5:1-4', 'Heb 8:13', '2 Cor 3:6']
+    },
+    {
+      name: 'The confession treadmill',
+      pull: 'Keeping short accounts sounds humble — confess every sin fast or fellowship is broken and forgiveness lapses. It gives anxiety a liturgy.',
+      cost: 'You end up sin-conscious instead of Son-conscious — the exact condition Hebrews says the old sacrifices produced and the cross was meant to end (Heb 10:1-2,14). Grace teachers argue 1 John 1:9 wasn’t issued as a maintenance formula for believers (a reading worth weighing — it is debated). What isn’t debated: “by one offering he has perfected for all time those who are being sanctified” (Heb 10:14).',
+      cost2: '',
+      home: 'Confession stays in your life — but as agreement with God (that’s what homologeo means) and honesty with people, not as a coin slot for forgiveness already purchased. When you sin: run TO him, not from him. The advocate’s office never closes (1 John 2:1).',
+      refs: ['Heb 10:14', '1 John 2:1-2', 'Eph 1:7', 'Rom 8:1']
+    },
+    {
+      name: '“Just a sinner saved by grace”',
+      pull: 'It sounds humble, and half of it is gloriously true — you were saved by grace alone.',
+      cost: 'The New Testament never addresses believers as “sinners” — it calls them saints, sons, a new creation, over and over, including the church in Corinth that was actively misbehaving (1 Cor 1:2). Identify as a sinner and you’ll fight sin as an insider losing home-field advantage. Sin-identity is a self-fulfilling prophecy.',
+      home: 'Take the name you were given: saint — not because your record is clean but because His is, and you’re in Him. “The old has passed away; behold, the new has come” (2 Cor 5:17). Humility isn’t calling yourself dirt; it’s agreeing with God about what He made you.',
+      refs: ['2 Cor 5:17', 'Eph 1:1', 'Rom 6:6', '1 Pet 2:9']
+    },
+    {
+      name: 'Sickness as God’s curriculum',
+      pull: 'It offers meaning for pain: “God gave me this illness to teach me patience.” And God truly does redeem everything — so the half-truth lands.',
+      cost: 'It makes you fight for your healing with one hand while suspecting God is behind the sickness with the other — faith with the parking brake on. And it repaints the Father as someone Jesus never once resembled: Jesus took sickness OFF people everywhere he went (Matt 4:23-24; Acts 10:38). Job’s affliction, the go-to proof text, is explicitly attributed to Satan (Job 2:7).',
+      home: 'Redeeming a thing and authoring it are different jobs. God works ALL things for good (Rom 8:28) — that’s salvage, not sourcing. Stand where Jesus stood: sickness is an enemy he carried away (Matt 8:17). Fight it with faith AND medicine, and drop the condemnation math either way (Rom 8:1).',
+      refs: ['Acts 10:38', 'Matt 8:16-17', 'James 1:17', 'John 10:10']
+    },
+    {
+      name: 'The performance treadmill',
+      pull: 'Serving hard feels like loving God — and volume is measurable, while abiding isn’t. Churches often reward the treadmill with platforms.',
+      cost: 'Burnout with a Bible verse on it. You become the older brother: technically in the house, functionally a slave, secretly resentful (“all these years I’ve been slaving… you never gave ME,” Luke 15:29). Jesus’s scariest sentence targets impressive output disconnected from relationship: “I never KNEW you” (Matt 7:22-23) — the résumé was real; the relationship wasn’t.',
+      home: 'Mary and Martha (Luke 10:38-42): only one thing is needed, and it isn’t the kitchen. Recover “sitting” before “serving” — Watchman Nee’s summary of Ephesians: you SIT with Christ before you WALK worthy or STAND against anything. Fruit from love outlasts product from fear.',
+      refs: ['Luke 10:38-42', 'John 15:5', 'Matt 11:28-30', 'Eph 2:8-10']
+    },
+    {
+      name: 'End-times fever & date math',
+      pull: 'It feels urgent and insider-y — decoding headlines, blood moons, and timelines. Fear is energizing, and “the end is near” has packed rooms for centuries.',
+      cost: 'Every date set so far has gone 0-for-all-of-history, discipling millions into anxiety, hoarding, and canceled callings. Jesus was explicit: “It is not for you to know times or dates” (Acts 1:7) — then aimed his people at witness, not calculation. Fear-based prophecy teaching also quietly reverses the gospel: the end of the story becomes a threat instead of a wedding (Rev 19:7).',
+      home: 'Hold the blessed hope (Titus 2:13) with open hands and a working calendar: plant fields, raise kids, build churches — “occupy till I come” (Luke 19:13). Live so ready that the timing is someone else’s problem.',
+      refs: ['Acts 1:7', 'Matt 24:36', '1 Thess 5:1-11', 'Titus 2:13']
+    },
+    {
+      name: 'Study as a destination',
+      pull: 'Knowledge feels like growth — one more commentary, one more Greek word, one more podcast. And the Bible rewards study, so the detour wears a halo.',
+      cost: 'Jesus diagnosed it in the most biblically literate people alive: “You search the Scriptures because you think that in them you have eternal life… yet you REFUSE TO COME TO ME” (John 5:39-40). Information without encounter puffs up (1 Cor 8:1) and quietly substitutes knowing-about for knowing. You can memorize the map and never take the trip.',
+      home: 'Study with a destination: Him. Read to meet, not just to master — and let every insight become either prayer, obedience, or worship within 24 hours, or it evaporates (James 1:22-25). This whole site is a map; don’t live on it.',
+      refs: ['John 5:39-40', '1 Cor 8:1-3', 'James 1:22-25', 'Phil 3:8']
+    },
+    {
+      name: 'Begging prayers',
+      pull: 'Desperation feels spiritual — surely volume, tears, and repetition prove sincerity, and God responds to proof.',
+      cost: 'Jesus says that’s the pagan model: “they think they will be heard for their many words” (Matt 6:7). Begging rehearses an orphan story — a distant God who must be persuaded — so every prayer deepens the very insecurity it’s trying to fix. The prophets of Baal begged all day (1 Kings 18:26-29); Elijah prayed about thirty seconds from covenant confidence.',
+      home: 'Pray like a son at a throne, not a beggar at a window: bold (Heb 4:16), brief when brief works, believing when you ask (Mark 11:24), persistent in faith rather than in panic (Luke 18:1-8 — persistence FOR justice, from trust). Your Father was willing before you knelt (Matt 6:8).',
+      refs: ['Matt 6:7-8', 'Heb 4:16', 'Mark 11:24', 'Phil 4:6-7']
+    },
+    {
+      name: 'Turn-or-burn evangelism',
+      pull: 'Fear gets fast results, and it feels faithful — didn’t Jesus mention judgment? (He did.) Scaring people toward heaven seems efficient.',
+      cost: 'It misstates the gospel’s engine: “God’s KINDNESS is intended to lead you to repentance” (Rom 2:4). Fear can start a sprint but can’t sustain a life — converts of terror often become either legalists or ex-Christians. And it exports the wrong portrait: the world hears sirens where heaven sent a wedding invitation (Luke 15:22-24).',
+      home: 'Preach good news that’s actually news and actually good: finished work, open arms, a Father running. Warnings exist in scripture — inside a love story, not instead of one (John 3:16-17). Kindness converts deeper than dread.',
+      refs: ['Rom 2:4', 'John 3:16-17', 'Luke 15:20-24', '1 John 4:18-19']
+    },
+    {
+      name: 'The tithe tollbooth',
+      pull: 'Ten percent feels like a clean deal: pay it and you’re blessed, skip it and Malachi 3 says you’re “robbing God.” Predictable religion is comfortable — and it funds budgets.',
+      cost: 'It converts giving from worship into insurance, and God from Father into toll collector. Malachi was addressed to Israel under old-covenant terms; Paul — who wrote most of the letters — never once commands a tithe. Blessing already came in full at the cross (Eph 1:3); you can’t buy what you already own.',
+      home: 'New-covenant giving is cheerful, purposed, and often wildly beyond ten percent — because it flows from security, not toward it (2 Cor 9:6-7). Want to tithe? Great. Want to give more, or differently? Also great. The percentage was never the point; the freedom is.',
+      refs: ['2 Cor 9:6-7', 'Eph 1:3', 'Gal 3:13-14', 'Matt 23:23']
+    },
+    {
+      name: 'Rabbit holes & secret codes',
+      pull: 'Hidden knowledge is intoxicating — numerology, conspiracy timelines, Nephilim deep-dives, “what they don’t want you to know.” It feels like advanced class.',
+      cost: 'Paul flagged it by name: “myths and endless genealogies, which promote speculations rather than the stewardship from God that is by faith” (1 Tim 1:4). The hours are real, the fruit isn’t — nobody was ever healed, freed, or made more loving by a chart of secret dates. And it trains appetite away from the gospel’s open secret: Christ in you (Col 1:26-27).',
+      home: 'The mystery has been REVEALED — that’s the New Testament’s whole announcement (Eph 3:3-9). Enjoy patterns (this site is full of them) as windows toward Jesus, never tunnels away from him. If a teaching produces suspicion instead of love, it failed the test (1 Cor 13:2).',
+      refs: ['1 Tim 1:4', 'Col 1:26-27', '1 Cor 13:2', '2 Tim 2:23']
+    },
+    {
+      name: 'Lone-ranger faith',
+      pull: 'After church hurt or church cringe, “just me and Jesus” feels clean — no politics, no hypocrites, no 9 a.m. call time. Half of it is even true: you don’t need a building to be loved.',
+      cost: 'You were built with a relational half that doctrine alone can’t feed — joy, identity, and resilience form face-to-face (that’s not just theology; it’s attachment science). Isolated embers cool. “Let us not neglect meeting together” (Heb 10:24-25) isn’t attendance-taking; it’s a survival instruction for hearts.',
+      home: 'Find your people, even if it’s small and unofficial — a table is church-shaped (Acts 2:46). Forgive the institution its scars without starving yourself of the body. You’re a member of one Body; members don’t thrive in jars (1 Cor 12:21-27).',
+      refs: ['Heb 10:24-25', 'Acts 2:42-47', '1 Cor 12:21-27', 'Eccl 4:9-12']
+    }
+  ]
+};
+/* ================= MIND & BODY — where scripture and neuroscience shake hands ================= */
+const NEURO_PRIMER = [
+  {
+    label: 'Frame',
+    title: 'Science can describe; Jesus gets to define',
+    body: 'Brain research can notice patterns in attention, attachment, sleep, sound, and regulation. It cannot tell you who you are, what you are worth, or whether God has spoken. The Word keeps the steering wheel; science is a useful dashboard.',
+    refs: ['Rom 12:2', 'Col 2:8', '1 Thess 5:21']
+  },
+  {
+    label: 'Practice',
+    title: 'Repeated attention becomes formation',
+    body: 'Neuroplasticity gives language to something scripture already assumes: what you behold, rehearse, remember, sing, and obey starts shaping your reflexes. Grace does not bypass your habits; it retrains them from the inside out.',
+    refs: ['2 Cor 3:18', 'Phil 4:8', 'Josh 1:8']
+  },
+  {
+    label: 'Pace',
+    title: 'The body belongs in discipleship',
+    body: 'Sleep, food, breath, face-to-face joy, grief, worship, and quiet are not side quests. Scripture treats embodied life as holy ground, which means spiritual maturity often looks like truth landing in a regulated nervous system.',
+    refs: ['Ps 23:2-3', '1 Kings 19:5-12', '1 Cor 6:19-20']
+  }
+];
+
+const MIND = {
+  intro: 'God wrote two testimonies that never contradict: the Word and the way he built you. The Bible talked about renewed minds, guarded hearts, sung deliverance, and rest millennia before anyone could scan a brain — and where honest science has caught up, it keeps finding the manual was right. This section keeps the treasure, skips the hype, and labels which is which.',
+  blocks: [
+    {
+      name: 'Renewing the mind is a construction site', icon: 'brain',
+      body: '<p>“Be transformed by the RENEWING of your mind” (Rom 12:2) — and it turns out minds physically renew. Neuroplasticity — the brain rewiring itself along the paths you repeatedly run — is settled, mainstream science. Thoughts you rehearse become roads; roads become highways; highways become “just who I am.”</p><p>Honest framing: neuroscience doesn’t prove Romans 12 (scripture doesn’t need a lab coat), but they rhyme loudly. What you behold, you become (2 Cor 3:18) — which means what you feed your attention is a discipleship decision. The renewal is real, gradual, and grace-powered: you’re not bullying your brain into holiness; you’re repaving it with truth.</p>',
+      panelLabels: ['Scripture frame', 'Neuro lens'],
+      refs: ['Rom 12:2', '2 Cor 3:18', 'Phil 4:8', 'Eph 4:22-24']
+    },
+    {
+      name: 'Meditation: the lost art of muttering', icon: 'wind',
+      body: '<p>The Hebrew word for meditate — <i>hagah</i> (Josh 1:8; Ps 1:2) — means to mutter, murmur, growl: a dove cooing, a lion rumbling over food (Isa 31:4). Biblical meditation isn’t emptying your mind; it’s FILLING it — repeating a small piece of scripture, out loud, until it gets stuck in you like a song. Filling versus emptying is the structural difference from Eastern practice, no caricature needed.</p><p>And here’s the plot twist: you already know how to meditate — worry IS meditation, just on the wrong text. (Clinicians call the dark version rumination, and it’s a well-documented driver of depression, while directed, content-full meditation measurably counters it.) The skill was never missing; it just needs a better script.</p><p>Practice: take one verse, not five chapters. Read it aloud slowly, several times. Whisper it on a walk, at red lights, falling asleep. Picture it. Ask what obeying it looks like today (Josh 1:8 aims at doing). Write it out. Repeat tomorrow.</p>',
+      panelLabels: ['Biblical frame', 'Brain pattern', 'Practice path'],
+      refs: ['Josh 1:8', 'Ps 1:2-3', 'Ps 119:15', 'Phil 4:8']
+    },
+    {
+      name: 'Emotions: dashboard lights, not the driver', icon: 'heart',
+      body: '<p>Jesus felt everything and hid none of it: gut-level compassion (<i>splanchnizomai</i> — the word means moved in your inward parts, and every time it appears it leads straight to action, e.g. Matt 9:36; Mark 1:41), zeal (John 2:17), exultant joy (Luke 10:21), troubled-to-the-soul grief (John 11:33-35; Matt 26:38). Emotions aren’t the flesh; they’re instrumentation on a being made in God’s image. They report what you believe and what you’ve met — they were never meant to steer.</p><p>Paul’s tool for the steering: “let the peace of Christ RULE in your hearts” (Col 3:15) — the Greek <i>brabeuō</i> is an athletic term: the umpire who makes the call between competing plays. Feel everything; let peace call the play. And “take every thought captive” (2 Cor 10:5 — in context, Paul demolishing arguments against the gospel) genuinely rhymes with what psychology calls cognitive reappraisal, one of the best-evidenced emotion-regulation moves there is: catch the thought, weigh it against truth, reroute. The Bible got to “you are not your first thought” a couple of millennia early.</p>',
+      panelLabels: ['Jesus as model', 'Discernment tool'],
+      refs: ['Col 3:15', '2 Cor 10:3-5', 'John 11:33-35', 'Prov 4:23']
+    },
+    {
+      name: 'Joy is relational fuel', icon: 'light',
+      body: '<p>“The joy of the LORD is your strength” (Neh 8:10) — and joy, it turns out, is relational before it’s circumstantial. Neurotheologian-adjacent researchers like Jim Wilder define it from attachment science: joy is what your brain does when it registers “someone is glad to be with me.” It’s the fuel for staying kind under stress, and it’s built face-to-face — which is why discipleship was never meant to be a solo reading program (that’s the thesis of Wilder’s <i>The Other Half of Church</i>).</p><p>Gratitude is joy’s pump, and it’s one of the most-replicated findings in positive psychology (started with Emmons & McCullough’s counting-blessings studies — real effects, modest sizes, no hype needed). The psalmist prescribed it first: “Bless the LORD, O my soul, and FORGET NOT all his benefits” (Ps 103:2) — literally a benefits-recall practice. Someone is glad to be with you (Zeph 3:17). Start the list there.</p>',
+      panelLabels: ['Attachment lens', 'Gratitude practice'],
+      refs: ['Neh 8:10', 'Ps 103:1-5', 'Zeph 3:17', '1 Thess 5:16-18']
+    },
+    {
+      name: 'Your body is not the enemy', icon: 'rest',
+      body: '<p>When Elijah crashed — suicidal, spent, hiding under a broom tree — God’s first intervention wasn’t a rebuke or even a sermon. It was a nap and a snack. Twice. THEN the gentle whisper (1 Kings 19:5-12). The order is the sermon: sometimes the most spiritual thing available to you is eight hours of sleep.</p><p>Science agrees loudly: sleep and mental health are locked in a two-way street (poor sleep feeds anxiety and depression; rest restores regulation) — among the most solid findings in this whole field. Scripture beat the meta-analyses: “He gives to his beloved SLEEP” (Ps 127:2), the Shepherd “MAKES me lie down” (Ps 23:2), and your body is a temple to steward, not a donkey to flog (1 Cor 6:19-20). Fasting, feasting, resting, moving — the manual treats bodies as holy equipment. Treat yours like the temple maintenance crew you are.</p>',
+      panelLabels: ['Elijah pattern', 'Sleep and stewardship'],
+      refs: ['1 Kings 19:5-12', 'Ps 127:2', 'Ps 23:2-3', '1 Cor 6:19-20']
+    },
+    {
+      name: 'This is your brain on prayer', icon: 'temple',
+      body: '<p>Neuroscientist Andrew Newberg brain-scanned people praying, and the results are genuinely fascinating — small studies, honestly labeled. Focused contemplative prayer lights UP the frontal lobes (effortful, directed attention). Speaking in tongues showed the OPPOSITE: decreased frontal-lobe activity — the self-directing, language-composing machinery going quiet — exactly matching what practitioners report: “it’s not me composing this.” (N=5, preliminary, and a scan can’t rule on the supernatural either way — it just shows the states are real and distinct.)</p><p>The fun part: Paul described both modes in one verse two thousand years early — “I will pray with my spirit, and I will pray with my mind ALSO” (1 Cor 14:14-15). Surrendered prayer and focused prayer. Different gears, same engine, both real. Use both.</p>',
+      panelLabels: ['Brain scan note', 'Two prayer gears'],
+      refs: ['1 Cor 14:14-15', 'Rom 8:26', 'Jude 1:20', 'Ps 46:10']
+    },
+    {
+      name: 'Frequencies, sound & worship — treasure and ditch', icon: 'music',
+      body: '<p>Sound genuinely moves the body: music therapy has strong clinical-trial evidence for lowering anxiety, pain, and stress hormones; group singing measurably synchronizes singers’ heart rhythms and breathing; peak musical moments trigger dopamine. Your nervous system was built to be sung to. Scripture uses that hardware constantly: David’s harp brought Saul real relief from a tormenting spirit (1 Sam 16:23); Elisha called for a minstrel BEFORE the prophetic word came (2 Kings 3:15); Paul and Silas held a midnight worship service in prison (Acts 16:25); you’re told to soak the word into each other through singing (Col 3:16).</p><p>The ditch is the pseudo-precision: “432 Hz is the universe’s tuning,” “528 Hz repairs DNA.” Honest status — the 528 “solfeggio” system traces to 1990s numerology, not antiquity, with no evidence and no plausible mechanism; 432-vs-440 has one small study with tiny, mostly non-significant effects. Even Jericho gets drafted into this — but the text says a shout and trumpets in one-time obedience, not acoustic engineering (Josh 6:20). And when modern teachers say God “has a frequency you tune into,” take it as a live metaphor for attention and attunement — often useful! — just not physics.</p>',
+      panelLabels: ['Treasure', 'Ditch'],
+      tv: {
+        treasure: ['Worship and music measurably calm, bond, and strengthen — use them on purpose', 'Music before ministry: prepare your heart like Elisha did (2 Kings 3:15)', 'Sing scripture — melody is memory’s best glue (Col 3:16)', 'Songs in the night are warfare with a tune (Acts 16:25; Ps 32:7)'],
+        ditch: ['Magic-number Hz claims (528 “DNA repair,” 432 mysticism) — no evidence, no mechanism', 'Reading Jericho as acoustic science instead of one-time obedience', 'Buying “biblical frequencies” products — scripture names no tuning standard', 'Letting sound-mysticism replace the actual Voice (Heb 1:1-2)']
+      },
+      refs: ['1 Sam 16:23', '2 Kings 3:15', 'Acts 16:25', 'Col 3:16']
+    },
+    {
+      name: 'Hearing God without the weirdness', icon: 'ear',
+      body: '<p>“My sheep hear my voice” (John 10:27) — in first-century pens, several flocks shared one enclosure overnight, and each sheep learned its own shepherd’s call by living with him. Recognition grows from relationship, not technique. When God met Elijah, he wasn’t in the wind, quake, or fire but in <i>qol demamah daqqah</i> — Hebrew for something like “a sound of thin silence” (1 Kings 19:12). The volume knob of heaven is set lower than panic can hear. Stillness isn’t optional equipment.</p><p>How it usually comes: Dallas Willard’s classic observation is that God’s voice most often arrives as a particular KIND of thought — one carrying his character: weighty but not frantic, kind but not flattering, never condemning, always scripture-shaped. Charismatic teachers like Mark Virkler add practical rails: quiet yourself, fix your inner eyes on Jesus, welcome the spontaneous flow of thoughts and pictures, and journal what comes so you can test it later.</p><p>Then TEST — impressions are never self-authenticating: (1) Does it square with scripture? (2) Does it smell like the fruit of the Spirit? (3) Does peace umpire it in (Col 3:15)? (4) Does it hold up over time and confirmation? (5) What do seasoned believers say (Prov 11:14)? God is never offended by testing; he invented it (1 Thess 5:19-21). Start with low-stakes obedience and let trust compound.</p>',
+      panelLabels: ['Relationship first', 'How it often comes', 'Testing checklist'],
+      refs: ['John 10:27', '1 Kings 19:11-13', '1 Thess 5:19-21', 'Prov 11:14']
+    }
+  ]
+};
+
+/* ================= LIBRARY — the pack list ================= */
+const LIBRARY = {
+  intro: 'A curated pack, not a warehouse — each item earns its weight. Quick honesty notes are included where a resource is bold, debated, or needs discernment; that’s not a knock, it’s a map habit. (Research notes behind this site live in the project’s research folder.)',
+  shelves: [
+    {
+      title: 'See the whole story', icon: 'compass',
+      items: [
+        { kind: 'video', title: 'The Exodus Way', by: 'BibleProject', note: 'THE companion video for this site’s Pattern section — the road out of slavery, through the wilderness, into inheritance.', url: 'https://www.youtube.com/watch?v=dYPlBq8ELvA' },
+        { kind: 'video', title: 'The Messiah', by: 'BibleProject', note: 'The promised-deliverer thread from Genesis 3 to Jesus in seven minutes.', url: 'https://www.youtube.com/watch?v=4iF7dtFcg_g' },
+        { kind: 'video', title: 'Old Testament Summary', by: 'BibleProject', note: 'A whole-OT flyover that shows why the threads exist at all.', url: 'https://www.youtube.com/watch?v=ALsluAKBZ-c' },
+        { kind: 'video', title: 'Jesus the Royal Priest', by: 'BibleProject', note: 'Eden, tabernacle, priesthood, and kingship braided into one payoff.', url: 'https://www.youtube.com/watch?v=LBr-blQxIm4' },
+        { kind: 'video', title: 'Temple / Water of Life / Sabbath (theme videos)', by: 'BibleProject', note: 'Their whole themes collection maps almost 1:1 onto this site’s Threads section.', url: 'https://bibleproject.com/videos/collections/themes/' },
+        { kind: 'video', title: 'Jesus in Every Book of the Bible', by: 'Gary Hamrick', note: 'A pastor walking the Christ-in-every-book survey — warm, systematic, shareable.', url: 'https://www.youtube.com/watch?v=5PybrsQE9Q8' }
+      ]
+    },
+    {
+      title: 'Grace & the new covenant', icon: 'covenant',
+      items: [
+        { kind: 'site', title: 'Escape to Reality', by: 'Paul Ellis', note: '1,000+ plain-English grace articles indexed by scripture — “the Wikipedia of grace.” Start with “The 9 Lies of Religion.”', url: 'https://escapetoreality.org/' },
+        { kind: 'book', title: 'The Gospel in Ten Words', by: 'Paul Ellis', note: 'Loved, forgiven, saved, union, accepted, holy, righteous, dead to sin, new, royal — one chapter each. The identity primer.', url: 'https://escapetoreality.org/2012/09/17/the-gospel-in-ten-words/' },
+        { kind: 'book', title: 'The Gospel in Twenty Questions', by: 'Paul Ellis', note: '“Does God make us sick to teach us?” and 19 other questions everyone actually asks.', url: 'https://escapetoreality.org/books/' },
+        { kind: 'book', title: 'Stuff Jesus Never Said', by: 'Paul Ellis', note: 'What Jesus actually said vs. what religion assumes he said. Great first gift book.', url: 'https://escapetoreality.org/books/' },
+        { kind: 'book', title: 'Letters from Jesus', by: 'Paul Ellis', note: 'The seven Revelation letters read as good news instead of threats.', url: 'https://escapetoreality.org/books/' },
+        { kind: 'site', title: 'The Grace Commentary', by: 'Paul Ellis', note: 'Free verse-by-verse commentary with the covenant line kept clean on every page.', url: 'https://thegracecommentary.com/' },
+        { kind: 'book', title: 'The Naked Gospel', by: 'Andrew Farley', note: 'A burnout-to-freedom case for unmixed new-covenant living; his Grace Message podcast continues the thread.', url: 'https://andrewfarley.org/' },
+        { kind: 'book', title: 'The Normal Christian Life + Sit, Walk, Stand', by: 'Watchman Nee', note: 'Union-with-Christ classics from a man who paid full price for his faith. Sit before you walk; walk before you stand.', url: 'https://www.google.com/search?q=watchman+nee+sit+walk+stand' },
+        { kind: 'book', title: 'Destined to Reign', by: 'Joseph Prince', note: 'Right believing over right behaving. Bold and global — also the most critiqued voice on this shelf (“cheap grace” objections); read with the Berean setting on (Acts 17:11).', url: 'https://www.josephprince.org/' },
+        { kind: 'video', title: 'The Gospel in Ten Words (playlist)', by: 'Escape to Reality', note: 'Chapter-by-chapter companion videos for the ten words.', url: 'https://www.youtube.com/playlist?list=PLapuBLULA-iT1LyBderOdWDxZUCFKAKcM' }
+      ]
+    },
+    {
+      title: 'Healing', icon: 'lamb',
+      items: [
+        { kind: 'book', title: 'Christ the Healer', by: 'F.F. Bosworth', note: 'The 1924 classic the whole healing movement leans on — half scripture case, half objections answered.', url: 'https://www.google.com/search?q=christ+the+healer+bosworth' },
+        { kind: 'book', title: 'God Wants You Well', by: 'Andrew Wommack', note: 'The strongest modern statement of healing-in-the-atonement. Bold; critics raise real pastoral cautions about blame when healing tarries — take the treasure, leave any condemnation (Rom 8:1).', url: 'https://www.awmi.net/' },
+        { kind: 'book', title: 'Healing the Sick', by: 'T.L. Osborn', note: 'A million-copy healing-ministry classic, heavy on testimony. Recommended by Ellis.', url: 'https://www.google.com/search?q=healing+the+sick+tl+osborn' },
+        { kind: 'book', title: 'Divine Healing Made Simple', by: 'Praying Medic', note: 'Practical and unweird — written by a working paramedic. Also an Ellis recommendation.', url: 'https://www.google.com/search?q=divine+healing+made+simple+praying+medic' }
+      ]
+    },
+    {
+      title: 'Mind, joy & the brain', icon: 'brain',
+      items: [
+        { kind: 'book', title: 'The Other Half of Church', by: 'Jim Wilder & Michel Hendricks', note: 'Why information-only discipleship stalls: joy, attachment, and the relational right brain. The safest science on this shelf.', url: 'https://lifemodelworks.org/the-other-half-of-church/' },
+        { kind: 'book', title: 'Anatomy of the Soul', by: 'Curt Thompson, MD', note: 'A psychiatrist on attachment, shame, and being fully known — by people and by God.', url: 'https://curtthompsonmd.com/books/' },
+        { kind: 'book', title: 'Rare Leadership', by: 'Marcus Warner & Jim Wilder', note: 'Remain relational, act like yourself, return to joy, endure well — the joy framework applied to leading.', url: 'https://lifemodelworks.org/' },
+        { kind: 'book', title: 'How God Changes Your Brain', by: 'Andrew Newberg, MD', note: 'The neurotheology researcher’s accessible synthesis — early-stage science, honestly framed.', url: 'https://www.andrewnewberg.com/' },
+        { kind: 'book', title: 'Switch On Your Brain', by: 'Dr. Caroline Leaf', note: 'Hugely popular “thoughts matter” teaching. The premise is fine; several of her specific stats and science claims are disputed by scientists — enjoy the direction, verify the details.', url: 'https://drleaf.com/' },
+        { kind: 'video', title: 'The Neurobiology of Shame', by: 'Curt Thompson (Torrey Conference)', note: 'Shame, attachment, and healing — Thompson at his best.', url: 'https://www.youtube.com/watch?v=vdnVgKxhCxY' },
+        { kind: 'video', title: 'God in the Brain', by: 'Andrew Newberg lecture', note: 'His SPECT research across prayer, meditation, and tongues, from the source.', url: 'https://www.youtube.com/watch?v=RZwcVDaHl-A' }
+      ]
+    },
+    {
+      title: 'Hearing God & meditation', icon: 'ear',
+      items: [
+        { kind: 'book', title: 'Hearing God', by: 'Dallas Willard', note: 'The gold standard: God’s voice as a conversational relationship, with real discernment rails.', url: 'https://www.google.com/search?q=hearing+god+dallas+willard' },
+        { kind: 'book', title: '4 Keys to Hearing God’s Voice', by: 'Mark & Patti Virkler', note: 'Stillness, vision, spontaneity, journaling. Practical and widely used; pair it with the testing checklist — impressions always get weighed (1 Thess 5:21).', url: 'https://www.cwgministries.org/Four-Keys-to-Hearing-Gods-Voice' },
+        { kind: 'video', title: 'The Bible as Jewish Meditation Literature', by: 'BibleProject', note: 'The hagah/muttering picture of meditation, beautifully explained.', url: 'https://www.youtube.com/watch?v=VhmlJBUIoLk' }
+      ]
+    },
+    {
+      title: 'Podcasts & feeds', icon: 'music',
+      items: [
+        { kind: 'podcast', title: 'The Deep End', by: 'Taylor Welch', note: '700+ episodes on identity, hearing God, beliefs (“frame”), and spirit-soul-body — plus frequency language used as metaphor. Wide-ranging guests from scholars to fringe; strong on identity and practice, so listen with your tester on (episodes #014, #026, #104 are good samplers).', url: 'https://podcasts.apple.com/us/podcast/the-deep-end-w-taylor-welch/id1500492987' },
+        { kind: 'podcast', title: 'BibleProject Podcast', by: 'Tim Mackie & Jon Collins', note: 'Long-form walkthroughs of the same themes their videos sketch.', url: 'https://bibleproject.com/podcasts/the-bible-project-podcast/' },
+        { kind: 'channel', title: 'The Grace Message', by: 'Andrew Farley', note: 'Live-caller grace theology — good reps for your own covenant reflexes.', url: 'https://www.youtube.com/channel/UCngAqvQikHu7RF9kVs8M29g' },
+        { kind: 'channel', title: 'Escape to Reality on YouTube', by: 'Paul Ellis', note: 'The articles, in video form.', url: 'https://www.youtube.com/channel/UCIbd57q1HUkGsur6VwcqctQ' }
+      ]
+    }
+  ]
+};
+
+/* ================= START HERE ================= */
+const START = {
+  bigIdea: [
+    { t: 'It’s one story.', x: 'Sixty-six books, dozens of authors, ~1,500 years, three languages — and one plot that never loses its thread. That coherence is itself the first miracle you meet.' },
+    { t: 'The plot is a Person.', x: 'Jesus’s own Bible study method: “beginning with Moses and all the Prophets, he interpreted to them in ALL the Scriptures the things concerning HIMSELF” (Luke 24:27). The OT is promise; the Gospels are arrival; the letters are what it means; Revelation is the wedding.' },
+    { t: 'The story rhymes on purpose.', x: 'Patterns repeat — lambs, wells, deserts, thrones — because God teaches in echoes. Paul says the old stories happened “as examples… written down for OUR instruction” (1 Cor 10:11). Case studies, not trivia.' },
+    { t: 'The hinge is “finished.”', x: 'Everything before the cross leans forward; everything after leans back. Get the covenants straight — what was promised vs. what is now DONE (Heb 8:6-13) — and 90% of confusing Christianity un-confuses.' },
+    { t: 'You’re in the story now.', x: 'Same patterns, your life: an Egypt you left, a wilderness that forms you, a promised land to walk in — with the same God speaking the same identity over you. This manual exists so you can find your dot on the map.' }
+  ],
+  howTo: {
+    title: 'How to not waste your Bible',
+    tips: [
+      { t: 'Read letters like letters.', x: 'Ephesians is a 20-minute read. Nobody reads mail three sentences a day for a month — sit down and read the whole thing; the argument only works whole.' },
+      { t: 'Hunt the Lamb in the Old Testament.', x: 'Ask one question of every OT page: “where’s Jesus in this?” (Luke 24:27 says he’s there.) It turns the strangest chapters into treasure maps.' },
+      { t: 'Meditate small instead of skimming big.', x: 'One verse muttered all week beats five chapters skimmed and forgotten (Ps 1:2-3). Depth transforms; volume just informs.' },
+      { t: 'Check the covenant address.', x: 'Before applying a verse, ask: which covenant is this under, and what did the cross change about it? (Heb 8:13). Half of all confusion dies right here.' },
+      { t: 'Let it become something within a day.', x: 'Insight has a shelf life: turn it into a prayer, an obedience, or a thank-you within 24 hours or it evaporates (James 1:22-25).' },
+      { t: 'Come to Him, not just the book.', x: 'The Bible’s own warning label: “You search the Scriptures… yet you refuse to come to me” (John 5:39-40). The goal of the map is the Person. Always.' }
+    ]
+  },
+  heroVerse: { text: '“And beginning with Moses and all the Prophets, he interpreted to them in all the Scriptures the things concerning himself.”', ref: 'Luke 24:27' }
+};
+/* ================= app: helpers ================= */
+const BG = 'https://www.biblegateway.com/passage/?search=';
+const REF_RE = /((?:[123]\s)?(?:Gen|Ex|Lev|Num|Deut|Josh|Judg|Ruth|Sam|Kings|Chr|Ezra|Neh|Esth|Job|Ps|Prov|Eccl|Song|Isa|Jer|Lam|Ezek|Dan|Hos|Joel|Amos|Jonah|Mic|Micah|Nah|Hab|Zeph|Hag|Zech|Mal|Matt|Mark|Luke|John|Acts|Rom|Cor|Gal|Eph|Phil|Col|Thess|Tim|Titus|Heb|Jas|James|Pet|Jude|Rev)\s\d+(?::\d+(?:[-–]\d+(?::\d+)?)?(?:,\s?\d+(?:[-–]\d+)?)*)?)/g;
+
+function refLink(r) {
+  return '<a class="ref-link" target="_blank" rel="noopener" href="' + BG + encodeURIComponent(r) + '" data-ref="' + r + '">' + r + '</a>';
+}
+function linkRefs(html) { return html.replace(REF_RE, (m) => refLink(m)); }
+function refRow(refs) {
+  return '<div class="pillar-refs">' + refs.map(refLink).join(' · ') + '</div>';
+}
+function badge(kind) {
+  const b = CODES.badges[kind];
+  return '<span class="badge ' + b.cls + '" title="' + b.tip + '">' + b.label + '</span>';
+}
+function paragraphCards(html, labels) {
+  const parts = html.match(/<p>[\s\S]*?<\/p>/g) || [html];
+  return parts.map((part, i) =>
+    '<div class="mind-panel">' +
+    '<span class="label">' + (labels && labels[i] ? labels[i] : 'Field note ' + (i + 1)) + '</span>' +
+    linkRefs(part) + '</div>').join('');
+}
+
+const NAV = [
+  { id: 'start', label: 'Start Here', icon: 'compass', cvar: '--c-start', blurb: 'The big idea in five moves — and how to read without wasting your Bible.' },
+  { id: 'pattern', label: 'The Pattern', icon: 'dune', cvar: '--c-pattern', blurb: 'Egypt → Wilderness → Promised Land: the three seasons every life walks through.' },
+  { id: 'threads', label: 'Threads', icon: 'thread', cvar: '--c-threads', blurb: 'Twelve routes traced Genesis to Revelation — every one lands on Jesus.' },
+  { id: 'codes', label: 'The Codes', icon: 'key', cvar: '--c-codes', blurb: 'Prophecies, types & shadows, and the feasts — with honesty badges on every claim.' },
+  { id: 'walking', label: 'Walk It Out', icon: 'walk', cvar: '--c-walk', blurb: 'Identity, righteousness, rest, healing — new-covenant life without the old software.' },
+  { id: 'detours', label: 'Detours', icon: 'fork', cvar: '--c-detour', blurb: 'Twelve sincere wrong turns, marked on the map — each with the on-ramp back.' },
+  { id: 'mind', label: 'Mind & Body', icon: 'brain', cvar: '--c-mind', blurb: 'Where scripture and neuroscience shake hands: emotions, meditation, sound, hearing God.' },
+  { id: 'library', label: 'Library', icon: 'book', cvar: '--c-library', blurb: 'The curated pack: books, videos, podcasts — with discernment notes included.' }
+];
+
+/* ================= hero thread chart ================= */
+function buildHeroChart() {
+  const picks = ['lamb', 'bread', 'water', 'light', 'shepherd', 'king', 'temple', 'rest', 'covenant', 'bride', 'exile', 'name'];
+  const ths = picks.map(id => THREADS.find(t => t.id === id));
+  const X0 = 34, CX = 528, CY = 152, XE = 706;
+  const n = ths.length, top = 44, bot = 258;
+  let paths = '';
+  ths.forEach((t, i) => {
+    const y0 = top + (bot - top) * (i / (n - 1));
+    const midY = y0 + (CY - y0) * 0.42 + (i % 2 ? 10 : -10);
+    const d = 'M' + X0 + ' ' + y0 +
+      ' C 150 ' + y0 + ', 200 ' + midY + ', 296 ' + midY +
+      ' S 462 ' + CY + ', ' + CX + ' ' + CY;
+    // Thin visual colored path
+    paths += '<path class="hero-thread" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.2" stroke-linecap="round"></path>';
+    // Thicker invisible trigger path on top of visual path
+    paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round"></path>';
+  });
+  const eras = [[70, 'TORAH'], [180, 'HISTORY'], [277, 'POETS'], [398, 'PROPHETS'], [528, 'GOSPELS'], [622, 'LETTERS'], [694, 'REV']];
+  let ticks = '';
+  eras.forEach(([x, l]) => {
+    ticks += '<line x1="' + x + '" y1="276" x2="' + x + '" y2="282" stroke="var(--line)" stroke-width="1.5"/>' +
+      '<text x="' + x + '" y="294" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
+  });
+  return '<svg viewBox="0 0 720 300" role="img" aria-label="Twelve biblical themes converging on Jesus and continuing to Revelation">' +
+    paths +
+    '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
+    '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
+    '<circle cx="' + CX + '" cy="' + CY + '" r="5.5" fill="var(--gold)"/>' +
+    '<path d="M' + CX + ' 116 v-26 M' + (CX - 9) + ' 99 h18" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>' +
+    '<line x1="' + CX + '" y1="122" x2="' + CX + '" y2="146" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>' +
+    '<text x="' + CX + '" y="80" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
+    ticks +
+    '</svg>';
+}
+
+/* ================= journey chart (pattern) ================= */
+function buildJourneySVG() {
+  const zone = (x, w, c, o) => '<rect x="' + x + '" y="26" width="' + w + '" height="192" fill="var(' + c + ')" opacity="' + o + '"/>';
+  const water = (x, name) =>
+    '<rect x="' + x + '" y="26" width="15" height="192" fill="var(--t-water)" opacity="0.3"/>' +
+    '<text x="' + (x + 10) + '" y="122" font-size="8" letter-spacing="1.8" fill="var(--t-water)" transform="rotate(-90 ' + (x + 10) + ' 122)" text-anchor="middle" style="font-family:var(--font-label);font-weight:700">' + name + '</text>';
+  const wp = (x, y, line1, line2, dy, align, dx) => {
+    const tx = x + (dx || 0);
+    const ty = y + (dy || -12);
+    const ta = align || 'middle';
+    return '<circle cx="' + x + '" cy="' + y + '" r="4.5" fill="var(--card)" stroke="var(--thread)" stroke-width="2.5"/>' +
+      '<text x="' + tx + '" y="' + ty + '" text-anchor="' + ta + '" font-size="8.5" letter-spacing="1.2" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:700">' + line1 +
+      (line2 ? '<tspan x="' + tx + '" dy="10">' + line2 + '</tspan>' : '') + '</text>';
+  };
+  const zlabel = (x, l, c) => '<text x="' + x + '" y="238" text-anchor="middle" font-size="9.5" letter-spacing="2" fill="var(' + c + ')" style="font-family:var(--font-label);font-weight:700">' + l + '</text>';
+  const route = 'M14 196 H160 L196 190 C230 184 238 160 256 148 L300 172 L348 166 ' +
+    'a21 21 0 1 1 14 5 ' +
+    'L470 152 L516 140 L552 124 L610 112 C660 102 690 96 730 88';
+  return '<svg viewBox="0 0 760 250" role="img" aria-label="The journey from Egypt through the wilderness into the promised land">' +
+    zone(0, 180, '--s-egypt', 0.12) + zone(195, 325, '--s-desert', 0.1) + zone(535, 225, '--s-land', 0.12) +
+    water(180, 'RED SEA') + water(520, 'JORDAN') +
+    '<path class="journey-route-path" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="2.4" stroke-linecap="round"/>' +
+    '<path d="M244 148 l12 -18 12 18z" fill="none" stroke="var(--s-desert)" stroke-width="1.8" stroke-linejoin="round"/>' +
+    wp(160, 196, 'GOSHEN', '', 16, 'end', -8) +
+    wp(256, 148, 'SINAI', 'IDENTITY SPOKEN', -14, 'start', 10) +
+    wp(348, 166, 'KADESH · THE CHOICE', '', 22, 'middle') +
+    '<text x="376" y="204" text-anchor="middle" font-size="8" letter-spacing="1.4" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700">40 YEARS</text>' +
+    wp(552, 124, 'JERICHO', '', -4, 'start', 10) +
+    wp(730, 88, 'FRUITFULNESS', '', -10, 'end', -8) +
+    zlabel(90, 'EGYPT · BONDAGE', '--s-egypt') + zlabel(357, 'WILDERNESS · FORMATION', '--s-desert') + zlabel(647, 'THE LAND · INHERITANCE', '--s-land') +
+    '</svg>';
+}
+
+function buildTabernacleSVG() {
+  const path = 'M50 90 L160 90 L270 90 L420 60 L420 120 L540 90 L610 90 L680 90';
+  const nodes = [
+    { x: 50, y: 90, label: '1', name: 'The Gate' },
+    { x: 160, y: 90, label: '2', name: 'Bronze Altar' },
+    { x: 270, y: 90, label: '3', name: 'The Laver' },
+    { x: 420, y: 60, label: '4', name: 'Table of Bread' },
+    { x: 420, y: 120, label: '5', name: 'The Lampstand' },
+    { x: 540, y: 90, label: '6', name: 'Altar of Incense' },
+    { x: 610, y: 90, label: '7', name: 'The Veil' },
+    { x: 680, y: 90, label: '8', name: 'Mercy Seat' }
+  ];
+
+  const nodeElements = nodes.map((n, i) => {
+    const isHolyOfHolies = i >= 6;
+    const isHolyPlace = i >= 3 && i < 6;
+    const themeColor = isHolyOfHolies ? 'var(--c-codes)' : (isHolyPlace ? 'var(--s-egypt)' : 'var(--s-desert)');
+    return '<g class="svg-station-node" data-index="' + i + '" style="--zone-c:' + themeColor + '">' +
+      '<circle cx="' + n.x + '" cy="' + n.y + '" r="10" fill="var(--card)" stroke="' + themeColor + '" stroke-width="2"/>' +
+      '<text x="' + n.x + '" y="' + (n.y + 3) + '" text-anchor="middle" font-size="8" fill="var(--ink)" style="font-family:var(--font-label);font-weight:700">' + n.label + '</text>' +
+      '<text x="' + n.x + '" y="' + (n.y - 15) + '" text-anchor="middle" font-size="7.2" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600;letter-spacing:0.5px">' + n.name.toUpperCase() + '</text>' +
+      '</g>';
+  }).join('');
+
+  return '<svg class="tabernacle-svg" viewBox="0 0 760 180" role="img" aria-label="Tabernacle Floor Plan Diagram">' +
+    // Outer Court Boundary
+    '<rect x="15" y="15" width="730" height="150" fill="none" stroke="var(--s-desert)" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.3"/>' +
+    '<text x="25" y="30" font-size="7.5" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700;letter-spacing:1px">OUTER COURT</text>' +
+    
+    // Tent of Meeting Boundary
+    '<rect x="360" y="28" width="370" height="124" fill="none" stroke="var(--s-egypt)" stroke-width="1.5" opacity="0.4"/>' +
+    '<text x="370" y="44" font-size="7.5" fill="var(--s-egypt)" style="font-family:var(--font-label);font-weight:700;letter-spacing:1px">TENT OF MEETING</text>' +
+    
+    // Holy Place Label
+    '<text x="500" y="44" font-size="7" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY PLACE</text>' +
+    
+    // Holy of Holies Veil line and Label
+    '<line x1="610" y1="28" x2="610" y2="152" stroke="var(--c-codes)" stroke-width="2" stroke-dasharray="4 4" opacity="0.6"/>' +
+    '<text x="615" y="44" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">VEIL</text>' +
+    '<text x="660" y="44" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY OF HOLIES</text>' +
+    
+    // Marching Route Line
+    '<path class="tabernacle-route" d="' + path + '" fill="none" stroke="var(--thread)" stroke-width="2.2" stroke-linecap="round"/>' +
+    
+    // Node Markers
+    nodeElements +
+    
+    // Orientation Indicators (East/West)
+    '<text x="25" y="154" font-size="7" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">EAST (ENTRANCE)</text>' +
+    '<text x="735" y="154" text-anchor="end" font-size="7" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">WEST (ARK)</text>' +
+    
+    '</svg>';
+}
+
+/* ================= view renderers ================= */
+function head(navItem, h2, lede) {
+  return '<div class="section-head" style="--c:var(' + navItem.cvar + ')">' +
+    '<div class="eyebrow">' + icon(navItem.icon) + navItem.label + '</div>' +
+    '<h2>' + h2 + '</h2>' +
+    '<p class="lede">' + linkRefs(lede) + '</p></div>';
+}
+
+function vStart() {
+  const n = NAV[0];
+  const legend = THREADS.map(t => {
+    return '<button class="legend-chip" data-thread="' + t.id + '" style="--c:var(' + t.cvar + ')"><span class="dot"></span>' + t.name + '</button>';
+  }).join('');
+  const ideas = START.bigIdea.map(i => '<div class="idea-row"><span class="idea-num"></span><div><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div></div>').join('');
+  const trails = NAV.slice(1).map(t =>
+    '<a class="trailhead" href="#/' + t.id + '" style="--c:var(' + t.cvar + ')">' +
+    '<span class="icon-chip">' + icon(t.icon) + '</span>' +
+    '<span><h3>' + t.label + '</h3><p>' + t.blurb + '</p><span class="go">Open the chart →</span></span></a>').join('');
+  const tips = START.howTo.tips.map(i => '<div class="idea-row"><span class="idea-num" style="background:color-mix(in srgb, var(--c-walk) 11%, transparent);color:var(--c-walk)"></span><div><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div></div>').join('');
+  return '<div class="view">' +
+    '<div class="hero">' +
+    '<div class="eyebrow" style="--c:var(--thread)">' + icon('thread') + 'A field manual to the Bible</div>' +
+    '<h1>Sixty-six books. One plot: <em>Jesus.</em></h1>' +
+    '<p class="lede">Threads, patterns, and codes tie the whole Bible together — and every one of them, traced far enough, ends at the same Person. This manual maps them, so you can read without getting lost and walk out what you find.</p>' +
+    '</div>' +
+    '<div class="chart-panel hero-chart">' +
+    '  <div class="thread-preview-card" id="thread-preview">' +
+    '    <div class="preview-placeholder">' +
+    '      <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
+    '      <h3>The Story Map</h3>' +
+    '      <p>Hover over any thread path on the chart or select a legend chip to trace its journey from Genesis to Revelation.</p>' +
+    '    </div>' +
+    '  </div>' +
+    '  <div class="chart-main">' +
+    '    <span class="chart-corner tl">Gen 1:1</span><span class="chart-corner br">Rev 22:21</span>' +
+    '    <div class="hero-scroll">' + buildHeroChart() + '</div>' +
+    '    <div class="hero-legend">' + legend + '</div>' +
+    '  </div>' +
+    '</div>' +
+    '<p class="hero-verse">' + START.heroVerse.text + '<span class="vref">— ' + refLink(START.heroVerse.ref) + ' · the Emmaus road</span></p>' +
+    '<div class="home-section-title"><h2>The big idea</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="big-idea">' + ideas + '</div>' +
+    '<div class="home-section-title"><h2>Pick a trailhead</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="grid grid-2">' + trails + '</div>' +
+    '<div class="home-section-title"><h2>' + START.howTo.title + '</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="big-idea">' + tips + '</div>' +
+    '</div>';
+}
+
+function vPattern() {
+  const n = NAV[1];
+  const seasons = PATTERN.seasons.map(s =>
+    '<div class="card season-card" style="--c:var(' + s.cvar + ')">' +
+    '<h3>' + icon(s.icon) + s.name + '</h3><p class="season-sub">' + s.sub + '</p>' +
+    '<div class="season-rows">' + s.rows.map(r => '<div class="row"><b>' + r.k + '</b><span>' + linkRefs(r.v) + '</span></div>').join('') + '</div></div>').join('');
+  const insights = PATTERN.insights.map((i, ix) =>
+    '<li><span class="insight-marker">' + (ix + 1) + '</span><div><b>' + i.t + '</b><span class="ins-txt">' + linkRefs(i.x) + '</span></div></li>').join('');
+  const cases = PATTERN.cases.map((c, ix) =>
+    '<div class="card case-card" id="case-' + ix + '" style="--c:var(--c-pattern)">' +
+    '<div class="case-top"><div><h3>' + c.name + '</h3><span class="case-sub">' + c.sub + '</span></div></div>' +
+    '<div class="phase-bar"><span class="p1"></span><span class="p2"></span><span class="p3"></span></div>' +
+    '<div class="case-rows">' +
+    '<div class="row r1"><b>Egypt</b><span>' + linkRefs(c.p1) + '</span></div>' +
+    '<div class="row r2"><b>Desert</b><span>' + linkRefs(c.p2) + '</span></div>' +
+    '<div class="row r3"><b>Land</b><span>' + linkRefs(c.p3) + '</span></div>' +
+    '</div></div>').join('');
+  return '<div class="view">' + head(n, 'Egypt → Wilderness → Promised Land', PATTERN.intro) +
+    '<div class="chart-panel journey-panel"><div class="journey-scroll">' + buildJourneySVG() + '</div></div>' +
+    '<div class="season-grid">' + seasons + '</div>' +
+    '<div class="home-section-title"><h2>Trail wisdom</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<ol class="insight-list">' + insights + '</ol>' +
+    '<div class="home-section-title"><h2>Case studies</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<p class="lede" style="margin-bottom:16px">“These things happened to them as examples… written down for our instruction” (' + refLink('1 Cor 10:11') + '). The library of case studies, in three-phase view:</p>' +
+    '<div class="grid grid-3">' + cases + '</div>' +
+    '<p class="note">Want this pattern in video form? BibleProject’s <a class="ref-link" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=dYPlBq8ELvA">“The Exodus Way”</a> names the same three roads: out of slavery, through the wilderness, into inheritance.</p>' +
+    '</div>';
+}
+
+function vThreads() {
+  const n = NAV[2];
+  const cards = THREADS.map(t => {
+    const way = t.way.map(w =>
+      '<li' + (w.j ? ' class="wp-cross"' : '') + '><span class="wp-ref">' + refLink(w.ref) + '</span><div class="wp-note">' + w.note + '</div></li>').join('');
+    return '<div class="thread-card" id="t-' + t.id + '" style="--c:var(' + t.cvar + ')">' +
+      '<button class="thread-head" data-toggle="' + t.id + '" aria-expanded="false">' +
+      '<span class="icon-chip">' + icon(t.icon) + '</span>' +
+      '<span><h3>' + t.name + '</h3><span class="thread-tag">' + t.tag + '</span></span>' +
+      '<span class="chev">' + icon('chevron') + '</span></button>' +
+      '<div class="thread-body"><div class="thread-body-inner"><ul class="trail">' + way + '</ul>' +
+      '<div class="lands-on"><span class="label">Where it lands</span>' + linkRefs(t.landsOn) + '</div>' +
+      '<p class="for-you">For you: ' + linkRefs(t.forYou) + '</p></div></div></div>';
+  }).join('');
+  return '<div class="view">' + head(n, 'Twelve threads through the whole book',
+    'Pick any of these and follow it Genesis to Revelation — the dots are real verses, the gold waypoint is where the thread lands on Jesus, and the last line is what it means for your actual week. This is the fastest cure for “the Bible feels random.”') +
+    '<div class="grid thread-grid">' + cards + '</div></div>';
+}
+
+function vCodes() {
+  const n = NAV[3];
+  const tabs = [['prophecies', 'Prophecies'], ['types', 'Types & Shadows'], ['tabernacle', 'The Tabernacle'], ['feasts', 'The Feasts'], ['loose', 'Hold Loosely']];
+  const tabIcons = { prophecies: 'scroll', types: 'temple', tabernacle: 'gate', feasts: 'calendar', loose: 'wind' };
+  const tabBtns = tabs.map(([id, l], i) => '<button class="subtab' + (i === 0 ? ' active' : '') + '" data-tab="' + id + '" style="--c:var(--c-codes)">' + icon(tabIcons[id] || 'cross') + ' ' + l + '</button>').join('');
+  const kindBadge = k => k === 'direct'
+    ? '<span class="badge explicit" title="A stated prediction with an explicit New Testament fulfillment">Direct</span>'
+    : '<span class="badge classical" title="A pattern the NT or the church reads as fulfilled typologically">Pattern</span>';
+  const rows = CODES.prophecies.map(p =>
+    '<tr><td data-label="The claim">' + p.what + '</td><td data-label="Promised">' + refLink(p.ot) + '</td><td data-label="Lands">' + refLink(p.nt) + '</td><td data-label="Reading">' + kindBadge(p.kind) + '</td></tr>').join('');
+  const types = CODES.types.map(t =>
+    '<div class="card type-card" style="--c:var(--c-codes)"><h3>' + t.name + ' ' + badge(t.badge) + '</h3>' +
+    '<div class="type-refs">' + linkRefs(t.refs) + '</div><p>' + linkRefs(t.body) + '</p></div>').join('');
+  const courtStations = CODES.tabernacle.stations.slice(0, 3).map((s, i) =>
+    '<div class="tab-station-card"><div class="station-meta"><span class="station-num">Station ' + (i + 1) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
+  const holyStations = CODES.tabernacle.stations.slice(3, 6).map((s, i) =>
+    '<div class="tab-station-card"><div class="station-meta"><span class="station-num">Station ' + (i + 4) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
+  const mostHolyStations = CODES.tabernacle.stations.slice(6, 8).map((s, i) =>
+    '<div class="tab-station-card"><div class="station-meta"><span class="station-num">Station ' + (i + 7) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
+
+  const tabernacleLayout = '<div class="tabernacle-grid">' +
+    '<div class="tabernacle-zone zone-court"><div class="zone-header">Outer Court <span class="zone-sub">East Entrance</span></div><div class="zone-stations">' + courtStations + '</div></div>' +
+    '<div class="tabernacle-zone zone-holy"><div class="zone-header">Holy Place <span class="zone-sub">The Sanctuary</span></div><div class="zone-stations">' + holyStations + '</div></div>' +
+    '<div class="tabernacle-zone zone-most-holy"><div class="zone-header">Holy of Holies <span class="zone-sub">Behind the Veil</span></div><div class="zone-stations">' + mostHolyStations + '</div></div>' +
+    '</div>';
+
+  const feasts = CODES.feasts.map(f =>
+    '<div class="feast-row"><div class="feast-when">' + f.when + '</div><div><h4>' + f.name + ' ' + badge(f.badge) + '</h4><p>' + linkRefs(f.body) + '</p></div></div>').join('');
+  const loose = CODES.loose.map(l =>
+    '<div class="card type-card" style="--c:var(--c-codes)"><h3>' + l.name + ' ' + badge(l.badge) + '</h3><p>' + linkRefs(l.body) + '</p></div>').join('');
+  return '<div class="view">' + head(n, 'The codes: written in advance', CODES.intro) +
+    '<div class="subtabs">' + tabBtns + '</div>' +
+    '<div class="tabpane" data-pane="prophecies">' +
+    '<div class="table-scroll"><table class="map-table"><thead><tr><th>The claim</th><th>Promised</th><th>Lands</th><th>Reading</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<p class="note">' + linkRefs(CODES.prophecyNote) + '</p></div>' +
+    '<div class="tabpane" data-pane="types" hidden><div class="grid grid-2">' + types + '</div></div>' +
+    '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container" style="margin-bottom:30px">' + buildTabernacleSVG() + '</div>' + tabernacleLayout + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
+    '<div class="tabpane" data-pane="feasts" hidden><div class="card">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
+    '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
+    '</div>';
+}
+
+function vWalking() {
+  const n = NAV[4];
+  const words = TEN_WORDS.map(w => '<span class="legend-chip" style="--c:var(--c-walk)"><span class="dot"></span>' + w + '</span>').join('');
+  const cards = WALKING.pillars.map(p =>
+    '<div class="card pillar-card" style="--c:var(--c-walk)">' +
+    '<div class="case-top"><span class="icon-chip">' + icon(p.icon) + '</span><h3>' + p.name + '</h3></div>' +
+    '<p class="lie">🚫 <b>Old Software:</b> ' + p.lie + '</p>' +
+    '<p class="truth">⚡ <b>New Identity:</b> ' + p.truth + '</p>' +
+    '<p class="pillar-body">' + linkRefs(p.body) + '</p>' +
+    '<div class="practice"><span class="label">🛠️ Try this</span>' + linkRefs(p.practice) + '</div>' +
+    refRow(p.refs) + '</div>').join('');
+  return '<div class="view">' + head(n, 'Walking in the new covenant', WALKING.intro) +
+    '<div class="hero-legend" style="justify-content:flex-start;padding:0 0 8px">' + words + '</div>' +
+    '<p class="note" style="margin:0 0 22px">' + WALKING.tenWordsNote + '</p>' +
+    '<div class="grid grid-2">' + cards + '</div></div>';
+}
+
+function vDetours() {
+  const n = NAV[5];
+  const cards = DETOURS.items.map((d, i) =>
+    '<div class="card detour-card" id="d-' + i + '" style="--c:var(--c-detour)">' +
+    '<h3><span class="icon-chip" style="--c:var(--c-detour)">' + icon('fork') + '</span>' + d.name + '</h3>' +
+    '<div class="detour-rows">' +
+    '<div class="row pull"><b>🧲 The pull</b><span>' + linkRefs(d.pull) + '</span></div>' +
+    '<div class="row cost"><b>⚠️ The cost</b><span>' + linkRefs(d.cost) + '</span></div>' +
+    '<div class="row home"><b>🧭 The way home</b><span>' + linkRefs(d.home) + '</span></div>' +
+    '</div>' + refRow(d.refs) + '</div>').join('');
+  return '<div class="view">' + head(n, 'Detours: sincere wrong turns', DETOURS.intro) +
+    '<div class="grid grid-2">' + cards + '</div></div>';
+}
+
+function vMind() {
+  const n = NAV[6];
+  const primer = NEURO_PRIMER.map(p =>
+    '<div class="mind-panel">' +
+    '<span class="label">' + p.label + '</span>' +
+    '<h4>' + p.title + '</h4>' +
+    '<p>' + linkRefs(p.body) + '</p>' +
+    refRow(p.refs) + '</div>').join('');
+  const cards = MIND.blocks.map(b => {
+    let tv = '';
+    if (b.tv) {
+      tv = '<div class="tv-grid"><div class="tv-box treasure"><span class="label">Keep the treasure</span><ul>' +
+        b.tv.treasure.map(x => '<li>' + linkRefs(x) + '</li>').join('') + '</ul></div>' +
+        '<div class="tv-box ditch"><span class="label">Skip the ditch</span><ul>' +
+        b.tv.ditch.map(x => '<li>' + linkRefs(x) + '</li>').join('') + '</ul></div></div>';
+    }
+    return '<div class="card mind-card" style="--c:var(--c-mind)">' +
+      '<h3><span class="icon-chip">' + icon(b.icon) + '</span>' + b.name + '</h3>' +
+      '<div class="mind-body-txt mind-panel-grid">' + paragraphCards(b.body, b.panelLabels) + '</div>' + tv + refRow(b.refs) + '</div>';
+  }).join('');
+  return '<div class="view">' + head(n, 'Mind, body & the Spirit', MIND.intro) +
+    '<div class="card neuro-primer" style="--c:var(--c-mind)">' +
+    '<div><h3>Neuro primer: read the brain without letting it replace the Bible</h3>' +
+    '<p class="lede">Use this section as a set of rails: curiosity without hype, embodiment without reductionism, and practice without pressure.</p></div>' +
+    '<div class="mind-panel-grid">' + primer + '</div></div>' +
+    '<div class="grid grid-1">' + cards + '</div></div>';
+}
+
+function vLibrary() {
+  const n = NAV[7];
+  const shelves = LIBRARY.shelves.map(s =>
+    '<div class="shelf" style="--c:var(--c-library)"><div class="shelf-title">' + icon(s.icon) + '<h3>' + s.title + '</h3></div>' +
+    '<div class="shelf-items">' + s.items.map(i =>
+      '<div class="shelf-item"><span class="kind">' + i.kind + '</span>' +
+      '<span><b><a target="_blank" rel="noopener" href="' + i.url + '">' + i.title + '</a></b> — ' + i.by + '. <span>' + i.note + '</span></span></div>').join('') +
+    '</div></div>').join('');
+  return '<div class="view">' + head(n, 'The pack list', LIBRARY.intro) + shelves + '</div>';
+}
+
+/* ================= search ================= */
+let INDEX = [];
+function buildIndex() {
+  const add = (view, anchor, whereLabel, cvar, title, sub, extra) =>
+    INDEX.push({ view, anchor, where: whereLabel, cvar, title, sub: sub || '', hay: (title + ' ' + (sub || '') + ' ' + (extra || '')).toLowerCase() });
+  THREADS.forEach(t => add('threads', 't-' + t.id, 'Threads', t.cvar, t.name, t.tag, t.way.map(w => w.ref + ' ' + w.note).join(' ') + ' ' + t.landsOn));
+  PATTERN.seasons.forEach(s => add('pattern', '', 'The Pattern', s.cvar, s.name, s.sub, s.rows.map(r => r.v).join(' ')));
+  PATTERN.insights.forEach(i => add('pattern', '', 'The Pattern', '--c-pattern', i.t, '', i.x));
+  PATTERN.cases.forEach((c, ix) => add('pattern', 'case-' + ix, 'Case studies', '--c-pattern', c.name + ' — ' + c.sub, '', c.p1 + ' ' + c.p2 + ' ' + c.p3));
+  CODES.prophecies.forEach(p => add('codes', '', 'Prophecies', '--c-codes', p.what, p.ot + ' → ' + p.nt, ''));
+  CODES.types.forEach(t => add('codes', '', 'Types & shadows', '--c-codes', t.name, t.refs, t.body));
+  CODES.feasts.forEach(f => add('codes', '', 'The feasts', '--c-codes', f.name, f.when, f.body));
+  CODES.loose.forEach(l => add('codes', '', 'Hold loosely', '--c-codes', l.name, '', l.body));
+  WALKING.pillars.forEach(p => add('walking', '', 'Walk It Out', '--c-walk', p.name, p.truth, p.lie + ' ' + p.body));
+  DETOURS.items.forEach((d, i) => add('detours', 'd-' + i, 'Detours', '--c-detour', d.name, '', d.pull + ' ' + d.cost + ' ' + d.home));
+  MIND.blocks.forEach(b => add('mind', '', 'Mind & Body', '--c-mind', b.name, '', b.body));
+  LIBRARY.shelves.forEach(s => s.items.forEach(i => add('library', '', 'Library', '--c-library', i.title, i.by, i.note)));
+}
+
+function runSearch(q) {
+  q = q.trim().toLowerCase();
+  const box = document.getElementById('search-results');
+  if (q.length < 2) { box.classList.remove('open'); box.innerHTML = ''; return; }
+  const scored = INDEX.map(e => {
+    let s = 0;
+    if (e.title.toLowerCase().includes(q)) s += 10;
+    if (e.sub.toLowerCase().includes(q)) s += 4;
+    if (e.hay.includes(q)) s += 2;
+    return [s, e];
+  }).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 10);
+  if (!scored.length) {
+    box.innerHTML = '<div class="search-empty">Nothing on the map for “' + q.replace(/</g, '&lt;') + '” — try a thread, name, or verse word.</div>';
+    box.classList.add('open'); return;
+  }
+  box.innerHTML = scored.map(([s, e], i) =>
+    '<button class="search-hit" data-i="' + INDEX.indexOf(e) + '" style="--c:var(' + e.cvar + ')">' +
+    '<span class="hit-where">' + e.where + '</span>' +
+    '<div class="hit-title">' + e.title + '</div>' +
+    (e.sub ? '<div class="hit-sub">' + e.sub + '</div>' : '') + '</button>').join('');
+  box.classList.add('open');
+}
+
+function goToHit(e) {
+  const box = document.getElementById('search-results');
+  const input = document.getElementById('search-input');
+  if (box) box.classList.remove('open');
+  if (input) input.value = '';
+  
+  if (e.view === 'threads' && e.anchor) {
+    const cardId = e.anchor;
+    const card = document.getElementById(cardId);
+    if (card) {
+      card.classList.add('open');
+      const headBtn = card.querySelector('[data-toggle]');
+      if (headBtn) headBtn.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  const targetId = e.anchor || e.view;
+  const el = document.getElementById(targetId);
+  if (el) {
+    isScrollingNav = true;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('flash');
+    setTimeout(() => {
+      el.classList.remove('flash');
+      isScrollingNav = false;
+    }, 2200);
+    history.replaceState(null, null, '#/' + e.view);
+    updateActiveNav(e.view);
+  }
+}
+
+/* ================= router & boot ================= */
+const VIEWS = { start: vStart, pattern: vPattern, threads: vThreads, codes: vCodes, walking: vWalking, detours: vDetours, mind: vMind, library: vLibrary };
+
+let isScrollingNav = false;
+
+function route(options) {
+  const id = (location.hash.replace('#/', '') || 'start').split('?')[0];
+  const sectionEl = document.getElementById(id);
+  if (sectionEl) {
+    isScrollingNav = true;
+    sectionEl.scrollIntoView({ behavior: options && options.instant ? 'auto' : 'smooth', block: 'start' });
+    setTimeout(() => { isScrollingNav = false; }, 800);
+    updateActiveNav(id);
+  }
+}
+
+function updateActiveNav(id) {
+  document.querySelectorAll('.nav-link').forEach(a => {
+    const active = a.dataset.view === id;
+    a.classList.toggle('active', active);
+  });
+}
+
+let previewResetTimer = null;
+function queuePreviewReset() {
+  if (previewResetTimer) clearTimeout(previewResetTimer);
+  previewResetTimer = setTimeout(() => {
+    resetThreadPreview();
+  }, 300);
+}
+function cancelPreviewReset() {
+  if (previewResetTimer) clearTimeout(previewResetTimer);
+}
+
+function updateThreadPreview(threadId) {
+  const t = THREADS.find(x => x.id === threadId);
+  if (!t) return;
+
+  const previewEl = document.getElementById('thread-preview');
+  if (!previewEl) return;
+
+  const shortWay = t.way.slice(0, 3).map(w => 
+    '<li><b>' + w.ref + ':</b> ' + w.note + '</li>'
+  ).join('');
+
+  previewEl.innerHTML = 
+    '<div class="preview-content" style="--c: var(' + t.cvar + ')">' +
+    '  <div class="preview-header">' +
+    '    <span class="preview-icon">' + icon(t.icon) + '</span>' +
+    '    <h3>' + t.name + '</h3>' +
+    '  </div>' +
+    '  <p class="preview-tag">' + t.tag + '</p>' +
+    '  <div class="preview-body">' +
+    '    <h4>Journey Milestones:</h4>' +
+    '    <ul>' + shortWay + '</ul>' +
+    '    <div class="preview-lands">' +
+    '      <strong>Where it lands</strong>' +
+    '      <p>' + t.landsOn + '</p>' +
+    '    </div>' +
+    '  </div>' +
+    '</div>';
+}
+
+function resetThreadPreview() {
+  const previewEl = document.getElementById('thread-preview');
+  if (!previewEl) return;
+  previewEl.innerHTML = 
+    '  <div class="preview-placeholder">' +
+    '    <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
+    '    <h3>The Story Map</h3>' +
+    '    <p>Hover over any thread path on the chart or select a legend chip to trace its journey from Genesis to Revelation.</p>' +
+    '  </div>';
+}
+
+function wireAllSections() {
+  // Wire thread card accordions
+  document.querySelectorAll('[data-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.thread-card');
+      const open = card.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open);
+    });
+  });
+
+  // Wire subtabs (in The Codes section)
+  document.querySelectorAll('.subtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const paneContainer = btn.closest('.view');
+      paneContainer.querySelectorAll('.subtab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      paneContainer.querySelectorAll('.tabpane').forEach(p => p.hidden = p.dataset.pane !== btn.dataset.tab);
+    });
+  });
+
+  // Wire legend chips hover and click
+  document.querySelectorAll('.legend-chip[data-thread]').forEach(chip => {
+    const threadId = chip.dataset.thread;
+    const pathEl = () => document.querySelector('.hero-thread[data-thread="' + threadId + '"]');
+    
+    chip.addEventListener('mouseenter', () => {
+      cancelPreviewReset();
+      chip.classList.add('hot');
+      const p = pathEl();
+      if (p) {
+        p.classList.add('hot');
+      }
+      updateThreadPreview(threadId);
+    });
+    
+    chip.addEventListener('mouseleave', () => {
+      chip.classList.remove('hot');
+      const p = pathEl();
+      if (p) p.classList.remove('hot');
+      queuePreviewReset();
+    });
+    
+    chip.addEventListener('click', () => {
+      const card = document.getElementById('t-' + threadId);
+      if (card) {
+        card.classList.add('open');
+        const headBtn = card.querySelector('[data-toggle]');
+        if (headBtn) headBtn.setAttribute('aria-expanded', 'true');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('flash');
+        setTimeout(() => card.classList.remove('flash'), 2200);
+      }
+    });
+  });
+
+  // Wire hero thread paths hover and click (using thicker trigger overlay)
+  document.querySelectorAll('.hero-thread-trigger').forEach(trigger => {
+    const threadId = trigger.dataset.thread;
+    const path = document.querySelector('.hero-thread[data-thread="' + threadId + '"]');
+    const chipEl = () => document.querySelector('.legend-chip[data-thread="' + threadId + '"]');
+    
+    trigger.addEventListener('mouseenter', () => {
+      cancelPreviewReset();
+      if (path) path.classList.add('hot');
+      const c = chipEl();
+      if (c) c.classList.add('hot');
+      updateThreadPreview(threadId);
+    });
+    
+    trigger.addEventListener('mouseleave', () => {
+      if (path) path.classList.remove('hot');
+      const c = chipEl();
+      if (c) c.classList.remove('hot');
+      queuePreviewReset();
+    });
+
+    trigger.addEventListener('click', () => {
+      const card = document.getElementById('t-' + threadId);
+      if (card) {
+        card.classList.add('open');
+        const headBtn = card.querySelector('[data-toggle]');
+        if (headBtn) headBtn.setAttribute('aria-expanded', 'true');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('flash');
+        setTimeout(() => card.classList.remove('flash'), 2200);
+      }
+    });
+  });
+
+  // Wire tabernacle interactive stations and blueprint graphic node elements
+  const nodeSelector = idx => document.querySelector('.svg-station-node[data-index="' + idx + '"]');
+  const cardSelector = idx => document.querySelectorAll('.tab-station-card')[idx];
+
+  document.body.addEventListener('mouseover', ev => {
+    const card = ev.target.closest('.tab-station-card');
+    if (card) {
+      const idx = Array.from(document.querySelectorAll('.tab-station-card')).indexOf(card);
+      const node = nodeSelector(idx);
+      if (node) node.classList.add('active');
+      return;
+    }
+
+    const node = ev.target.closest('.svg-station-node');
+    if (node) {
+      const idx = +node.dataset.index;
+      node.classList.add('active');
+      const c = cardSelector(idx);
+      if (c) c.classList.add('active-hover');
+    }
+  });
+
+  document.body.addEventListener('mouseout', ev => {
+    const card = ev.target.closest('.tab-station-card');
+    if (card) {
+      const idx = Array.from(document.querySelectorAll('.tab-station-card')).indexOf(card);
+      const node = nodeSelector(idx);
+      if (node) node.classList.remove('active');
+      return;
+    }
+
+    const node = ev.target.closest('.svg-station-node');
+    if (node) {
+      const idx = +node.dataset.index;
+      node.classList.remove('active');
+      const c = cardSelector(idx);
+      if (c) c.classList.remove('active-hover');
+    }
+  });
+
+  document.body.addEventListener('click', ev => {
+    const node = ev.target.closest('.svg-station-node');
+    if (node) {
+      const idx = +node.dataset.index;
+      const c = cardSelector(idx);
+      if (c) {
+        c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        c.classList.add('flash');
+        setTimeout(() => c.classList.remove('flash'), 1800);
+      }
+    }
+  });
+}
+
+function setupScrollspy() {
+  const options = {
+    root: null,
+    rootMargin: '-25% 0px -55% 0px',
+    threshold: 0
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    if (isScrollingNav) return;
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        updateActiveNav(id);
+        history.replaceState(null, null, '#/' + id);
+      }
+    });
+  }, options);
+
+  NAV.forEach(n => {
+    const el = document.getElementById(n.id);
+    if (el) observer.observe(el);
+  });
+}
+
+/* ================= hover scripture tooltips & local TPT cache ================= */
+const TPT_CACHE = {
+  'John 3:16': '“For this is how God loved the world: He gave his unique, One and Only Son as a gift. So now everyone who believes in him will never perish, but experience everlasting life.”',
+  'John 1:29': '“Look! There is the Lamb of God who takes away the sin of the world!”',
+  'Rom 8:1': '“So now the case is closed. There remains no accusing verdict of condemnation against those who are in union with Jesus, the Anointed One.”',
+  '1 Cor 5:7': '“For Messiah, our Passover Lamb, has been sacrificed for us!”',
+  'John 6:35': '“I am the Bread of Life. Come to me and you will never be hungry. Believe in me and you will never be thirsty.”',
+  '1 Cor 10:4': '“...for they drank from the spiritual Rock that traveled with them, and that Rock was Christ.”',
+  'John 1:1': '“In the very beginning the Living Expression was already there. And the Living Expression was with God, yet he was fully God.”',
+  'Heb 12:24': '“...and to Jesus, the mediator of a new covenant, and to the sprinkled blood, which speaks a better word than the blood of Abel.”',
+  'Gen 1:1': '“In the beginning, God created the heavens and the earth.”',
+  'Gal 3:16': '“Now the promises were spoken to Abraham and to his seed... which is Christ.”'
+};
+
+const chapterCache = {};
+let tooltipEl = null;
+let tooltipTimer = null;
+
+function parseReference(refStr) {
+  const clean = refStr.replace(/–/g, '-').trim();
+  const match = clean.match(/^([123]\s)?([A-Za-z]+)\s(\d+)(?::(\d+)(?:[-](\d+))?)?/);
+  if (!match) return null;
+
+  const numPrefix = match[1] ? match[1].trim() : '';
+  const name = match[2];
+  const chapter = parseInt(match[3], 10);
+  const verseStart = match[4] ? parseInt(match[4], 10) : null;
+  const verseEnd = match[5] ? parseInt(match[5], 10) : null;
+
+  const baseMap = {
+    'Gen': 1, 'Ex': 2, 'Lev': 3, 'Num': 4, 'Deut': 5, 'Josh': 6, 'Judg': 7, 'Ruth': 8,
+    'Sam': 9, 'Kings': 11, 'Chr': 13, 'Ezra': 15, 'Neh': 16, 'Esth': 17, 'Job': 18,
+    'Ps': 19, 'Prov': 20, 'Eccl': 21, 'Song': 22, 'Isa': 23, 'Jer': 24, 'Lam': 25,
+    'Ezek': 26, 'Dan': 27, 'Hos': 28, 'Joel': 29, 'Amos': 30, 'Obadiah': 31, 'Jonah': 32,
+    'Mic': 33, 'Micah': 33, 'Nah': 34, 'Hab': 35, 'Zeph': 36, 'Hag': 37, 'Zech': 38, 'Mal': 39,
+    'Matt': 40, 'Mark': 41, 'Luke': 42, 'John': 43, 'Acts': 44, 'Rom': 45, 'Cor': 46,
+    'Gal': 48, 'Eph': 49, 'Phil': 50, 'Col': 51, 'Thess': 52, 'Tim': 54, 'Titus': 56,
+    'Philemon': 57, 'Heb': 58, 'Jas': 59, 'James': 59, 'Pet': 60, 'Jude': 65, 'Rev': 66
+  };
+
+  let bookId = baseMap[name];
+  if (!bookId) return null;
+
+  if (numPrefix) {
+    const num = parseInt(numPrefix, 10);
+    if (name === 'Sam' && num === 2) bookId = 10;
+    else if (name === 'Kings' && num === 2) bookId = 12;
+    else if (name === 'Chr' && num === 2) bookId = 14;
+    else if (name === 'Cor' && num === 2) bookId = 47;
+    else if (name === 'Thess' && num === 2) bookId = 53;
+    else if (name === 'Tim' && num === 2) bookId = 55;
+    else if (name === 'Pet' && num === 2) bookId = 61;
+    else if (name === 'John') {
+      if (num === 2) bookId = 63;
+      else if (num === 3) bookId = 64;
+    }
+  }
+
+  return { bookId, chapter, verseStart, verseEnd };
+}
+
+async function loadVerseText(ref, version) {
+  if (version === 'TPT') {
+    const matched = Object.keys(TPT_CACHE).find(k => ref.toLowerCase().includes(k.toLowerCase()));
+    if (matched) {
+      return TPT_CACHE[matched] + '<span class="tooltip-note">The Passion Translation (TPT)</span>';
+    } else {
+      const nltText = await fetchFromBolls(ref, 'NLT');
+      return nltText + '<span class="tooltip-note">TPT text copyrighted. Showing NLT fallback. <a href="https://www.biblegateway.com/passage/?search=' + encodeURIComponent(ref) + '&version=TPT" target="_blank" rel="noopener">Read TPT on BibleGateway ↗</a></span>';
+    }
+  }
+  return fetchFromBolls(ref, version);
+}
+
+async function fetchFromBolls(ref, version) {
+  const parsed = parseReference(ref);
+  if (!parsed) return 'Reference not recognized.';
+
+  const { bookId, chapter, verseStart, verseEnd } = parsed;
+  const cacheKey = `${version}-${bookId}-${chapter}`;
+
+  if (!chapterCache[cacheKey]) {
+    const url = 'https://bolls.life/get-text/' + version + '/' + bookId + '/' + chapter + '/';
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      chapterCache[cacheKey] = data;
+    } catch (e) {
+      return 'Could not retrieve scripture text.';
+    }
+  }
+
+  const verses = chapterCache[cacheKey];
+  if (!verses || !verses.length) return 'Verse not found.';
+
+  let filtered = [];
+  if (verseStart !== null) {
+    if (verseEnd !== null) {
+      filtered = verses.filter(v => v.verse >= verseStart && v.verse <= verseEnd);
+    } else {
+      filtered = verses.filter(v => v.verse === verseStart);
+    }
+  } else {
+    filtered = verses.slice(0, 3);
+  }
+
+  if (!filtered.length) return 'Verse not found in ' + version + '.';
+
+  return filtered.map(v => {
+    return v.text.replace(/<[^>]+>/g, '').trim();
+  }).join(' ');
+}
+
+
+
+function initTooltip() {
+  tooltipEl = document.createElement('div');
+  tooltipEl.className = 'verse-tooltip';
+  document.body.appendChild(tooltipEl);
+
+  document.body.addEventListener('mouseover', ev => {
+    const link = ev.target.closest('.ref-link');
+    if (!link) return;
+    const ref = link.dataset.ref || link.textContent;
+    if (!ref) return;
+    showTooltip(link, ref);
+  });
+
+  document.body.addEventListener('mouseout', ev => {
+    const link = ev.target.closest('.ref-link');
+    if (!link) return;
+    hideTooltip();
+  });
+}
+
+function showTooltip(link, ref) {
+  if (tooltipTimer) clearTimeout(tooltipTimer);
+  const version = document.getElementById('version-select').value;
+  
+  const rect = link.getBoundingClientRect();
+  const scrollY = window.scrollY || window.pageYOffset;
+  const scrollX = window.scrollX || window.pageXOffset;
+  
+  // Initial positioning (loading state)
+  const tooltipHeight = 130;
+  if (rect.top - tooltipHeight > 20) {
+    tooltipEl.style.top = (scrollY + rect.top - tooltipHeight - 8) + 'px';
+  } else {
+    tooltipEl.style.top = (scrollY + rect.bottom + 8) + 'px';
+  }
+  const initialLeft = Math.min(scrollX + window.innerWidth - 360, Math.max(scrollX + 20, scrollX + rect.left));
+  tooltipEl.style.left = initialLeft + 'px';
+
+  tooltipEl.innerHTML = '<span class="tooltip-ref">' + ref + ' (' + version + ')</span><div class="tooltip-text">Loading verse...</div>';
+  tooltipEl.classList.add('open');
+
+  loadVerseText(ref, version).then(text => {
+    const txtBox = tooltipEl.querySelector('.tooltip-text');
+    if (txtBox) txtBox.innerHTML = text;
+    
+    // Reposition based on actual height
+    const actualHeight = tooltipEl.offsetHeight;
+    if (rect.top - actualHeight > 20) {
+      tooltipEl.style.top = (scrollY + rect.top - actualHeight - 8) + 'px';
+    } else {
+      tooltipEl.style.top = (scrollY + rect.bottom + 8) + 'px';
+    }
+    
+    const finalLeft = Math.min(scrollX + window.innerWidth - tooltipEl.offsetWidth - 20, Math.max(scrollX + 20, scrollX + rect.left));
+    tooltipEl.style.left = finalLeft + 'px';
+  }).catch(err => {
+    const txtBox = tooltipEl.querySelector('.tooltip-text');
+    if (txtBox) txtBox.innerHTML = '<span style="color:var(--thread)">Unable to load verse.</span>';
+  });
+}
+
+function hideTooltip() {
+  tooltipTimer = setTimeout(() => {
+    tooltipEl.classList.remove('open');
+  }, 200);
+}
+
+function boot() {
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  const NAV_ICONS = { start: 'compass', pattern: 'dune', threads: 'thread', codes: 'key', walking: 'walk', detours: 'fork', mind: 'brain', library: 'book' };
+  const nav = document.getElementById('nav');
+  nav.innerHTML = NAV.map(n =>
+    '<a class="nav-link" data-view="' + n.id + '" href="#/' + n.id + '" style="--c:var(' + n.cvar + ')">' + icon(NAV_ICONS[n.id] || 'cross') + ' ' + n.label + '</a>').join('');
+
+  // Set up nav click listeners for smooth scrolling
+  document.querySelectorAll('.nav-link').forEach(a => {
+    a.addEventListener('click', ev => {
+      ev.preventDefault();
+      const id = a.dataset.view;
+      const el = document.getElementById(id);
+      if (el) {
+        isScrollingNav = true;
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.replaceState(null, null, '#/' + id);
+        updateActiveNav(id);
+        setTimeout(() => { isScrollingNav = false; }, 800);
+      }
+    });
+  });
+
+  const root = document.documentElement;
+  const saved = localStorage.getItem('thread-theme');
+  if (saved) root.dataset.theme = saved;
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const dark = root.dataset.theme === 'dark' || (!root.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.dataset.theme = dark ? 'light' : 'dark';
+    localStorage.setItem('thread-theme', root.dataset.theme);
+  });
+
+  const select = document.getElementById('version-select');
+  const savedVer = localStorage.getItem('thread-version');
+  if (savedVer) select.value = savedVer;
+  select.addEventListener('change', () => {
+    localStorage.setItem('thread-version', select.value);
+  });
+
+  // Render all views sequentially on the page
+  const container = document.getElementById('view');
+  let html = '';
+  NAV.forEach(n => {
+    const fn = VIEWS[n.id];
+    if (fn) {
+      html += '<section id="' + n.id + '" class="section-block">' + fn() + '</section>';
+    }
+  });
+  container.innerHTML = html;
+
+  buildIndex();
+  const input = document.getElementById('search-input');
+  const box = document.getElementById('search-results');
+  if (input && box) {
+    input.addEventListener('input', () => runSearch(input.value));
+    input.addEventListener('focus', () => runSearch(input.value));
+    document.addEventListener('click', ev => {
+      const hit = ev.target.closest('.search-hit');
+      if (hit) { goToHit(INDEX[+hit.dataset.i]); return; }
+      if (!ev.target.closest('.searchbox')) box.classList.remove('open');
+    });
+    input.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') { box.classList.remove('open'); input.blur(); }
+      if (ev.key === 'Enter') { const first = box.querySelector('.search-hit'); if (first) goToHit(INDEX[+first.dataset.i]); }
+    });
+  }
+
+  // Wire events, then handle the initial route before enabling scrollspy.
+  wireAllSections();
+  initTooltip();
+
+  window.addEventListener('hashchange', route);
+  if (location.hash) {
+    route({ instant: true });
+    setupScrollspy();
+  } else {
+    updateActiveNav('start');
+    setupScrollspy();
+  }
+}
+
+boot();
+
+</script>
