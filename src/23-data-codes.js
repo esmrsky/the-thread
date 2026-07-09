@@ -67,6 +67,13 @@ const CODES = {
       { name: 'Altar of incense', what: 'Smoke rising before the veil', jesus: '“He always lives to intercede” (Heb 7:25). Prayer as fragrance (Rev 8:4).' },
       { name: 'The veil', what: 'The barrier before the Presence', jesus: 'Torn top to bottom at His death (Matt 27:51) — “through the veil, that is, his flesh” (Heb 10:20).' },
       { name: 'Mercy seat', what: 'Blood-sprinkled throne above the law', jesus: 'The destination. “Let us then with confidence draw near to the throne of grace” (Heb 4:16).' }
+    ],
+    insights: [
+      { t: 'One gate, one way in.', x: 'The courtyard had a single entrance, on the east side — no back doors, no side doors. Jesus: “I am the door; if anyone enters by me, he will be saved” (John 10:9).' },
+      { t: 'The metals get more precious inward.', x: 'Bronze in the outer court, silver on the pillars, gold in the Holy Place, pure gold at the ark. The nearer the Presence, the greater the worth — the whole tent is a gradient toward glory.' },
+      { t: 'No chairs, no windows.', x: 'Priests never sat down — the work was never finished (Heb 10:11) — and no sunlight reached the Holy Place; the golden lampstand was the only light. Then Jesus offered one sacrifice and “sat down” (Heb 10:12), and called himself the light (John 8:12).' },
+      { t: 'The whole tent was a scale model.', x: 'Hebrews calls it “a copy and shadow of the heavenly things” (Heb 8:5) — a blueprint of the real meeting place between God and people, which turned out to be a Person: the Word “tabernacled among us” (John 1:14).' },
+      { t: 'Three relics inside the ark.', x: 'Under the blood-sprinkled mercy seat sat a gold jar of manna, Aaron’s budded staff, and the tablets of the law (Heb 9:4) — provision, chosen priesthood, and the commandments — all covered by blood.' }
     ]
   },
   feasts: [

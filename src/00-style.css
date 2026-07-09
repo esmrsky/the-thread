@@ -1075,6 +1075,14 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   .bento { grid-template-columns: 1fr; }
 }
 
+/* ---------- tabernacle "details worth noticing" ---------- */
+.tab-insights { margin-top: 30px; }
+.tab-insights-title { display: flex; align-items: center; gap: 9px; font-family: var(--font-label); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--c-codes); margin-bottom: 14px; }
+.tab-insights-title svg { width: 17px; height: 17px; }
+.insight-mini { border-left: 3px solid color-mix(in srgb, var(--c-codes) 55%, var(--line)); }
+.insight-mini b { display: block; font-size: 1rem; margin-bottom: 5px; }
+.insight-mini p { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.55; }
+
 /* ---------- journey svg ---------- */
 .journey-panel { padding: 10px 10px 4px; margin: 8px 0 clamp(30px, 4vw, 42px); }
 .journey-panel svg { width: 100%; height: auto; min-width: 0; }

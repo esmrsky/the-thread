@@ -208,15 +208,15 @@ function buildTabernacleSVG() {
     
     // Tent of Meeting Boundary
     '<rect x="360" y="28" width="370" height="124" fill="none" stroke="var(--s-egypt)" stroke-width="1.5" opacity="0.4"/>' +
-    '<text x="370" y="44" font-size="7.5" fill="var(--s-egypt)" style="font-family:var(--font-label);font-weight:700;letter-spacing:1px">TENT OF MEETING</text>' +
+    '<text x="370" y="24" font-size="7.5" fill="var(--s-egypt)" style="font-family:var(--font-label);font-weight:700;letter-spacing:1px">TENT OF MEETING</text>' +
     
     // Holy Place Label
-    '<text x="500" y="44" font-size="7" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY PLACE</text>' +
+    '<text x="500" y="24" font-size="7" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY PLACE</text>' +
     
     // Holy of Holies Veil line and Label
     '<line x1="610" y1="28" x2="610" y2="152" stroke="var(--c-codes)" stroke-width="2" stroke-dasharray="4 4" opacity="0.6"/>' +
-    '<text x="615" y="44" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">VEIL</text>' +
-    '<text x="660" y="44" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY OF HOLIES</text>' +
+    '<text x="615" y="24" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">VEIL</text>' +
+    '<text x="660" y="24" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY OF HOLIES</text>' +
     
     // Marching Route Line
     '<path class="tabernacle-route" d="' + path + '" fill="none" stroke="var(--thread)" stroke-width="2.2" stroke-linecap="round"/>' +
@@ -352,6 +352,8 @@ function vCodes() {
     '<div class="tab-station-card"><div class="station-meta"><span class="station-num">Station ' + (i + 4) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
   const mostHolyStations = CODES.tabernacle.stations.slice(6, 8).map((s, i) =>
     '<div class="tab-station-card"><div class="station-meta"><span class="station-num">Station ' + (i + 7) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
+  const tabInsights = '<div class="tab-insights"><div class="tab-insights-title">' + icon('key') + '<span>Details worth noticing</span></div><div class="grid grid-2">' +
+    CODES.tabernacle.insights.map(i => '<div class="card insight-mini" style="--c:var(--c-codes)"><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div>').join('') + '</div></div>';
 
   const tabernacleLayout = '<div class="tabernacle-grid">' +
     '<div class="tabernacle-zone zone-court"><div class="zone-header">Outer Court <span class="zone-sub">East Entrance</span></div><div class="zone-stations">' + courtStations + '</div></div>' +
@@ -369,7 +371,7 @@ function vCodes() {
     '<div class="table-scroll"><table class="map-table"><thead><tr><th>The claim</th><th>Promised</th><th>Lands</th><th>Reading</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
     '<p class="note">' + linkRefs(CODES.prophecyNote) + '</p></div>' +
     '<div class="tabpane" data-pane="types" hidden><div class="grid grid-2">' + types + '</div></div>' +
-    '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container" style="margin-bottom:30px">' + buildTabernacleSVG() + '</div>' + tabernacleLayout + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
+    '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container" style="margin-bottom:30px">' + buildTabernacleSVG() + '</div>' + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
     '<div class="tabpane" data-pane="feasts" hidden><div class="card">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
     '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
     '</div>';

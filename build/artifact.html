@@ -1077,6 +1077,14 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   .bento { grid-template-columns: 1fr; }
 }
 
+/* ---------- tabernacle "details worth noticing" ---------- */
+.tab-insights { margin-top: 30px; }
+.tab-insights-title { display: flex; align-items: center; gap: 9px; font-family: var(--font-label); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--c-codes); margin-bottom: 14px; }
+.tab-insights-title svg { width: 17px; height: 17px; }
+.insight-mini { border-left: 3px solid color-mix(in srgb, var(--c-codes) 55%, var(--line)); }
+.insight-mini b { display: block; font-size: 1rem; margin-bottom: 5px; }
+.insight-mini p { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.55; }
+
 /* ---------- journey svg ---------- */
 .journey-panel { padding: 10px 10px 4px; margin: 8px 0 clamp(30px, 4vw, 42px); }
 .journey-panel svg { width: 100%; height: auto; min-width: 0; }
@@ -2146,6 +2154,13 @@ const CODES = {
       { name: 'Altar of incense', what: 'Smoke rising before the veil', jesus: '“He always lives to intercede” (Heb 7:25). Prayer as fragrance (Rev 8:4).' },
       { name: 'The veil', what: 'The barrier before the Presence', jesus: 'Torn top to bottom at His death (Matt 27:51) — “through the veil, that is, his flesh” (Heb 10:20).' },
       { name: 'Mercy seat', what: 'Blood-sprinkled throne above the law', jesus: 'The destination. “Let us then with confidence draw near to the throne of grace” (Heb 4:16).' }
+    ],
+    insights: [
+      { t: 'One gate, one way in.', x: 'The courtyard had a single entrance, on the east side — no back doors, no side doors. Jesus: “I am the door; if anyone enters by me, he will be saved” (John 10:9).' },
+      { t: 'The metals get more precious inward.', x: 'Bronze in the outer court, silver on the pillars, gold in the Holy Place, pure gold at the ark. The nearer the Presence, the greater the worth — the whole tent is a gradient toward glory.' },
+      { t: 'No chairs, no windows.', x: 'Priests never sat down — the work was never finished (Heb 10:11) — and no sunlight reached the Holy Place; the golden lampstand was the only light. Then Jesus offered one sacrifice and “sat down” (Heb 10:12), and called himself the light (John 8:12).' },
+      { t: 'The whole tent was a scale model.', x: 'Hebrews calls it “a copy and shadow of the heavenly things” (Heb 8:5) — a blueprint of the real meeting place between God and people, which turned out to be a Person: the Word “tabernacled among us” (John 1:14).' },
+      { t: 'Three relics inside the ark.', x: 'Under the blood-sprinkled mercy seat sat a gold jar of manna, Aaron’s budded staff, and the tablets of the law (Heb 9:4) — provision, chosen priesthood, and the commandments — all covered by blood.' }
     ]
   },
   feasts: [
@@ -2815,15 +2830,15 @@ function buildTabernacleSVG() {
     
     // Tent of Meeting Boundary
     '<rect x="360" y="28" width="370" height="124" fill="none" stroke="var(--s-egypt)" stroke-width="1.5" opacity="0.4"/>' +
-    '<text x="370" y="44" font-size="7.5" fill="var(--s-egypt)" style="font-family:var(--font-label);font-weight:700;letter-spacing:1px">TENT OF MEETING</text>' +
+    '<text x="370" y="24" font-size="7.5" fill="var(--s-egypt)" style="font-family:var(--font-label);font-weight:700;letter-spacing:1px">TENT OF MEETING</text>' +
     
     // Holy Place Label
-    '<text x="500" y="44" font-size="7" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY PLACE</text>' +
+    '<text x="500" y="24" font-size="7" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY PLACE</text>' +
     
     // Holy of Holies Veil line and Label
     '<line x1="610" y1="28" x2="610" y2="152" stroke="var(--c-codes)" stroke-width="2" stroke-dasharray="4 4" opacity="0.6"/>' +
-    '<text x="615" y="44" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">VEIL</text>' +
-    '<text x="660" y="44" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY OF HOLIES</text>' +
+    '<text x="615" y="24" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">VEIL</text>' +
+    '<text x="660" y="24" font-size="7" fill="var(--c-codes)" style="font-family:var(--font-label);font-weight:700;letter-spacing:0.5px">HOLY OF HOLIES</text>' +
     
     // Marching Route Line
     '<path class="tabernacle-route" d="' + path + '" fill="none" stroke="var(--thread)" stroke-width="2.2" stroke-linecap="round"/>' +
@@ -2959,6 +2974,8 @@ function vCodes() {
     '<div class="tab-station-card"><div class="station-meta"><span class="station-num">Station ' + (i + 4) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
   const mostHolyStations = CODES.tabernacle.stations.slice(6, 8).map((s, i) =>
     '<div class="tab-station-card"><div class="station-meta"><span class="station-num">Station ' + (i + 7) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
+  const tabInsights = '<div class="tab-insights"><div class="tab-insights-title">' + icon('key') + '<span>Details worth noticing</span></div><div class="grid grid-2">' +
+    CODES.tabernacle.insights.map(i => '<div class="card insight-mini" style="--c:var(--c-codes)"><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div>').join('') + '</div></div>';
 
   const tabernacleLayout = '<div class="tabernacle-grid">' +
     '<div class="tabernacle-zone zone-court"><div class="zone-header">Outer Court <span class="zone-sub">East Entrance</span></div><div class="zone-stations">' + courtStations + '</div></div>' +
@@ -2976,7 +2993,7 @@ function vCodes() {
     '<div class="table-scroll"><table class="map-table"><thead><tr><th>The claim</th><th>Promised</th><th>Lands</th><th>Reading</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
     '<p class="note">' + linkRefs(CODES.prophecyNote) + '</p></div>' +
     '<div class="tabpane" data-pane="types" hidden><div class="grid grid-2">' + types + '</div></div>' +
-    '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container" style="margin-bottom:30px">' + buildTabernacleSVG() + '</div>' + tabernacleLayout + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
+    '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container" style="margin-bottom:30px">' + buildTabernacleSVG() + '</div>' + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
     '<div class="tabpane" data-pane="feasts" hidden><div class="card">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
     '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
     '</div>';
