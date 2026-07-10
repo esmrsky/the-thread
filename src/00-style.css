@@ -1191,6 +1191,11 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .rail-dot:hover { transform: translateY(-50%) scale(1.35); border-color: var(--c); }
 @media (max-width: 1280px) { #rail { display: none; } }
 
+/* ---------- feast arc ---------- */
+.feast-arc-panel { margin-bottom: 22px; padding: 14px 10px 6px; }
+.feast-arc-panel svg { width: 100%; height: auto; min-width: 620px; }
+.feast-arc-panel { overflow-x: auto; }
+
 /* ---------- tabernacle "details worth noticing" ---------- */
 .tab-insights { margin-top: 30px; }
 .tab-insights-title { display: flex; align-items: center; gap: 9px; font-family: var(--font-label); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--c-codes); margin-bottom: 14px; }
@@ -1758,15 +1763,29 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   will-change: opacity, stroke-width;
 }
 
-/* Journey route path animation */
-.journey-route-path {
+/* Shared route march — identical speed on the journey and tabernacle diagrams */
+.journey-route-path,
+.tabernacle-route {
   stroke-dasharray: 6 5;
-  animation: journey-march 85s linear infinite;
+  animation: route-march 60s linear infinite;
 }
-@keyframes journey-march {
+@keyframes route-march {
   to {
-    stroke-dashoffset: -1000;
+    stroke-dashoffset: -990; /* multiple of the 11px dash period = seamless loop */
   }
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey-route-path, .tabernacle-route { animation: none; }
+}
+
+/* halo behind every diagram label so text stays legible over any background */
+.journey-scroll text,
+.tabernacle-svg text,
+.hero-scroll text {
+  paint-order: stroke;
+  stroke: var(--card);
+  stroke-width: 2.6px;
+  stroke-linejoin: round;
 }
 
 /* Tabernacle animated blueprint graphic container */
@@ -1791,15 +1810,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   height: auto;
   display: block;
 }
-.tabernacle-route {
-  stroke-dasharray: 6 5;
-  animation: tabernacle-march 25s linear infinite;
-}
-@keyframes tabernacle-march {
-  to {
-    stroke-dashoffset: -1000;
-  }
-}
+/* .tabernacle-route shares the route-march animation defined with .journey-route-path */
 
 .svg-station-node {
   transition: transform 0.2s ease;

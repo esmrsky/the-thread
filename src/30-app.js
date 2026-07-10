@@ -152,7 +152,7 @@ function buildJourneySVG() {
   const route = 'M' + aEg.map(Math.round).join(' ') + ' L' + rEg.map(Math.round).join(' ') +
     ' Q' + Math.round(rEg[0] + 40) + ' ' + Math.round(rEg[1] + 24) + ' ' + rDe1.map(Math.round).join(' ') +
     ' L' + rDeMid.map(Math.round).join(' ') +
-    ' a15 15 0 1 1 10 4' + // the 40-year loop at Kadesh
+    ' a24 24 0 1 1 14 6' + // the 40-year loop at Kadesh — one lap for a generation
     ' L' + rDe2.map(Math.round).join(' ') +
     ' Q' + Math.round(rDe2[0] + 40) + ' ' + Math.round(rDe2[1] + 20) + ' ' + rLa1.map(Math.round).join(' ') +
     ' L' + rLa2.map(Math.round).join(' ');
@@ -163,11 +163,11 @@ function buildJourneySVG() {
   pin(rDeMid[0], rDeMid[1], 3, 'KADESH|THE CHOICE', 28);
   pin(rLa1[0], rLa1[1], 4, 'GILGAL|MANNA STOPS', -20);
   pin(rLa2[0], rLa2[1], 5, 'FRUITFULNESS', 22);
-  pins.push('<text x="' + Math.round(rDeMid[0] + 6) + '" y="' + Math.round(rDeMid[1] - 26) + '" text-anchor="middle" font-size="7.2" letter-spacing="1.2" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700">40-YEAR LOOP</text>');
+  pins.push('<text x="' + Math.round(rDeMid[0] + 7) + '" y="' + Math.round(rDeMid[1] - 56) + '" text-anchor="middle" font-size="7.2" letter-spacing="1.2" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700">40-YEAR LOOP · NUM 14:33</text>');
 
   const eL = eg.pt(0.4, 0.55), eL2 = eg.pt(0.75, 0.5);
-  const dT = de.pt(0.72, 0.85), dFire = de.pt(0.28, 0.6), mtn = de.pt(0.06, 0.8);
-  const lH = la.pt(0.35, 0.6), lG = la.pt(0.62, 0.5), lC = la.pt(0.88, 0.85);
+  const dT = de.pt(0.8, 0.85), dFire = de.pt(0.28, 0.6), mtn = de.pt(0.06, 0.8);
+  const lH = la.pt(0.78, 0.7), lG = la.pt(0.62, 0.5), lC = la.pt(0.28, 0.85);
   const nile1 = eg.pt(0.02, 1), nile2 = eg.pt(0.07, 0);
 
   return '<svg viewBox="0 0 900 430" role="img" aria-label="An isometric journey from Egypt through the wilderness into the promised land">' +
@@ -193,6 +193,7 @@ function buildJourneySVG() {
     tent(dT[0], dT[1], 26, 40) +
     hill(lH[0] - 14, lH[1], 30, 26, 'color-mix(in srgb, var(--s-land) 78%, #000 10%)') + hill(lH[0] + 16, lH[1], 34, 34, 'var(--s-land)') +
     grapes(lG[0], lG[1]) + cityWall(lC[0], lC[1]) +
+    '<text x="' + Math.round(lC[0]) + '" y="' + Math.round(lC[1] - 32) + '" text-anchor="middle" font-size="6.8" letter-spacing="1" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:700">JERICHO · JOSH 6</text>' +
     '<path class="journey-route-path" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>' +
     pins.join('') +
     // zone banners
@@ -309,6 +310,56 @@ function buildTabernacleSVG() {
     '<text x="118" y="349" font-size="7.5" letter-spacing="1.4" fill="#fff" opacity="0.75" style="font-family:var(--font-label);font-weight:700">OUTER COURT</text>' +
     '<text x="46" y="382" font-size="7.5" letter-spacing="1.2" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">EAST · THE WAY IN</text>' +
     '<text x="874" y="382" text-anchor="end" font-size="7.5" letter-spacing="1.2" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">WEST · THE PRESENCE</text>' +
+    '</svg>';
+}
+
+/* ================= feast arc — the sacred year ================= */
+function buildFeastArc() {
+  const P0 = [60, 240], C = [450, 40], P2 = [840, 240], CEN = [450, 430];
+  const q = t => [
+    (1 - t) * (1 - t) * P0[0] + 2 * (1 - t) * t * C[0] + t * t * P2[0],
+    (1 - t) * (1 - t) * P0[1] + 2 * (1 - t) * t * C[1] + t * t * P2[1]
+  ];
+  const iconAt = (name, x, y, s, color) => (ICONS[name] || '').replace('<svg ', '<svg x="' + (x - s / 2) + '" y="' + (y - s / 2) + '" width="' + s + '" height="' + s + '" style="color:' + color + '" ');
+  const FEASTS = [
+    { t: 0.07, name: 'PASSOVER', to: 'THE CROSS · 1 COR 5:7', ic: 'lamb', done: true },
+    { t: 0.13, name: 'UNLEAVENED BREAD', to: 'THE BURIAL', ic: 'bread', done: true },
+    { t: 0.19, name: 'FIRSTFRUITS', to: 'RESURRECTION · 1 COR 15:20', ic: 'grapes', done: true },
+    { t: 0.40, name: 'PENTECOST', to: 'THE SPIRIT · ACTS 2:1', ic: 'wind', done: true },
+    { t: 0.70, name: 'TRUMPETS', to: 'THE RETURN · 1 THESS 4:16', ic: 'music', done: false },
+    { t: 0.78, name: 'ATONEMENT', to: 'THEY LOOK ON HIM · ZECH 12:10', ic: 'gate', done: false },
+    { t: 0.87, name: 'TABERNACLES', to: 'GOD WITH MAN · REV 21:3', ic: 'temple', done: false }
+  ];
+  let marks = '';
+  FEASTS.forEach(f => {
+    const p = q(f.t);
+    const d = [p[0] - CEN[0], p[1] - CEN[1]];
+    const len = Math.hypot(d[0], d[1]);
+    const dir = [d[0] / len, d[1] / len];
+    const at = k => [Math.round(p[0] + dir[0] * k), Math.round(p[1] + dir[1] * k)];
+    const L = at(52), I = at(22), l1 = at(9), l2 = at(44);
+    const anchor = f.t < 0.32 ? 'end' : (f.t <= 0.55 ? 'middle' : 'start');
+    const cMain = f.done ? 'var(--ink)' : 'var(--ink-soft)';
+    const cSub = f.done ? 'var(--c-walk)' : 'var(--c-detour)';
+    marks +=
+      '<line x1="' + l1[0] + '" y1="' + l1[1] + '" x2="' + l2[0] + '" y2="' + l2[1] + '" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="2 3" opacity="0.55"/>' +
+      iconAt(f.ic, I[0], I[1], 13, f.done ? 'var(--gold)' : 'var(--c-detour)') +
+      (f.done
+        ? '<circle cx="' + Math.round(p[0]) + '" cy="' + Math.round(p[1]) + '" r="5.5" fill="var(--gold)" stroke="var(--card)" stroke-width="1.5"/>'
+        : '<circle cx="' + Math.round(p[0]) + '" cy="' + Math.round(p[1]) + '" r="5.5" fill="var(--card)" stroke="var(--c-detour)" stroke-width="2" stroke-dasharray="2.5 2"/>') +
+      '<text x="' + L[0] + '" y="' + L[1] + '" text-anchor="' + anchor + '" font-size="7.6" letter-spacing="0.8" fill="' + cMain + '" style="font-family:var(--font-label);font-weight:700">' + f.name + '</text>' +
+      '<text x="' + L[0] + '" y="' + (L[1] + 10) + '" text-anchor="' + anchor + '" font-size="6.4" letter-spacing="0.6" fill="' + cSub + '" style="font-family:var(--font-label);font-weight:700">' + f.to + '</text>';
+  });
+  return '<svg viewBox="0 60 900 250" role="img" aria-label="The seven feasts of Israel on the arc of the sacred year — spring fulfilled at the first coming, fall still ahead">' +
+    '<path d="M60 240 Q450 40 840 240" fill="none" stroke="var(--ink-faint)" stroke-width="1.6" opacity="0.45"/>' +
+    '<path d="M60 240 Q235.5 150 411 141" fill="none" stroke="var(--gold)" stroke-width="2.6" opacity="0.85"/>' +
+    marks +
+    '<text x="185" y="268" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="var(--c-walk)" style="font-family:var(--font-label);font-weight:700">SPRING · FULFILLED TO THE DAY</text>' +
+    '<text x="700" y="268" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="var(--c-detour)" style="font-family:var(--font-label);font-weight:700">FALL · STILL AHEAD</text>' +
+    '<circle cx="330" cy="291" r="4" fill="var(--gold)"/>' +
+    '<text x="340" y="294" font-size="7" letter-spacing="0.8" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">FULFILLED</text>' +
+    '<circle cx="425" cy="291" r="4" fill="var(--card)" stroke="var(--c-detour)" stroke-width="1.6" stroke-dasharray="2 2"/>' +
+    '<text x="435" y="294" font-size="7" letter-spacing="0.8" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">AHEAD — HOLD DATES LOOSELY (ACTS 1:7)</text>' +
     '</svg>';
 }
 
@@ -465,9 +516,11 @@ function vCodes() {
     '<div class="tabpane" data-pane="prophecies">' +
     '<div class="table-scroll"><table class="map-table"><thead><tr><th>The claim</th><th>Promised</th><th>Lands</th><th>Reading</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
     '<p class="note">' + linkRefs(CODES.prophecyNote) + '</p></div>' +
-    '<div class="tabpane" data-pane="types" hidden><div class="grid grid-2">' + types + '</div></div>' +
+    '<div class="tabpane" data-pane="types" hidden><p class="lede" style="margin-bottom:18px">' + linkRefs(CODES.typesNote) + '</p><div class="grid grid-2">' + types + '</div></div>' +
     '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container" style="margin-bottom:30px">' + buildTabernacleSVG() + '</div>' + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
-    '<div class="tabpane" data-pane="feasts" hidden><div class="card">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
+    '<div class="tabpane" data-pane="feasts" hidden>' +
+    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">Lev 23:2</span><span class="chart-corner br">Col 2:16-17</span>' + buildFeastArc() + '</div>' +
+    '<div class="card">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
     '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
     '</div>';
 }

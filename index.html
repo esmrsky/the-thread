@@ -1199,6 +1199,11 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .rail-dot:hover { transform: translateY(-50%) scale(1.35); border-color: var(--c); }
 @media (max-width: 1280px) { #rail { display: none; } }
 
+/* ---------- feast arc ---------- */
+.feast-arc-panel { margin-bottom: 22px; padding: 14px 10px 6px; }
+.feast-arc-panel svg { width: 100%; height: auto; min-width: 620px; }
+.feast-arc-panel { overflow-x: auto; }
+
 /* ---------- tabernacle "details worth noticing" ---------- */
 .tab-insights { margin-top: 30px; }
 .tab-insights-title { display: flex; align-items: center; gap: 9px; font-family: var(--font-label); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--c-codes); margin-bottom: 14px; }
@@ -1766,15 +1771,29 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   will-change: opacity, stroke-width;
 }
 
-/* Journey route path animation */
-.journey-route-path {
+/* Shared route march — identical speed on the journey and tabernacle diagrams */
+.journey-route-path,
+.tabernacle-route {
   stroke-dasharray: 6 5;
-  animation: journey-march 85s linear infinite;
+  animation: route-march 60s linear infinite;
 }
-@keyframes journey-march {
+@keyframes route-march {
   to {
-    stroke-dashoffset: -1000;
+    stroke-dashoffset: -990; /* multiple of the 11px dash period = seamless loop */
   }
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey-route-path, .tabernacle-route { animation: none; }
+}
+
+/* halo behind every diagram label so text stays legible over any background */
+.journey-scroll text,
+.tabernacle-svg text,
+.hero-scroll text {
+  paint-order: stroke;
+  stroke: var(--card);
+  stroke-width: 2.6px;
+  stroke-linejoin: round;
 }
 
 /* Tabernacle animated blueprint graphic container */
@@ -1799,15 +1818,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   height: auto;
   display: block;
 }
-.tabernacle-route {
-  stroke-dasharray: 6 5;
-  animation: tabernacle-march 25s linear infinite;
-}
-@keyframes tabernacle-march {
-  to {
-    stroke-dashoffset: -1000;
-  }
-}
+/* .tabernacle-route shares the route-march animation defined with .journey-route-path */
 
 .svg-station-node {
   transition: transform 0.2s ease;
@@ -2242,7 +2253,6 @@ const CODES = {
   ],
   prophecyNote: 'Two kinds of fulfillment, both honest: <b>direct predictions</b> (Micah names the town) and <b>typological fulfillment</b> (Hosea 11:1 is about Israel — Matthew reads Jesus as the true Israel re-running the story and getting it right). The second kind isn’t cheating; it’s the pattern principle. The apostles read their Bibles that way because Jesus taught them to (Luke 24:27). Note the math on Psalm 22: a detailed crucifixion scene written centuries before crucifixion was invented. (One famous footnote: Matthew attributes the thirty-silver quote to “Jeremiah” though the wording is Zechariah’s — ancient collections were often cited by their lead book, and Matthew blends in Jeremiah’s potter-and-field imagery. A known feature of ancient citation, not a slip.)',
   types: [
-    { name: 'The bronze serpent', refs: 'Num 21:8-9 → John 3:14-15', badge: 'explicit', body: 'Snake-bitten people healed by LOOKING at the problem lifted up on a pole. Jesus, to Nicodemus: “As Moses lifted up the serpent in the wilderness, so must the Son of Man be lifted up.” Healing by looking, not climbing.' },
     { name: 'The Passover lamb', refs: 'Ex 12 → 1 Cor 5:7', badge: 'explicit', body: 'Spotless, examined four days (as Jesus was examined in the temple that final week), killed at twilight, no bone broken. Paul writes the caption: “Christ, our Passover lamb, has been sacrificed.”' },
     { name: 'The manna', refs: 'Ex 16 → John 6:32-35', badge: 'explicit', body: 'Bread from heaven that came down daily and kept a nation alive. Jesus: “My Father gives you the TRUE bread from heaven… I am the bread of life.”' },
     { name: 'The struck rock', refs: 'Ex 17:6 → 1 Cor 10:4', badge: 'explicit', body: 'Struck once, water for everyone. Paul, casually dropping the key: “they drank from the spiritual Rock that followed them, and the Rock was Christ.”' },
@@ -2266,8 +2276,16 @@ const CODES = {
     { name: 'Linguistic convergence on the cross', refs: 'John 19:19-20 → Eph 2:14-16', badge: 'loose', body: 'The cross inscription was written in Hebrew/Aramaic (which reads right-to-left, representing the Semitic East and the Law) and Greek and Latin (which read left-to-right, representing the Gentile West, culture, and power). Visually, the languages of the East and the West flow from opposite margins and physically converge at the central figure of Jesus—reconciling both in one body.' },
     { name: 'The bronze serpent', refs: 'Num 21:4-9 → John 3:14-15', badge: 'explicit', body: 'Israel is bitten by venomous snakes under judgment. Moses lifts a bronze serpent on a pole; whoever looks at it is healed. Jesus claims this explicitly: “As Moses lifted up the serpent in the wilderness, so must the Son of Man be lifted up, that whoever believes in him may have eternal life.” The very symbol of the curse, made of bronze (judgment), becomes the source of life when lifted up.' },
     { name: 'The pillar of cloud and fire', refs: 'Ex 13:21-22 → 1 Cor 10:1-2', badge: 'classical', body: 'A pillar of cloud by day and fire by night, guiding Israel through the trackless desert, giving light while throwing their enemies into darkness. Paul notes they were “baptized into Moses in the cloud,” and Jesus fulfills this as the true Light who guides us through the wilderness of this life and never leaves us.' },
-    { name: 'Noah’s dove and the olive branch', refs: 'Gen 8:8-12 → Matt 3:16', badge: 'classical', body: 'The dove sent from the ark finds no place to rest on the flooded earth, returning with an olive leaf showing the judgment has subsided. At Jesus’s baptism, as He emerges from the judgment waters of Jordan, the Spirit descends “like a dove” and rests on Him, declaring that the flood of wrath is over and peace between God and man has arrived.' }
+    { name: 'Noah’s dove and the olive branch', refs: 'Gen 8:8-12 → Matt 3:16', badge: 'classical', body: 'The dove sent from the ark finds no place to rest on the flooded earth, returning with an olive leaf showing the judgment has subsided. At Jesus’s baptism, as He emerges from the judgment waters of Jordan, the Spirit descends “like a dove” and rests on Him, declaring that the flood of wrath is over and peace between God and man has arrived.' },
+    { name: 'Joshua: the name itself', refs: 'Deut 34; Josh 1 → Heb 4:8; Matt 1:21', badge: 'classical', body: 'Moses — the lawgiver — leads to the border but cannot bring anyone in; a man named Yeshua (“The LORD saves”) takes them into the inheritance. Jesus and Joshua are the SAME name in Hebrew, and Hebrews weighs them directly: “if Joshua had given them rest, God would not have spoken of another day.” The law walks you to the edge; only Jesus walks you in.' },
+    { name: 'David & Goliath: the champion', refs: '1 Sam 17 → Rom 5:18-19; Col 2:15', badge: 'classical', body: 'A battle of champions: one representative fights, and his victory is credited to an entire army that never swung a sword. An unlikely shepherd from Bethlehem steps out alone, defeats the taunting giant with a wound to the head (Gen 3:15 echo), and the people simply plunder a victory they didn’t win. That’s federal headship — Romans 5, staged in a valley.' },
+    { name: 'Aaron’s staff that budded', refs: 'Num 17:1-10 → Heb 9:4; Rom 1:4', badge: 'classical', body: 'Twelve dead sticks laid before God overnight; by morning, only Aaron’s has budded, blossomed, and borne almonds — dead wood come alive to prove whose priesthood God had chosen. It was kept inside the ark as permanent evidence. Resurrection as vindication: Jesus was “declared to be the Son of God in power… by his resurrection.”' },
+    { name: 'The tree at Marah', refs: 'Ex 15:23-25 → 1 Pet 2:24', badge: 'loose', body: 'Three days into freedom, the water is undrinkable — bitter. God shows Moses a TREE; thrown into the waters, they turn sweet. A cherished old reading: cast the tree — the cross (1 Pet 2:24 calls it exactly that) — into your bitterest providence, and the taste changes. Devotional, not doctrinal; but it has sweetened a lot of Marahs.' },
+    { name: 'The fourth man in the fire', refs: 'Dan 3:19-25 → Isa 43:2', badge: 'classical', body: 'Three men are thrown in; Nebuchadnezzar counts FOUR, “and the appearance of the fourth is like a son of the gods.” They come out unbound, unburned, not even smelling of smoke — the only thing the fire burned off was their ropes. The classic reading sees the pre-incarnate Christ keeping Isaiah 43:2 in person: “when you walk through the fire… I will be with you.”' },
+    { name: 'Tree of life, tree of death, tree of life', refs: 'Gen 2:9; 3:22-24 → Gal 3:13; Rev 22:2', badge: 'classical', body: 'The story opens with a tree of life forfeited and guarded by a sword. The New Testament then insists on calling the cross “the TREE” (Gal 3:13; 1 Pet 2:24; Acts 5:30) — a deliberate word choice: a tree of death absorbing the curse. And the story closes with the tree of life back, un-guarded, “for the healing of the nations.” Three trees, one arc: paradise lost, purchased, restored.' },
+    { name: 'The rock: struck once, then spoken to', refs: 'Ex 17:6; Num 20:8-12 → Heb 7:25; 10:12', badge: 'loose', body: 'First wilderness stop: God says STRIKE the rock, and water flows (Paul says the Rock was Christ, 1 Cor 10:4). Decades later: God says SPEAK to it — but Moses strikes it again, and it costs him the land. The old preachers saw the offense: Christ is struck ONCE, for all time; after that, you don’t re-crucify — you ask. A homiletic reading, held loosely — but it preaches the once-for-all beautifully.' }
   ],
+  typesNote: 'The New Testament has its own vocabulary for all this: <i>typos</i> — pattern, mold (Rom 5:14; 1 Cor 10:6,11); <i>skia</i> — shadow (Col 2:16-17; Heb 10:1); <i>antitypos</i> — the reality a pattern pointed to (1 Pet 3:21); <i>hypodeigma</i> — copy (Heb 8:5). A shadow isn’t the person — but it’s shaped exactly like the person, which is why you can learn Jesus’s silhouette in Genesis before you meet His face in John. The badges tell you who is drawing each connection: the NT itself, the church’s classic reading, or a devotional observation to enjoy loosely.',
   tabernacle: {
     intro: 'The tabernacle wasn’t random furniture — it’s a walkable diagram of approach to God, and every station is Jesus (Heb 8:5; 10:19-22). Walk it east to west:',
     stations: [
@@ -2899,7 +2917,7 @@ function buildJourneySVG() {
   const route = 'M' + aEg.map(Math.round).join(' ') + ' L' + rEg.map(Math.round).join(' ') +
     ' Q' + Math.round(rEg[0] + 40) + ' ' + Math.round(rEg[1] + 24) + ' ' + rDe1.map(Math.round).join(' ') +
     ' L' + rDeMid.map(Math.round).join(' ') +
-    ' a15 15 0 1 1 10 4' + // the 40-year loop at Kadesh
+    ' a24 24 0 1 1 14 6' + // the 40-year loop at Kadesh — one lap for a generation
     ' L' + rDe2.map(Math.round).join(' ') +
     ' Q' + Math.round(rDe2[0] + 40) + ' ' + Math.round(rDe2[1] + 20) + ' ' + rLa1.map(Math.round).join(' ') +
     ' L' + rLa2.map(Math.round).join(' ');
@@ -2910,11 +2928,11 @@ function buildJourneySVG() {
   pin(rDeMid[0], rDeMid[1], 3, 'KADESH|THE CHOICE', 28);
   pin(rLa1[0], rLa1[1], 4, 'GILGAL|MANNA STOPS', -20);
   pin(rLa2[0], rLa2[1], 5, 'FRUITFULNESS', 22);
-  pins.push('<text x="' + Math.round(rDeMid[0] + 6) + '" y="' + Math.round(rDeMid[1] - 26) + '" text-anchor="middle" font-size="7.2" letter-spacing="1.2" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700">40-YEAR LOOP</text>');
+  pins.push('<text x="' + Math.round(rDeMid[0] + 7) + '" y="' + Math.round(rDeMid[1] - 56) + '" text-anchor="middle" font-size="7.2" letter-spacing="1.2" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700">40-YEAR LOOP · NUM 14:33</text>');
 
   const eL = eg.pt(0.4, 0.55), eL2 = eg.pt(0.75, 0.5);
-  const dT = de.pt(0.72, 0.85), dFire = de.pt(0.28, 0.6), mtn = de.pt(0.06, 0.8);
-  const lH = la.pt(0.35, 0.6), lG = la.pt(0.62, 0.5), lC = la.pt(0.88, 0.85);
+  const dT = de.pt(0.8, 0.85), dFire = de.pt(0.28, 0.6), mtn = de.pt(0.06, 0.8);
+  const lH = la.pt(0.78, 0.7), lG = la.pt(0.62, 0.5), lC = la.pt(0.28, 0.85);
   const nile1 = eg.pt(0.02, 1), nile2 = eg.pt(0.07, 0);
 
   return '<svg viewBox="0 0 900 430" role="img" aria-label="An isometric journey from Egypt through the wilderness into the promised land">' +
@@ -2940,6 +2958,7 @@ function buildJourneySVG() {
     tent(dT[0], dT[1], 26, 40) +
     hill(lH[0] - 14, lH[1], 30, 26, 'color-mix(in srgb, var(--s-land) 78%, #000 10%)') + hill(lH[0] + 16, lH[1], 34, 34, 'var(--s-land)') +
     grapes(lG[0], lG[1]) + cityWall(lC[0], lC[1]) +
+    '<text x="' + Math.round(lC[0]) + '" y="' + Math.round(lC[1] - 32) + '" text-anchor="middle" font-size="6.8" letter-spacing="1" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:700">JERICHO · JOSH 6</text>' +
     '<path class="journey-route-path" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>' +
     pins.join('') +
     // zone banners
@@ -3056,6 +3075,56 @@ function buildTabernacleSVG() {
     '<text x="118" y="349" font-size="7.5" letter-spacing="1.4" fill="#fff" opacity="0.75" style="font-family:var(--font-label);font-weight:700">OUTER COURT</text>' +
     '<text x="46" y="382" font-size="7.5" letter-spacing="1.2" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">EAST · THE WAY IN</text>' +
     '<text x="874" y="382" text-anchor="end" font-size="7.5" letter-spacing="1.2" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">WEST · THE PRESENCE</text>' +
+    '</svg>';
+}
+
+/* ================= feast arc — the sacred year ================= */
+function buildFeastArc() {
+  const P0 = [60, 240], C = [450, 40], P2 = [840, 240], CEN = [450, 430];
+  const q = t => [
+    (1 - t) * (1 - t) * P0[0] + 2 * (1 - t) * t * C[0] + t * t * P2[0],
+    (1 - t) * (1 - t) * P0[1] + 2 * (1 - t) * t * C[1] + t * t * P2[1]
+  ];
+  const iconAt = (name, x, y, s, color) => (ICONS[name] || '').replace('<svg ', '<svg x="' + (x - s / 2) + '" y="' + (y - s / 2) + '" width="' + s + '" height="' + s + '" style="color:' + color + '" ');
+  const FEASTS = [
+    { t: 0.07, name: 'PASSOVER', to: 'THE CROSS · 1 COR 5:7', ic: 'lamb', done: true },
+    { t: 0.13, name: 'UNLEAVENED BREAD', to: 'THE BURIAL', ic: 'bread', done: true },
+    { t: 0.19, name: 'FIRSTFRUITS', to: 'RESURRECTION · 1 COR 15:20', ic: 'grapes', done: true },
+    { t: 0.40, name: 'PENTECOST', to: 'THE SPIRIT · ACTS 2:1', ic: 'wind', done: true },
+    { t: 0.70, name: 'TRUMPETS', to: 'THE RETURN · 1 THESS 4:16', ic: 'music', done: false },
+    { t: 0.78, name: 'ATONEMENT', to: 'THEY LOOK ON HIM · ZECH 12:10', ic: 'gate', done: false },
+    { t: 0.87, name: 'TABERNACLES', to: 'GOD WITH MAN · REV 21:3', ic: 'temple', done: false }
+  ];
+  let marks = '';
+  FEASTS.forEach(f => {
+    const p = q(f.t);
+    const d = [p[0] - CEN[0], p[1] - CEN[1]];
+    const len = Math.hypot(d[0], d[1]);
+    const dir = [d[0] / len, d[1] / len];
+    const at = k => [Math.round(p[0] + dir[0] * k), Math.round(p[1] + dir[1] * k)];
+    const L = at(52), I = at(22), l1 = at(9), l2 = at(44);
+    const anchor = f.t < 0.32 ? 'end' : (f.t <= 0.55 ? 'middle' : 'start');
+    const cMain = f.done ? 'var(--ink)' : 'var(--ink-soft)';
+    const cSub = f.done ? 'var(--c-walk)' : 'var(--c-detour)';
+    marks +=
+      '<line x1="' + l1[0] + '" y1="' + l1[1] + '" x2="' + l2[0] + '" y2="' + l2[1] + '" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="2 3" opacity="0.55"/>' +
+      iconAt(f.ic, I[0], I[1], 13, f.done ? 'var(--gold)' : 'var(--c-detour)') +
+      (f.done
+        ? '<circle cx="' + Math.round(p[0]) + '" cy="' + Math.round(p[1]) + '" r="5.5" fill="var(--gold)" stroke="var(--card)" stroke-width="1.5"/>'
+        : '<circle cx="' + Math.round(p[0]) + '" cy="' + Math.round(p[1]) + '" r="5.5" fill="var(--card)" stroke="var(--c-detour)" stroke-width="2" stroke-dasharray="2.5 2"/>') +
+      '<text x="' + L[0] + '" y="' + L[1] + '" text-anchor="' + anchor + '" font-size="7.6" letter-spacing="0.8" fill="' + cMain + '" style="font-family:var(--font-label);font-weight:700">' + f.name + '</text>' +
+      '<text x="' + L[0] + '" y="' + (L[1] + 10) + '" text-anchor="' + anchor + '" font-size="6.4" letter-spacing="0.6" fill="' + cSub + '" style="font-family:var(--font-label);font-weight:700">' + f.to + '</text>';
+  });
+  return '<svg viewBox="0 60 900 250" role="img" aria-label="The seven feasts of Israel on the arc of the sacred year — spring fulfilled at the first coming, fall still ahead">' +
+    '<path d="M60 240 Q450 40 840 240" fill="none" stroke="var(--ink-faint)" stroke-width="1.6" opacity="0.45"/>' +
+    '<path d="M60 240 Q235.5 150 411 141" fill="none" stroke="var(--gold)" stroke-width="2.6" opacity="0.85"/>' +
+    marks +
+    '<text x="185" y="268" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="var(--c-walk)" style="font-family:var(--font-label);font-weight:700">SPRING · FULFILLED TO THE DAY</text>' +
+    '<text x="700" y="268" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="var(--c-detour)" style="font-family:var(--font-label);font-weight:700">FALL · STILL AHEAD</text>' +
+    '<circle cx="330" cy="291" r="4" fill="var(--gold)"/>' +
+    '<text x="340" y="294" font-size="7" letter-spacing="0.8" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">FULFILLED</text>' +
+    '<circle cx="425" cy="291" r="4" fill="var(--card)" stroke="var(--c-detour)" stroke-width="1.6" stroke-dasharray="2 2"/>' +
+    '<text x="435" y="294" font-size="7" letter-spacing="0.8" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">AHEAD — HOLD DATES LOOSELY (ACTS 1:7)</text>' +
     '</svg>';
 }
 
@@ -3212,9 +3281,11 @@ function vCodes() {
     '<div class="tabpane" data-pane="prophecies">' +
     '<div class="table-scroll"><table class="map-table"><thead><tr><th>The claim</th><th>Promised</th><th>Lands</th><th>Reading</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
     '<p class="note">' + linkRefs(CODES.prophecyNote) + '</p></div>' +
-    '<div class="tabpane" data-pane="types" hidden><div class="grid grid-2">' + types + '</div></div>' +
+    '<div class="tabpane" data-pane="types" hidden><p class="lede" style="margin-bottom:18px">' + linkRefs(CODES.typesNote) + '</p><div class="grid grid-2">' + types + '</div></div>' +
     '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container" style="margin-bottom:30px">' + buildTabernacleSVG() + '</div>' + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
-    '<div class="tabpane" data-pane="feasts" hidden><div class="card">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
+    '<div class="tabpane" data-pane="feasts" hidden>' +
+    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">Lev 23:2</span><span class="chart-corner br">Col 2:16-17</span>' + buildFeastArc() + '</div>' +
+    '<div class="card">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
     '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
     '</div>';
 }
