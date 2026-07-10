@@ -368,10 +368,14 @@ function vStart() {
 
 function vPattern() {
   const n = NAV[1];
+  const ROW_ICONS = { 'What it is': 'compass', 'It feels like': 'heart', 'God’s move': 'name', 'The exit': 'gate', 'Provision': 'bread' };
   const seasons = PATTERN.seasons.map(s =>
-    '<div class="card season-card" style="--c:var(' + s.cvar + ')">' +
-    '<h3>' + icon(s.icon) + s.name + '</h3><p class="season-sub">' + s.sub + '</p>' +
-    '<div class="season-rows">' + s.rows.map(r => '<div class="row"><b>' + r.k + '</b><span>' + linkRefs(r.v) + '</span></div>').join('') + '</div></div>').join('');
+    '<div class="season-card" style="--c:var(' + s.cvar + ')">' +
+    '<div class="season-head"><span class="icon-chip">' + icon(s.icon) + '</span>' +
+    '<div><h3>' + s.name + '</h3><p class="season-sub">' + s.sub + '</p></div></div>' +
+    '<div class="season-rows">' + s.rows.map(r =>
+      '<div class="season-row"><span class="season-row-label">' + icon(ROW_ICONS[r.k] || 'compass') + r.k + '</span><p>' + linkRefs(r.v) + '</p></div>').join('') +
+    '</div></div>').join('');
   const insights = PATTERN.insights.map((i, ix) =>
     '<li><span class="insight-marker">' + (ix + 1) + '</span><div><b>' + i.t + '</b><span class="ins-txt">' + linkRefs(i.x) + '</span></div></li>').join('');
   const cases = PATTERN.cases.map((c, ix) =>
