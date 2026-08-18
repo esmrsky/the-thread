@@ -182,6 +182,8 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
 
 ::selection { background: color-mix(in srgb, var(--thread) 25%, transparent); }
 
+html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
+
 :focus-visible { outline: 2px solid var(--thread); outline-offset: 2px; border-radius: 4px; }
 
 .wrap {
@@ -1135,7 +1137,8 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   color: var(--ink-soft);
   padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-soft);
 }
-.legend-chip:hover, .legend-chip.hot { color: var(--c); border-color: color-mix(in srgb, var(--c) 55%, var(--line)); background: color-mix(in srgb, var(--c) 9%, transparent); }
+.legend-chip:hover, .legend-chip.hot, .legend-chip.selected { color: var(--c); border-color: color-mix(in srgb, var(--c) 55%, var(--line)); background: color-mix(in srgb, var(--c) 9%, transparent); }
+.legend-chip.selected { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent); }
 .legend-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
 
 .hero-verse { text-align: center; max-width: 56ch; margin: 30px auto 0; font-style: italic; color: var(--ink-soft); font-size: 1.02rem; }
@@ -1251,15 +1254,19 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   padding: 4px 10px; border-radius: 999px;
 }
 .thread-marquee {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  cursor: grab;
+  touch-action: pan-y pinch-zoom;
   mask-image: linear-gradient(90deg, transparent, #000 3.5%, #000 96.5%, transparent);
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 3.5%, #000 96.5%, transparent);
 }
+.thread-marquee::-webkit-scrollbar { display: none; }
+.thread-marquee.is-dragging { cursor: grabbing; }
+.thread-marquee.is-dragging, .thread-marquee.is-dragging * { user-select: none; }
 .marquee-track { display: flex; gap: 10px; width: max-content; padding: 2px 18px; }
-.thread-marquee.scrolling .marquee-track { animation: marquee var(--dur, 40s) linear infinite; }
-.thread-marquee:hover .marquee-track,
-.thread-marquee:focus-within .marquee-track { animation-play-state: paused; }
-@keyframes marquee { to { transform: translateX(calc(-50% - 5px)); } }
+.marquee-group { display: flex; gap: 10px; }
 .wp-card {
   flex: 0 0 252px;
   background: var(--card-2);
@@ -1288,8 +1295,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   .wp-card { flex-basis: 220px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .thread-marquee { overflow-x: auto; mask-image: none; -webkit-mask-image: none; }
-  .thread-marquee.scrolling .marquee-track { animation: none; }
+  .thread-marquee { overflow-x: auto; touch-action: auto; mask-image: none; -webkit-mask-image: none; }
 }
 
 /* ---------- scarlet progress rail ---------- */
@@ -1353,7 +1359,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .hero-scroll { overflow: clip; min-width: 0; }
 .hero-scroll svg { min-width: 0; width: 100%; height: auto; display: block; }
 .hero-thread { opacity: 0.7; cursor: pointer; transition: opacity 0.25s ease, stroke-width 0.25s ease; }
-.hero-thread:hover, .hero-thread.hot { opacity: 1; stroke-width: 3.6; }
+.hero-thread:hover, .hero-thread.hot, .hero-thread.selected { opacity: 1; stroke-width: 3.6; }
 
 .flash { animation: flash-ring 2.2s ease; }
 @keyframes flash-ring {
@@ -1489,6 +1495,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   transform: translateY(6px);
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
+.verse-tooltip.is-pinned { pointer-events: auto; }
 .verse-tooltip.open {
   display: block;
   opacity: 1;
@@ -1519,6 +1526,45 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   text-decoration: underline;
   color: var(--thread);
 }
+.tooltip-actions { display: none; margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+.verse-tooltip.is-pinned .tooltip-actions { display: flex; }
+.tooltip-context-button {
+  border: 1px solid color-mix(in srgb, var(--thread) 35%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--thread) 8%, var(--card));
+  color: var(--thread);
+  padding: 7px 11px;
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.verse-context-dialog {
+  width: min(1000px, calc(100% - 28px));
+  max-height: min(82dvh, 760px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 32px 100px color-mix(in srgb, #000 38%, transparent);
+}
+.verse-context-dialog::backdrop { background: color-mix(in srgb, var(--paper) 22%, rgba(0,0,0,.72)); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
+.context-dialog-inner { display: flex; flex-direction: column; max-height: min(82dvh, 760px); }
+.context-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 22px 15px; border-bottom: 1px solid var(--line); }
+.context-dialog-head .label { display: block; color: var(--thread); margin-bottom: 4px; }
+.context-dialog-head h3 { font-size: clamp(1.28rem, 3vw, 1.7rem); }
+.context-dialog-close { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: var(--card-2); font-size: 1.15rem; }
+.context-dialog-body { overflow-y: auto; padding: 18px 22px 24px; }
+.context-loading { color: var(--ink-soft); }
+.context-verse { display: grid; grid-template-columns: 2.1rem 1fr; gap: 10px; padding: 7px 10px; border-radius: 8px; font-size: 1rem; line-height: 1.65; }
+.context-verse-number { padding-top: 2px; color: var(--ink-faint); font-family: var(--font-label); font-size: 0.68rem; font-weight: 700; text-align: right; }
+.context-verse.is-selected { background: color-mix(in srgb, var(--thread) 10%, transparent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--thread) 70%, transparent); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.context-block { margin: 0; padding: 10px 12px; border-radius: 9px; color: var(--ink-soft); line-height: 1.7; }
+.context-block + .context-block { margin-top: 8px; }
+.context-block.is-selected { color: var(--ink); background: color-mix(in srgb, var(--thread) 10%, transparent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--thread) 70%, transparent); text-underline-offset: 4px; }
+.context-source { margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--line-soft); color: var(--ink-faint); font-family: var(--font-label); font-size: 0.65rem; line-height: 1.5; }
 
 /* ================= PREVIEW CARD & THREAD HOVER STYLES ================= */
 
@@ -1591,6 +1637,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
     overflow: visible;
   }
   .chart-main {
+    grid-row: 1;
     border-left: none;
     padding-left: 0;
     padding-top: 24px;
@@ -1600,9 +1647,17 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
     gap: 24px;
     overflow: visible;
   }
+  .thread-preview-card { grid-row: 2; }
   .hero-scroll svg {
     min-width: 0;
   }
+}
+
+.hero-line-label { display: none; }
+@media (min-width: 1280px) {
+  .hero-scroll { padding-left: 132px; }
+  .hero-scroll svg { overflow: visible; }
+  .hero-line-label { display: block; }
 }
 
 /* Thread preview card styling */
@@ -1621,6 +1676,23 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   box-sizing: border-box;
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
+
+.preview-more {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: auto;
+  padding-top: 16px;
+  color: var(--c);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.preview-more::after { content: ' →'; margin-left: 5px; transition: transform .2s ease; }
+.preview-more:hover::after { transform: translateX(3px); }
 
 @media (max-width: 720px) {
   .table-scroll {
@@ -1669,6 +1741,21 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   .thread-preview-card {
     padding: 18px;
   }
+  .chart-main {
+    position: sticky;
+    top: 104px;
+    z-index: 6;
+    align-self: start;
+    padding: 10px 0 8px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-lg);
+    background: color-mix(in srgb, var(--paper) 94%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow);
+  }
+  .verse-tooltip { max-width: calc(100vw - 28px); }
+  .context-dialog-head, .context-dialog-body { padding-left: 16px; padding-right: 16px; }
 }
 
 .thread-preview-card .preview-placeholder {
@@ -1970,13 +2057,13 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 /* the dotted drop from the cross to the convergence never stops travelling */
 .hero-anim .hero-drop {
-  animation: hero-fade 0.5s ease 1.9s both, hero-drip 1.4s linear 1.9s infinite;
+  animation: hero-fade 0.5s ease 1.9s both, hero-drip 9s linear 1.9s infinite;
 }
 @keyframes hero-drip {
-  to { stroke-dashoffset: -35; } /* multiple of the 5px dash period = seamless loop */
+  to { stroke-dashoffset: -45; } /* multiple of the 5px dash period = seamless loop */
 }
 /* the brand mark's thread keeps the same slow march as the map routes */
-.brand-thread { animation: brand-march 3.6s linear infinite; }
+.brand-thread { animation: brand-march 16s linear infinite; will-change: stroke-dashoffset; }
 @keyframes brand-march {
   to { stroke-dashoffset: -21.6; } /* 4 x the 5.4 dash period */
 }
@@ -3029,6 +3116,7 @@ function buildHeroChart() {
   const X0 = 34, CX = 528, CY = 158, XE = 706;
   const n = ths.length, top = 42, bot = 276;
   let paths = '';
+  let labels = '';
   ths.forEach((t, i) => {
     const y0 = top + (bot - top) * (i / (n - 1));
     const midY = y0 + (CY - y0) * 0.42 + (i % 2 ? 10 : -10);
@@ -3039,6 +3127,7 @@ function buildHeroChart() {
     paths += '<path class="hero-thread" data-thread="' + t.id + '" style="--i:' + i + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.2" stroke-linecap="round"></path>';
     // Thicker invisible trigger path on top of visual path
     paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round"></path>';
+    labels += '<text class="hero-line-label" x="-10" y="' + (y0 + 3) + '" text-anchor="end" font-size="7.2" letter-spacing="0.7" fill="var(' + t.cvar + ')" style="font-family:var(--font-label);font-weight:700">' + t.name.toUpperCase() + '</text>';
   });
   const eras = [[70, 'TORAH'], [180, 'HISTORY'], [277, 'POETS'], [398, 'PROPHETS'], [528, 'GOSPELS'], [622, 'LETTERS'], [694, 'REV']];
   let ticks = '';
@@ -3047,7 +3136,7 @@ function buildHeroChart() {
       '<text x="' + x + '" y="306" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
   });
   return '<svg class="hero-svg" viewBox="0 0 720 316" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
-    paths +
+    labels + paths +
     '<path class="hero-spur hero-spur-glow" d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
     '<path class="hero-spur" d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
     '<circle class="hero-node-halo" cx="' + CX + '" cy="' + CY + '" r="5.5" fill="none" stroke="var(--gold)" stroke-width="1.6"/>' +
@@ -3376,7 +3465,7 @@ function head(navItem, h2, lede) {
 function vStart() {
   const n = NAV[0];
   const legend = THREADS.map(t => {
-    return '<button class="legend-chip" data-thread="' + t.id + '" style="--c:var(' + t.cvar + ')"><span class="dot"></span>' + t.name + '</button>';
+    return '<button class="legend-chip" data-thread="' + t.id + '" aria-pressed="false" style="--c:var(' + t.cvar + ')"><span class="dot"></span>' + t.name + '</button>';
   }).join('');
   const IDEA_META = [
     { icon: 'book', c: '--c-library' },
@@ -3413,7 +3502,7 @@ function vStart() {
     '    <div class="preview-placeholder">' +
     '      <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
     '      <h3>The Story Map</h3>' +
-    '      <p>Hover over any thread path on the chart or select a legend chip to trace its journey from Genesis to Revelation.</p>' +
+    '      <p>Hover over a thread to preview it, or select one to keep its route highlighted.</p>' +
     '    </div>' +
     '  </div>' +
     '  <div class="chart-main">' +
@@ -3494,7 +3583,7 @@ function vThreads() {
       '</div></div>';
   }).join('');
   return '<div class="view">' + head(n, 'Thirteen threads through the whole book',
-    'Every ribbon below is one theme traced Genesis to Revelation — real verses, in order, drifting past like a filmstrip (hover to pause, tap any reference to read it). The gold card is where the thread lands on Jesus. This is the fastest cure for “the Bible feels random.”') +
+    'Every ribbon below is one theme traced Genesis to Revelation — real verses, in order, drifting past like a filmstrip (drag to browse, then let go to resume; tap any reference to read it). The gold card is where the thread lands on Jesus. This is the fastest cure for “the Bible feels random.”') +
     '<div class="thread-rows">' + rows + '</div></div>';
 }
 
@@ -3770,15 +3859,28 @@ function route(options) {
 }
 
 function updateActiveNav(id) {
+  let activeLink = null;
   document.querySelectorAll('.nav-link').forEach(a => {
     const active = a.dataset.view === id;
     a.classList.toggle('active', active);
+    if (active) activeLink = a;
   });
+
+  const nav = document.getElementById('nav');
+  if (nav && activeLink && nav.scrollWidth > nav.clientWidth + 4) {
+    const left = activeLink.offsetLeft - (nav.clientWidth - activeLink.offsetWidth) / 2;
+    nav.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+  }
 }
 
 let previewResetTimer = null;
 function queuePreviewReset() {
   if (previewResetTimer) clearTimeout(previewResetTimer);
+  previewResetTimer = setTimeout(() => {
+    document.querySelectorAll('.legend-chip.hot, .hero-thread.hot').forEach(el => el.classList.remove('hot'));
+    if (selectedPreviewThreadId) updateThreadPreview(selectedPreviewThreadId);
+    else resetThreadPreview();
+  }, 100);
 }
 function cancelPreviewReset() {
   if (previewResetTimer) clearTimeout(previewResetTimer);
@@ -3804,36 +3906,40 @@ function buildThreadPreviewContent(t) {
     '      <p>' + linkRefs(t.landsOn) + '</p>' +
     '    </div>' +
     '  </div>' +
+    '  <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
     '</div>'
   );
 }
 
 let activePreviewThreadId = null;
+let selectedPreviewThreadId = null;
 let previewMeasureTimer = null;
 
 function measureThreadPreviewHeight() {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
 
-  const covenant = THREADS.find(x => x.id === 'covenant') || THREADS[0];
   const rect = previewEl.getBoundingClientRect();
   if (!rect.width) return;
 
-  const clone = previewEl.cloneNode(false);
-  clone.removeAttribute('id');
-  clone.style.position = 'absolute';
-  clone.style.visibility = 'hidden';
-  clone.style.pointerEvents = 'none';
-  clone.style.left = '-9999px';
-  clone.style.top = '0';
-  clone.style.width = rect.width + 'px';
-  clone.style.height = 'auto';
-  clone.style.minHeight = '0';
-  clone.innerHTML = buildThreadPreviewContent(covenant);
-  document.body.appendChild(clone);
+  let lockedHeight = 0;
+  THREADS.forEach(t => {
+    const clone = previewEl.cloneNode(false);
+    clone.removeAttribute('id');
+    clone.style.position = 'absolute';
+    clone.style.visibility = 'hidden';
+    clone.style.pointerEvents = 'none';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+    clone.style.width = rect.width + 'px';
+    clone.style.height = 'auto';
+    clone.style.minHeight = '0';
+    clone.innerHTML = buildThreadPreviewContent(t);
+    document.body.appendChild(clone);
+    lockedHeight = Math.max(lockedHeight, Math.ceil(clone.scrollHeight));
+    clone.remove();
+  });
 
-  const lockedHeight = Math.ceil(clone.scrollHeight);
-  clone.remove();
   previewEl.style.setProperty('--thread-preview-lock-height', Math.max(lockedHeight, 420) + 'px');
 }
 
@@ -3863,8 +3969,21 @@ function resetThreadPreview() {
     '  <div class="preview-placeholder">' +
     '    <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
     '    <h3>The Story Map</h3>' +
-    '    <p>Hover over any thread path on the chart or select a legend chip to trace its journey from Genesis to Revelation.</p>' +
+    '    <p>Hover over a thread to preview it, or select one to keep its route highlighted.</p>' +
     '  </div>';
+}
+
+function selectPreviewThread(threadId) {
+  selectedPreviewThreadId = threadId;
+  document.querySelectorAll('.legend-chip').forEach(chip => {
+    const selected = chip.dataset.thread === threadId;
+    chip.classList.toggle('selected', selected);
+    chip.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  });
+  document.querySelectorAll('.hero-thread').forEach(path => {
+    path.classList.toggle('selected', path.dataset.thread === threadId);
+  });
+  updateThreadPreview(threadId);
 }
 
 function wireAllSections() {
@@ -3917,18 +4036,7 @@ function wireAllSections() {
     chip.addEventListener('pointerleave', clearPreviewHotState);
     chip.addEventListener('blur', clearPreviewHotState);
 
-    chip.addEventListener('click', () => {
-      showPreview();
-      const card = document.getElementById('t-' + threadId);
-      if (card) {
-        card.classList.add('open');
-        const headBtn = card.querySelector('[data-toggle]');
-        if (headBtn) headBtn.setAttribute('aria-expanded', 'true');
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        card.classList.add('flash');
-        setTimeout(() => card.classList.remove('flash'), 2200);
-      }
-    });
+    chip.addEventListener('click', () => selectPreviewThread(threadId));
   });
 
   // Wire hero thread paths hover and click (using thicker trigger overlay)
@@ -3958,19 +4066,24 @@ function wireAllSections() {
     trigger.addEventListener('mouseleave', clearPreviewHotState);
     trigger.addEventListener('pointerleave', clearPreviewHotState);
 
-    trigger.addEventListener('click', () => {
-      showPreview();
-      const card = document.getElementById('t-' + threadId);
-      if (card) {
-        card.classList.add('open');
-        const headBtn = card.querySelector('[data-toggle]');
-        if (headBtn) headBtn.setAttribute('aria-expanded', 'true');
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        card.classList.add('flash');
-        setTimeout(() => card.classList.remove('flash'), 2200);
-      }
-    });
+    trigger.addEventListener('click', () => selectPreviewThread(threadId));
   });
+
+  const previewEl = document.getElementById('thread-preview');
+  if (previewEl) {
+    previewEl.addEventListener('click', ev => {
+      const more = ev.target.closest('[data-thread-more]');
+      if (!more) return;
+      ev.preventDefault();
+      const card = document.getElementById('t-' + more.dataset.threadMore);
+      if (!card) return;
+      isScrollingNav = true;
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      history.replaceState(null, '', '#/threads');
+      updateActiveNav('threads');
+      setTimeout(() => { isScrollingNav = false; }, 800);
+    });
+  }
 
   // Wire tabernacle interactive stations and blueprint graphic node elements
   const nodeSelector = idx => document.querySelector('.svg-station-node[data-index="' + idx + '"]');
@@ -4091,7 +4204,7 @@ function initVersionPicker() {
       '<button class="verpick-opt" type="button" role="option" data-v="' + v.code + '"' +
       ' aria-selected="' + (v.code === ACTIVE_VERSION) + '">' +
       '<span class="code">' + v.code + '</span><span class="full">' + v.full + '</span></button>').join('') +
-    '<span class="verpick-note">TPT is copyrighted, so pop-ups fall back to NLT with a link out.</span>';
+    '<span class="verpick-note">TPT pop-ups are supplied by YouVersion; the other translations use Bolls.life.</span>';
 
   const opts = () => Array.from(menu.querySelectorAll('.verpick-opt'));
   const close = () => {
@@ -4149,23 +4262,29 @@ function initVersionPicker() {
   });
 }
 
-/* ================= hover scripture tooltips & local TPT cache ================= */
-const TPT_CACHE = {
-  'John 3:16': '“For this is how God loved the world: He gave his unique, One and Only Son as a gift. So now everyone who believes in him will never perish, but experience everlasting life.”',
-  'John 1:29': '“Look! There is the Lamb of God who takes away the sin of the world!”',
-  'Rom 8:1': '“So now the case is closed. There remains no accusing verdict of condemnation against those who are in union with Jesus, the Anointed One.”',
-  '1 Cor 5:7': '“For Messiah, our Passover Lamb, has been sacrificed for us!”',
-  'John 6:35': '“I am the Bread of Life. Come to me and you will never be hungry. Believe in me and you will never be thirsty.”',
-  '1 Cor 10:4': '“...for they drank from the spiritual Rock that traveled with them, and that Rock was Christ.”',
-  'John 1:1': '“In the very beginning the Living Expression was already there. And the Living Expression was with God, yet he was fully God.”',
-  'Heb 12:24': '“...and to Jesus, the mediator of a new covenant, and to the sprinkled blood, which speaks a better word than the blood of Abel.”',
-  'Gen 1:1': '“In the beginning, God created the heavens and the earth.”',
-  'Gal 3:16': '“Now the promises were spoken to Abraham and to his seed... which is Christ.”'
+/* ================= hover scripture tooltips & translation APIs ================= */
+const SCRIPTURE_API_BASE = 'https://esmrsky-scripture-api.esmrsky.workers.dev';
+const TPT_VERSION_ID = 1849;
+const YOUVERSION_USFM_BOOKS = {
+  1: 'GEN', 2: 'EXO', 3: 'LEV', 4: 'NUM', 5: 'DEU', 6: 'JOS', 7: 'JDG', 8: 'RUT',
+  9: '1SA', 10: '2SA', 11: '1KI', 12: '2KI', 13: '1CH', 14: '2CH', 15: 'EZR',
+  16: 'NEH', 17: 'EST', 18: 'JOB', 19: 'PSA', 20: 'PRO', 21: 'ECC', 22: 'SNG',
+  23: 'ISA', 24: 'JER', 25: 'LAM', 26: 'EZK', 27: 'DAN', 28: 'HOS', 29: 'JOL',
+  30: 'AMO', 31: 'OBA', 32: 'JON', 33: 'MIC', 34: 'NAM', 35: 'HAB', 36: 'ZEP',
+  37: 'HAG', 38: 'ZEC', 39: 'MAL', 40: 'MAT', 41: 'MRK', 42: 'LUK', 43: 'JHN',
+  44: 'ACT', 45: 'ROM', 46: '1CO', 47: '2CO', 48: 'GAL', 49: 'EPH', 50: 'PHP',
+  51: 'COL', 52: '1TH', 53: '2TH', 54: '1TI', 55: '2TI', 56: 'TIT', 57: 'PHM',
+  58: 'HEB', 59: 'JAS', 60: '1PE', 61: '2PE', 62: '1JN', 63: '2JN', 64: '3JN',
+  65: 'JUD', 66: 'REV'
 };
-
 const chapterCache = {};
+const tptPassageCache = new Map();
 let tooltipEl = null;
 let tooltipTimer = null;
+let tooltipPinned = false;
+let tooltipRequestId = 0;
+let contextDialogEl = null;
+let contextRequestId = 0;
 
 function parseReference(refStr) {
   const clean = refStr.replace(/–/g, '-').trim();
@@ -4210,16 +4329,49 @@ function parseReference(refStr) {
   return { bookId, chapter, verseStart, verseEnd };
 }
 
-async function loadVerseText(ref, version) {
-  if (version === 'TPT') {
-    const matched = Object.keys(TPT_CACHE).find(k => ref.toLowerCase().includes(k.toLowerCase()));
-    if (matched) {
-      return TPT_CACHE[matched] + '<span class="tooltip-note">The Passion Translation (TPT)</span>';
-    } else {
-      const nltText = await fetchFromBolls(ref, 'NLT');
-      return nltText + '<span class="tooltip-note">TPT text copyrighted. Showing NLT fallback. <a href="https://www.biblegateway.com/passage/?search=' + encodeURIComponent(ref) + '&version=TPT" target="_blank" rel="noopener">Read TPT on BibleGateway ↗</a></span>';
-    }
+function toYouVersionPassage(ref) {
+  const parsed = parseReference(ref);
+  if (!parsed || !YOUVERSION_USFM_BOOKS[parsed.bookId]) return '';
+  let passage = YOUVERSION_USFM_BOOKS[parsed.bookId] + '.' + parsed.chapter;
+  if (parsed.verseStart !== null) {
+    passage += '.' + parsed.verseStart;
+    if (parsed.verseEnd !== null && parsed.verseEnd !== parsed.verseStart) passage += '-' + parsed.verseEnd;
   }
+  return passage;
+}
+
+function escapeScriptureText(text) {
+  return String(text).replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[character]);
+}
+
+async function fetchTptFromYouVersion(ref) {
+  const passage = toYouVersionPassage(ref);
+  if (!passage) throw new Error('Reference not recognized.');
+  const text = await fetchTptPassage(passage);
+  return escapeScriptureText(text) + '<span class="tooltip-note">The Passion Translation® (TPT) · supplied by YouVersion. Copyright © 2020 Passion &amp; Fire Ministries, Inc.</span>';
+}
+
+async function fetchTptPassage(passage) {
+  if (!tptPassageCache.has(passage)) {
+    const url = SCRIPTURE_API_BASE + '/passage?version=' + TPT_VERSION_ID + '&passage=' + encodeURIComponent(passage);
+    tptPassageCache.set(passage, fetch(url, { headers: { Accept: 'application/json' } })
+      .then(async response => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok || !body.content) throw new Error(body.message || 'TPT could not be loaded.');
+        return String(body.content).trim();
+      })
+      .catch(error => {
+        tptPassageCache.delete(passage);
+        throw error;
+      }));
+  }
+  return tptPassageCache.get(passage);
+}
+
+async function loadVerseText(ref, version) {
+  if (version === 'TPT') return fetchTptFromYouVersion(ref);
   return fetchFromBolls(ref, version);
 }
 
@@ -4228,21 +4380,13 @@ async function fetchFromBolls(ref, version) {
   if (!parsed) return 'Reference not recognized.';
 
   const { bookId, chapter, verseStart, verseEnd } = parsed;
-  const cacheKey = `${version}-${bookId}-${chapter}`;
-
-  if (!chapterCache[cacheKey]) {
-    const url = 'https://bolls.life/get-text/' + version + '/' + bookId + '/' + chapter + '/';
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('API error');
-      const data = await res.json();
-      chapterCache[cacheKey] = data;
-    } catch (e) {
-      return 'Could not retrieve scripture text.';
-    }
+  let verses;
+  try {
+    verses = await getBollsChapter(version, bookId, chapter);
+  } catch (e) {
+    return 'Could not retrieve scripture text.';
   }
 
-  const verses = chapterCache[cacheKey];
   if (!verses || !verses.length) return 'Verse not found.';
 
   let filtered = [];
@@ -4263,19 +4407,90 @@ async function fetchFromBolls(ref, version) {
   }).join(' ');
 }
 
+async function getBollsChapter(version, bookId, chapter) {
+  const cacheKey = `${version}-${bookId}-${chapter}`;
 
+  if (!chapterCache[cacheKey]) {
+    const url = 'https://bolls.life/get-text/' + version + '/' + bookId + '/' + chapter + '/';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('API error');
+    chapterCache[cacheKey] = await res.json();
+  }
+  return chapterCache[cacheKey];
+}
+
+async function loadVerseContext(ref, version) {
+  const parsed = parseReference(ref);
+  if (!parsed) throw new Error('Reference not recognized.');
+  return version === 'TPT'
+    ? loadTptContext(parsed)
+    : loadBollsContext(parsed, version);
+}
+
+async function loadBollsContext(parsed, version) {
+  const verses = await getBollsChapter(version, parsed.bookId, parsed.chapter);
+  if (!verses || !verses.length) throw new Error('Verse not found.');
+  const selectedStart = parsed.verseStart === null ? 1 : parsed.verseStart;
+  const selectedEnd = parsed.verseEnd || selectedStart;
+  const rangeStart = Math.max(1, selectedStart - 4);
+  const rangeEnd = selectedEnd + 4;
+  const rows = verses.filter(v => v.verse >= rangeStart && v.verse <= rangeEnd);
+  return rows.map(v => {
+    const selected = v.verse >= selectedStart && v.verse <= selectedEnd;
+    const text = escapeScriptureText(String(v.text).replace(/<[^>]+>/g, '').trim());
+    return '<p class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + v.verse + '</sup><span>' + text + '</span></p>';
+  }).join('');
+}
+
+async function loadTptContext(parsed) {
+  const book = YOUVERSION_USFM_BOOKS[parsed.bookId];
+  if (!book) throw new Error('Reference not recognized.');
+  const selectedStart = parsed.verseStart === null ? 1 : parsed.verseStart;
+  const selectedEnd = parsed.verseEnd || selectedStart;
+  const beforeStart = Math.max(1, selectedStart - 4);
+  const afterEnd = selectedEnd + 4;
+  const passage = (start, end) => book + '.' + parsed.chapter + '.' + start + (end > start ? '-' + end : '');
+  const requests = [];
+
+  if (beforeStart < selectedStart) {
+    requests.push(fetchTptPassage(passage(beforeStart, selectedStart - 1)).then(text =>
+      '<div class="context-block">' + escapeScriptureText(text) + '</div>'
+    ));
+  }
+  requests.push(fetchTptPassage(passage(selectedStart, selectedEnd)).then(text =>
+    '<div class="context-block is-selected">' + escapeScriptureText(text) + '</div>'
+  ));
+  requests.push(fetchTptPassage(passage(selectedEnd + 1, afterEnd)).then(text =>
+    '<div class="context-block">' + escapeScriptureText(text) + '</div>'
+  ));
+
+  const results = await Promise.allSettled(requests);
+  const blocks = results.filter(result => result.status === 'fulfilled').map(result => result.value);
+  if (!blocks.length) throw new Error('Verse not found.');
+  return blocks.join('') + '<p class="context-source">The Passion Translation® (TPT) · supplied by YouVersion. Copyright © 2020 Passion &amp; Fire Ministries, Inc.</p>';
+}
 
 function initTooltip() {
   tooltipEl = document.createElement('div');
   tooltipEl.className = 'verse-tooltip';
   document.body.appendChild(tooltipEl);
 
+  contextDialogEl = document.createElement('dialog');
+  contextDialogEl.className = 'verse-context-dialog';
+  contextDialogEl.innerHTML =
+    '<div class="context-dialog-inner">' +
+    '  <header class="context-dialog-head"><div><span class="label">See in context</span><h3></h3></div>' +
+    '  <button class="context-dialog-close" type="button" aria-label="Close">×</button></header>' +
+    '  <div class="context-dialog-body" aria-live="polite"></div>' +
+    '</div>';
+  document.body.appendChild(contextDialogEl);
+
   document.body.addEventListener('mouseover', ev => {
     const link = ev.target.closest('.ref-link');
     if (!link) return;
     const ref = link.dataset.ref || link.textContent;
     if (!ref) return;
-    showTooltip(link, ref);
+    showTooltip(link, ref, false);
   });
 
   document.body.addEventListener('mouseout', ev => {
@@ -4283,10 +4498,36 @@ function initTooltip() {
     if (!link) return;
     hideTooltip();
   });
+
+  document.body.addEventListener('click', ev => {
+    const link = ev.target.closest('.ref-link');
+    if (link) {
+      ev.preventDefault();
+      const ref = link.dataset.ref || link.textContent;
+      if (ref) showTooltip(link, ref, true);
+      return;
+    }
+
+    const contextButton = ev.target.closest('.tooltip-context-button');
+    if (contextButton) {
+      openVerseContext(contextButton.dataset.ref, contextButton.dataset.version);
+      hideTooltip(true);
+      return;
+    }
+
+    if (tooltipPinned && !ev.target.closest('.verse-tooltip')) hideTooltip(true);
+  });
+
+  contextDialogEl.querySelector('.context-dialog-close').addEventListener('click', () => contextDialogEl.close());
+  contextDialogEl.addEventListener('click', ev => {
+    if (ev.target === contextDialogEl) contextDialogEl.close();
+  });
 }
 
-function showTooltip(link, ref) {
+function showTooltip(link, ref, pinned) {
   if (tooltipTimer) clearTimeout(tooltipTimer);
+  tooltipPinned = Boolean(pinned);
+  const requestId = ++tooltipRequestId;
   const version = getVersion();
   
   const rect = link.getBoundingClientRect();
@@ -4300,13 +4541,19 @@ function showTooltip(link, ref) {
   } else {
     tooltipEl.style.top = (scrollY + rect.bottom + 8) + 'px';
   }
-  const initialLeft = Math.min(scrollX + window.innerWidth - 360, Math.max(scrollX + 20, scrollX + rect.left));
+  const tooltipWidth = Math.min(340, window.innerWidth - 28);
+  const initialLeft = Math.max(scrollX + 14, Math.min(scrollX + rect.left, scrollX + window.innerWidth - tooltipWidth - 14));
   tooltipEl.style.left = initialLeft + 'px';
 
-  tooltipEl.innerHTML = '<span class="tooltip-ref">' + ref + ' (' + version + ')</span><div class="tooltip-text">Loading verse...</div>';
+  tooltipEl.innerHTML =
+    '<span class="tooltip-ref">' + escapeScriptureText(ref) + ' (' + version + ')</span>' +
+    '<div class="tooltip-text">Loading verse...</div>' +
+    '<div class="tooltip-actions"><button class="tooltip-context-button" type="button" data-ref="' + escapeScriptureText(ref) + '" data-version="' + version + '">See in context</button></div>';
+  tooltipEl.classList.toggle('is-pinned', tooltipPinned);
   tooltipEl.classList.add('open');
 
   loadVerseText(ref, version).then(text => {
+    if (requestId !== tooltipRequestId) return;
     const txtBox = tooltipEl.querySelector('.tooltip-text');
     if (txtBox) txtBox.innerHTML = text;
     
@@ -4318,18 +4565,40 @@ function showTooltip(link, ref) {
       tooltipEl.style.top = (scrollY + rect.bottom + 8) + 'px';
     }
     
-    const finalLeft = Math.min(scrollX + window.innerWidth - tooltipEl.offsetWidth - 20, Math.max(scrollX + 20, scrollX + rect.left));
+    const finalLeft = Math.min(scrollX + window.innerWidth - tooltipEl.offsetWidth - 14, Math.max(scrollX + 14, scrollX + rect.left));
     tooltipEl.style.left = finalLeft + 'px';
   }).catch(err => {
+    if (requestId !== tooltipRequestId) return;
     const txtBox = tooltipEl.querySelector('.tooltip-text');
     if (txtBox) txtBox.innerHTML = '<span style="color:var(--thread)">Unable to load verse.</span>';
   });
 }
 
-function hideTooltip() {
+function hideTooltip(force) {
+  if (tooltipPinned && !force) return;
   tooltipTimer = setTimeout(() => {
+    tooltipPinned = false;
     tooltipEl.classList.remove('open');
+    tooltipEl.classList.remove('is-pinned');
   }, 200);
+}
+
+function openVerseContext(ref, version) {
+  if (!contextDialogEl || !ref) return;
+  const requestId = ++contextRequestId;
+  contextDialogEl.querySelector('h3').textContent = ref + ' · ' + version;
+  const body = contextDialogEl.querySelector('.context-dialog-body');
+  body.innerHTML = '<p class="context-loading">Loading surrounding verses…</p>';
+  if (typeof contextDialogEl.showModal === 'function') contextDialogEl.showModal();
+  else contextDialogEl.setAttribute('open', '');
+
+  loadVerseContext(ref, version).then(html => {
+    if (requestId !== contextRequestId) return;
+    body.innerHTML = html;
+  }).catch(() => {
+    if (requestId !== contextRequestId) return;
+    body.innerHTML = '<p>Unable to load the surrounding verses right now.</p>';
+  });
 }
 
 function renderSections() {
@@ -4348,22 +4617,94 @@ function renderSections() {
 }
 
 /* ================= filmstrip marquees (threads) ================= */
+let marqueeCleanups = [];
 function initMarquees() {
+  marqueeCleanups.forEach(cleanup => cleanup());
+  marqueeCleanups = [];
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   document.querySelectorAll('[data-marquee]').forEach(mq => {
     const track = mq.querySelector('.marquee-track');
     if (!track) return;
     if (!track.dataset.orig) track.dataset.orig = track.innerHTML;
     track.innerHTML = track.dataset.orig;
-    mq.classList.remove('scrolling');
-    track.style.removeProperty('--dur');
-    if (reduced) return; // falls back to manual horizontal scroll via CSS
-    const w = track.scrollWidth;
-    if (w > mq.clientWidth + 4) {
-      track.innerHTML = track.dataset.orig + track.dataset.orig; // seamless loop
-      track.style.setProperty('--dur', Math.max(30, Math.round(w / 30)) + 's');
-      mq.classList.add('scrolling');
-    }
+    mq.scrollLeft = 0;
+    if (reduced || track.scrollWidth <= mq.clientWidth + 4) return;
+
+    track.innerHTML =
+      '<div class="marquee-group">' + track.dataset.orig + '</div>' +
+      '<div class="marquee-group" aria-hidden="true">' + track.dataset.orig + '</div>';
+
+    const firstGroup = track.querySelector('.marquee-group');
+    const loopWidth = firstGroup.offsetWidth + 10;
+    let frame = 0;
+    let lastTime = 0;
+    let dragging = false;
+    let moved = false;
+    let startX = 0;
+    let startScroll = 0;
+
+    const wrapScroll = () => {
+      if (mq.scrollLeft >= loopWidth) mq.scrollLeft -= loopWidth;
+      else if (mq.scrollLeft < 0) mq.scrollLeft += loopWidth;
+    };
+
+    const tick = time => {
+      if (!lastTime) lastTime = time;
+      if (!dragging) {
+        mq.scrollLeft += Math.min(time - lastTime, 40) * 0.022;
+        wrapScroll();
+      }
+      lastTime = time;
+      frame = requestAnimationFrame(tick);
+    };
+
+    const onPointerDown = ev => {
+      dragging = true;
+      moved = false;
+      startX = ev.clientX;
+      startScroll = mq.scrollLeft;
+      mq.classList.add('is-dragging');
+      mq.setPointerCapture(ev.pointerId);
+    };
+    const onPointerMove = ev => {
+      if (!dragging) return;
+      const delta = ev.clientX - startX;
+      if (Math.abs(delta) > 4) moved = true;
+      const nextScroll = startScroll - delta;
+      mq.scrollLeft = nextScroll < 0 ? nextScroll + loopWidth : nextScroll;
+      wrapScroll();
+    };
+    const onPointerEnd = ev => {
+      if (!dragging) return;
+      dragging = false;
+      lastTime = performance.now();
+      mq.classList.remove('is-dragging');
+      if (mq.hasPointerCapture(ev.pointerId)) mq.releasePointerCapture(ev.pointerId);
+    };
+    const onClick = ev => {
+      if (!moved) return;
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      moved = false;
+    };
+
+    mq.addEventListener('pointerdown', onPointerDown);
+    mq.addEventListener('pointermove', onPointerMove);
+    mq.addEventListener('pointerup', onPointerEnd);
+    mq.addEventListener('pointercancel', onPointerEnd);
+    mq.addEventListener('click', onClick, true);
+    frame = requestAnimationFrame(tick);
+
+    marqueeCleanups.push(() => {
+      cancelAnimationFrame(frame);
+      mq.classList.remove('is-dragging');
+      mq.removeEventListener('pointerdown', onPointerDown);
+      mq.removeEventListener('pointermove', onPointerMove);
+      mq.removeEventListener('pointerup', onPointerEnd);
+      mq.removeEventListener('pointercancel', onPointerEnd);
+      mq.removeEventListener('click', onClick, true);
+    });
   });
 }
 let marqueeResizeTimer = null;
@@ -4479,6 +4820,7 @@ function boot() {
 
   window.addEventListener('hashchange', route);
   window.addEventListener('resize', scheduleThreadPreviewMeasure);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleThreadPreviewMeasure);
   if (location.hash) {
     route({ instant: true });
     setupScrollspy();
