@@ -39,7 +39,15 @@ const ICONS = {
   mountain: _ic('<path d="m3 19.5 6-10.5 3.6 6 2.4-3.5 6 8z"/>'),
   star: _ic('<path d="m12 4 2.2 4.7 5.2.7-3.8 3.6.9 5.1L12 15.7l-4.5 2.4.9-5.1-3.8-3.6 5.2-.7z"/>'),
   garment: _ic('<path d="M8.5 3.5 11 3.5 12 5.6 13 3.5 15.5 3.5 19.6 7.6 16.8 10.2 16 9.2 16 20.5 8 20.5 8 9.2 7.2 10.2 4.4 7.6 Z"/>'),
-  search: _ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>')
+  search: _ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>'),
+  ban: _ic('<circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/>'),
+  bolt: _ic('<path d="M13.4 2.8 5.6 13.4h5.2l-.2 7.8 7.8-10.6h-5.2z"/>'),
+  tool: _ic('<path d="M14.6 6.4a3.9 3.9 0 0 0 5.1 5.1l-8 8a2.3 2.3 0 0 1-3.2-3.2z"/><path d="m6.4 4.2 2 2M4.2 6.4l2 2M3.6 3.6l6.8 6.8"/>'),
+  magnet: _ic('<path d="M6 20.5V9.5a6 6 0 0 1 12 0v11h-4v-11a2 2 0 0 0-4 0v11z"/><path d="M6 15.5h4M14 15.5h4"/>'),
+  alert: _ic('<path d="M12 3.8 21 19.5H3z"/><path d="M12 9.6v4.2M12 16.6h.01"/>'),
+  play: _ic('<rect x="2.5" y="5" width="19" height="14" rx="3.2"/><path d="M10.2 9.4 14.8 12l-4.6 2.6z"/>'),
+  globe: _ic('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.3 2.4 3.4 5.3 3.4 8.5s-1.1 6.1-3.4 8.5c-2.3-2.4-3.4-5.3-3.4-8.5S9.7 5.9 12 3.5z"/>'),
+  mic: _ic('<rect x="9" y="3" width="6" height="10.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6"/>')
 };
 
 function icon(name) { return ICONS[name] || ICONS.cross; }

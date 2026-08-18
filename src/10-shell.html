@@ -2,7 +2,7 @@
   <div class="topbar-row">
     <a class="brand" href="#/">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-        <path d="M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8" stroke-dasharray="3 2.4"/>
+        <path class="brand-thread" d="M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8" stroke-dasharray="3 2.4"/>
         <path d="M18.5 4.5v6M15.8 7h5.4"/>
       </svg>
       <span class="brand-name">The Thread</span>
@@ -12,21 +12,13 @@
     <nav class="navstrip" id="nav" aria-label="Sections"></nav>
 
     <div class="topbar-actions">
-      <div class="edition-toggle" role="group" aria-label="Text edition">
-        <button class="edition-btn active" data-ed="updated" title="Updated wording from the latest revision">Updated</button>
-        <button class="edition-btn" data-ed="orig" title="Original wording, before the revision">Original</button>
-      </div>
-      <div class="version-select-container">
-        <select id="version-select" aria-label="Select Bible translation" title="Select Bible version">
-          <option value="NIV" selected>NIV</option>
-          <option value="NASB">NASB</option>
-          <option value="ESV">ESV</option>
-          <option value="KJV">KJV</option>
-          <option value="NLT">NLT</option>
-          <option value="AMP">AMP</option>
-          <option value="MSG">MSG</option>
-          <option value="TPT">TPT</option>
-        </select>
+      <div class="verpick" id="verpick">
+        <button class="verpick-btn" id="verpick-btn" type="button" aria-haspopup="listbox" aria-expanded="false" title="Translation used in verse pop-ups">
+          <svg class="verpick-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C10 4.4 7 4.1 4 4.6V19c3-.5 6-.2 8 1.6 2-1.8 5-2.1 8-1.6V4.6c-3-.5-6-.2-8 1.6z"/><path d="M12 6.2v14.4"/></svg>
+          <span class="verpick-val" id="verpick-val">NIV</span>
+          <svg class="verpick-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 9.8 5.5 5 5.5-5"/></svg>
+        </button>
+        <div class="verpick-menu" id="verpick-menu" role="listbox" aria-label="Bible translation" hidden></div>
       </div>
       <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light or dark theme" title="Toggle theme">
         <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 13.5A8.5 8.5 0 1 1 10.5 4a7 7 0 0 0 9.5 9.5z"/></svg>

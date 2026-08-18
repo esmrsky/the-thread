@@ -5,13 +5,13 @@ const REF_RE = /((?:[123]\s)?(?:Gen|Ex|Lev|Num|Deut|Josh|Judg|Ruth|Sam|Kings|Chr
 function refLink(r) {
   return '<a class="ref-link" target="_blank" rel="noopener" href="' + BG + encodeURIComponent(r) + '" data-ref="' + r + '">' + r + '</a>';
 }
-/* text edition: 'updated' (default) or 'orig'. ver(a,b) marks a field whose
-   wording changed in this pass; pick() resolves it for the active edition.
-   linkRefs unwraps it, so any text routed through linkRefs is edition-aware. */
-let TEXT_EDITION = 'updated';
-function ver(a, b) { return { __ed: true, a: a, b: b }; }
-function pick(x) { return (x && x.__ed) ? (TEXT_EDITION === 'orig' ? x.a : x.b) : x; }
-function linkRefs(html) { return pick(html).replace(REF_RE, (m) => refLink(m)); }
+function linkRefs(html) { return html.replace(REF_RE, (m) => refLink(m)); }
+/* Storage is a nice-to-have, never a dependency: opened straight off disk (or inside a
+   sandboxed preview) reading localStorage throws SecurityError, and an unguarded read
+   used to take boot() down with it — leaving a page with a header and no content. */
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* preferences just won't persist */ } }
+
 function refRow(refs) {
   return '<div class="pillar-refs">' + refs.map(refLink).join(' · ') + '</div>';
 }
@@ -53,7 +53,7 @@ function buildHeroChart() {
       ' C 150 ' + y0 + ', 200 ' + midY + ', 296 ' + midY +
       ' S 462 ' + CY + ', ' + CX + ' ' + CY;
     // Thin visual colored path
-    paths += '<path class="hero-thread" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.2" stroke-linecap="round"></path>';
+    paths += '<path class="hero-thread" data-thread="' + t.id + '" style="--i:' + i + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.2" stroke-linecap="round"></path>';
     // Thicker invisible trigger path on top of visual path
     paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round"></path>';
   });
@@ -63,16 +63,35 @@ function buildHeroChart() {
     ticks += '<line x1="' + x + '" y1="288" x2="' + x + '" y2="294" stroke="var(--line)" stroke-width="1.5"/>' +
       '<text x="' + x + '" y="306" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
   });
-  return '<svg viewBox="0 0 720 316" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
+  return '<svg class="hero-svg" viewBox="0 0 720 316" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
     paths +
-    '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
-    '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
-    '<circle cx="' + CX + '" cy="' + CY + '" r="5.5" fill="var(--gold)"/>' +
-    '<path d="M' + CX + ' 118 v-26 M' + (CX - 9) + ' 101 h18" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>' +
-    '<line x1="' + CX + '" y1="124" x2="' + CX + '" y2="' + (CY - 8) + '" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>' +
-    '<text x="' + CX + '" y="82" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
+    '<path class="hero-spur hero-spur-glow" d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
+    '<path class="hero-spur" d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
+    '<circle class="hero-node-halo" cx="' + CX + '" cy="' + CY + '" r="5.5" fill="none" stroke="var(--gold)" stroke-width="1.6"/>' +
+    '<circle class="hero-node" cx="' + CX + '" cy="' + CY + '" r="5.5" fill="var(--gold)"/>' +
+    '<path class="hero-cross" d="M' + CX + ' 118 v-26 M' + (CX - 9) + ' 101 h18" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>' +
+    '<line class="hero-drop" x1="' + CX + '" y1="124" x2="' + CX + '" y2="' + (CY - 8) + '" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>' +
+    '<text class="hero-jesus" x="' + CX + '" y="82" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
     ticks +
     '</svg>';
+}
+
+/* Arms the hero chart's draw-in. Path lengths are measured here and handed to CSS,
+   so nothing is hidden until the measurement actually succeeded — if this never runs,
+   the chart simply renders finished. */
+function initHeroChart() {
+  const svg = document.querySelector('.hero-scroll .hero-svg');
+  if (!svg || svg.classList.contains('hero-anim')) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  try {
+    svg.querySelectorAll('.hero-thread').forEach(p => {
+      p.style.setProperty('--len', Math.ceil(p.getTotalLength()));
+    });
+    svg.querySelectorAll('.hero-spur').forEach(p => {
+      p.style.setProperty('--len', Math.ceil(p.getTotalLength()));
+    });
+  } catch (e) { return; }
+  svg.classList.add('hero-anim');
 }
 
 /* ================= journey diorama (pattern) — isometric 3-tier scene ================= */
@@ -376,7 +395,20 @@ function vStart() {
   const legend = THREADS.map(t => {
     return '<button class="legend-chip" data-thread="' + t.id + '" style="--c:var(' + t.cvar + ')"><span class="dot"></span>' + t.name + '</button>';
   }).join('');
-  const ideas = START.bigIdea.map(i => '<div class="idea-row"><span class="idea-num"></span><div><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div></div>').join('');
+  const IDEA_META = [
+    { icon: 'book', c: '--c-library' },
+    { icon: 'cross', c: '--thread' },
+    { icon: 'water', c: '--c-pattern' },
+    { icon: 'key', c: '--gold' },
+    { icon: 'walk', c: '--c-walk' }
+  ];
+  const ideas = START.bigIdea.map((i, ix) => {
+    const m = IDEA_META[ix % IDEA_META.length];
+    return '<div class="idea-card" style="--c:var(' + m.c + ')">' +
+      '<div class="idea-top"><span class="idea-num">' + (ix + 1) + '</span>' +
+      '<span class="idea-ic">' + icon(m.icon) + '</span></div>' +
+      '<b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div>';
+  }).join('');
   const trails = NAV.slice(1).map(t =>
     '<a class="trailhead" href="#/' + t.id + '" style="--c:var(' + t.cvar + ')">' +
     '<span class="icon-chip">' + icon(t.icon) + '</span>' +
@@ -402,7 +434,7 @@ function vStart() {
     '    </div>' +
     '  </div>' +
     '  <div class="chart-main">' +
-    '    <span class="chart-corner tl">Gen 1:1</span><span class="chart-corner br">Rev 22:21</span>' +
+    '    <span class="chart-corner tl">' + refLink('Gen 1:1') + '</span><span class="chart-corner br">' + refLink('Rev 22:21') + '</span>' +
     '    <div class="hero-scroll">' + buildHeroChart() + '</div>' +
     '    <div class="hero-legend">' + legend + '</div>' +
     '  </div>' +
@@ -427,8 +459,12 @@ function vPattern() {
     '<div class="season-rows">' + s.rows.map(r =>
       '<div class="season-row"><span class="season-row-label">' + icon(ROW_ICONS[r.k] || 'compass') + r.k + '</span><p>' + linkRefs(r.v) + '</p></div>').join('') +
     '</div></div>').join('');
+  const INSIGHT_ICONS = ['dune', 'name', 'cross', 'water', 'compass', 'mountain', 'bread', 'light', 'gate'];
   const insights = PATTERN.insights.map((i, ix) =>
-    '<li><span class="insight-marker">' + (ix + 1) + '</span><div><b>' + i.t + '</b><span class="ins-txt">' + linkRefs(i.x) + '</span></div></li>').join('');
+    '<div class="insight-card" style="--c:var(--c-pattern)">' +
+    '<div class="insight-top"><span class="insight-marker">' + (ix + 1) + '</span>' +
+    '<span class="insight-ic">' + icon(INSIGHT_ICONS[ix % INSIGHT_ICONS.length]) + '</span></div>' +
+    '<b>' + i.t + '</b><p class="ins-txt">' + linkRefs(i.x) + '</p></div>').join('');
   const cases = PATTERN.cases.map((c, ix) =>
     '<div class="card case-card" id="case-' + ix + '" style="--c:var(--c-pattern)">' +
     '<div class="case-top"><div><h3>' + c.name + '</h3><span class="case-sub">' + c.sub + '</span></div></div>' +
@@ -440,7 +476,7 @@ function vPattern() {
     '</div></div>').join('');
   return '<div class="view">' + head(n, 'Egypt → Wilderness → Promised Land', PATTERN.intro) +
     '<div class="chart-panel journey-panel">' +
-    '<span class="chart-corner tl">Gen 15:13</span><span class="chart-corner br">Josh 21:45</span>' +
+    '<span class="chart-corner tl">' + refLink('Gen 15:13') + '</span><span class="chart-corner br">' + refLink('Josh 21:45') + '</span>' +
     '<div class="journey-scroll">' + buildJourneySVG() + '</div>' +
     '<div class="journey-caps">' +
     '<div class="journey-cap" style="--c:var(--s-egypt)"><b>Egypt says</b><span>' + linkRefs('“You are what you produce.” Worth measured in bricks per day (Ex 5:13-14).') + '</span></div>' +
@@ -449,7 +485,7 @@ function vPattern() {
     '</div></div>' +
     '<div class="season-grid">' + seasons + '</div>' +
     '<div class="home-section-title"><h2>Trail wisdom</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
-    '<ol class="insight-list">' + insights + '</ol>' +
+    '<div class="insight-grid">' + insights + '</div>' +
     '<div class="home-section-title"><h2>Case studies</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<p class="lede" style="margin-bottom:16px">“These things happened to them as examples… written down for our instruction” (' + refLink('1 Cor 10:11') + '). The library of case studies, in three-phase view:</p>' +
     '<div class="grid grid-3">' + cases + '</div>' +
@@ -507,8 +543,22 @@ function vCodes() {
     '<div class="tabernacle-zone zone-most-holy"><div class="zone-header">Holy of Holies <span class="zone-sub">Behind the Veil</span></div><div class="zone-stations">' + mostHolyStations + '</div></div>' +
     '</div>';
 
-  const feasts = CODES.feasts.map(f =>
-    '<div class="feast-row"><div class="feast-when">' + f.when + '</div><div><h4>' + f.name + ' ' + badge(f.badge) + '</h4><p>' + linkRefs(f.body) + '</p></div></div>').join('');
+  /* icons and the spring/autumn split mirror the arc above, so the chart and the list
+     name the same seven things the same way */
+  const FEAST_ICONS = ['lamb', 'bread', 'grapes', 'wind', 'music', 'gate', 'temple'];
+  const feastCard = (f, ix) =>
+    '<div class="feast-card' + (ix < 4 ? ' is-done' : ' is-ahead') + '">' +
+    '<div class="feast-card-top"><span class="icon-chip">' + icon(FEAST_ICONS[ix]) + '</span>' +
+    '<div class="feast-id"><h4>' + f.name + '</h4><span class="feast-when">' + f.when + '</span></div>' +
+    badge(f.badge) + '</div>' +
+    '<p>' + linkRefs(f.body) + '</p></div>';
+  const feasts =
+    '<div class="feast-group is-done">' +
+    '<span class="feast-group-label">' + icon('light') + 'Spring — fulfilled, to the day</span>' +
+    '<div class="feast-cards">' + CODES.feasts.slice(0, 4).map((f, i) => feastCard(f, i)).join('') + '</div></div>' +
+    '<div class="feast-group is-ahead">' +
+    '<span class="feast-group-label">' + icon('music') + 'Autumn — the shape of what is ahead</span>' +
+    '<div class="feast-cards">' + CODES.feasts.slice(4).map((f, i) => feastCard(f, i + 4)).join('') + '</div></div>';
   const loose = CODES.loose.map(l =>
     '<div class="card type-card" style="--c:var(--c-codes)"><h3>' + l.name + ' ' + badge(l.badge) + '</h3><p>' + linkRefs(l.body) + '</p></div>').join('');
   return '<div class="view">' + head(n, 'The codes: written in advance', CODES.intro) +
@@ -519,16 +569,25 @@ function vCodes() {
     '<div class="tabpane" data-pane="types" hidden><p class="lede" style="margin-bottom:18px">' + linkRefs(CODES.typesNote) + '</p><div class="grid grid-2">' + types + '</div></div>' +
     '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container" style="margin-bottom:30px">' + buildTabernacleSVG() + '</div>' + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
     '<div class="tabpane" data-pane="feasts" hidden>' +
-    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">Lev 23:2</span><span class="chart-corner br">Col 2:16-17</span>' + buildFeastArc() + '</div>' +
-    '<div class="card">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
+    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + refLink('Lev 23:2') + '</span><span class="chart-corner br">' + refLink('Col 2:16-17') + '</span>' + buildFeastArc() + '</div>' +
+    '<div class="feast-groups">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
     '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
     '</div>';
 }
 
 function vTriune() {
   const n = NAV[4];
-  const rails = TRIUNE.rails.map(r =>
-    '<div class="triune-rail" style="--c:var(--c-triune)"><span class="icon-chip">' + icon('trinity') + '</span><div><h3>' + r.t + '</h3><p>' + linkRefs(r.x) + '</p></div></div>').join('');
+  const RAIL_META = [
+    { icon: 'scroll', label: 'Load-bearing' },
+    { icon: 'ear', label: 'Listen for it' },
+    { icon: 'wind', label: 'Hold loosely' }
+  ];
+  const rails = TRIUNE.rails.map((r, ix) => {
+    const m = RAIL_META[ix % RAIL_META.length];
+    return '<div class="triune-rail" style="--c:var(--c-triune)">' +
+      '<span class="icon-chip">' + icon(m.icon) + '</span>' +
+      '<div><span class="rail-label">' + m.label + '</span><h3>' + r.t + '</h3><p>' + linkRefs(r.x) + '</p></div></div>';
+  }).join('');
   const anchors = TRIUNE.anchors.map(a =>
     '<div class="card triune-anchor-card" style="--c:var(--c-triune)">' +
     '<h3>' + a.name + ' ' + badge(a.badge) + '</h3>' +
@@ -544,7 +603,7 @@ function vTriune() {
     '<p class="reading">' + linkRefs(p.reading) + '</p>' +
     refRow(p.refs) + '</div>').join('');
   return '<div class="view">' + head(n, 'Father, Son & Spirit in the story', TRIUNE.intro) +
-    '<div class="card triune-rails" style="--c:var(--c-triune)">' + rails + '</div>' +
+    '<div class="triune-rails">' + rails + '</div>' +
     '<div class="home-section-title"><h2>Explicit anchors</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<div class="grid grid-2">' + anchors + '</div>' +
     '<div class="home-section-title"><h2>Story echoes</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
@@ -558,10 +617,10 @@ function vWalking() {
   const cards = WALKING.pillars.map(p =>
     '<div class="card pillar-card" style="--c:var(--c-walk)">' +
     '<div class="case-top"><span class="icon-chip">' + icon(p.icon) + '</span><h3>' + p.name + '</h3></div>' +
-    '<p class="lie">🚫 <b>Old Software:</b> ' + p.lie + '</p>' +
-    '<p class="truth">⚡ <b>New Identity:</b> ' + p.truth + '</p>' +
+    '<p class="lie">' + icon('ban') + '<span><b>Old Software:</b> ' + p.lie + '</span></p>' +
+    '<p class="truth">' + icon('bolt') + '<span><b>New Identity:</b> ' + p.truth + '</span></p>' +
     '<p class="pillar-body">' + linkRefs(p.body) + '</p>' +
-    '<div class="practice"><span class="label">🛠️ Try this</span>' + linkRefs(p.practice) + '</div>' +
+    '<div class="practice"><span class="label">' + icon('tool') + 'Try this</span>' + linkRefs(p.practice) + '</div>' +
     refRow(p.refs) + '</div>').join('');
   return '<div class="view">' + head(n, 'Walking in the new covenant', WALKING.intro) +
     '<div class="hero-legend" style="justify-content:flex-start;padding:0 0 8px">' + words + '</div>' +
@@ -575,9 +634,9 @@ function vDetours() {
     '<div class="card detour-card" id="d-' + i + '" style="--c:var(--c-detour)">' +
     '<h3><span class="icon-chip" style="--c:var(--c-detour)">' + icon('fork') + '</span>' + d.name + '</h3>' +
     '<div class="detour-rows">' +
-    '<div class="row pull"><b>🧲 The pull</b><span>' + linkRefs(d.pull) + '</span></div>' +
-    '<div class="row cost"><b>⚠️ The cost</b><span>' + linkRefs(d.cost) + '</span></div>' +
-    '<div class="row home"><b>🧭 The way home</b><span>' + linkRefs(d.home) + '</span></div>' +
+    '<div class="row pull"><b>' + icon('magnet') + 'The pull</b><span>' + linkRefs(d.pull) + '</span></div>' +
+    '<div class="row cost"><b>' + icon('alert') + 'The cost</b><span>' + linkRefs(d.cost) + '</span></div>' +
+    '<div class="row home"><b>' + icon('compass') + 'The way home</b><span>' + linkRefs(d.home) + '</span></div>' +
     '</div>' + refRow(d.refs) + '</div>').join('');
   return '<div class="view">' + head(n, 'Detours: sincere wrong turns', DETOURS.intro) +
     '<div class="grid grid-2">' + cards + '</div></div>';
@@ -613,11 +672,24 @@ function vMind() {
 
 function vLibrary() {
   const n = NAV[8];
+  const KIND_META = {
+    video: { icon: 'play', c: '--c-detour' },
+    book: { icon: 'book', c: '--c-library' },
+    site: { icon: 'globe', c: '--c-triune' },
+    podcast: { icon: 'mic', c: '--c-mind' },
+    channel: { icon: 'play', c: '--c-walk' }
+  };
   const shelves = LIBRARY.shelves.map(s =>
-    '<div class="shelf" style="--c:var(--c-library)"><div class="shelf-title">' + icon(s.icon) + '<h3>' + s.title + '</h3></div>' +
-    '<div class="shelf-items">' + s.items.map(i =>
-      '<div class="shelf-item"><span class="kind">' + i.kind + '</span>' +
-      '<span><b><a target="_blank" rel="noopener" href="' + i.url + '">' + i.title + '</a></b> — ' + i.by + '. <span>' + i.note + '</span></span></div>').join('') +
+    '<div class="shelf"><div class="shelf-title">' + icon(s.icon) + '<h3>' + s.title + '</h3></div>' +
+    '<div class="shelf-items">' + s.items.map(i => {
+      const m = KIND_META[i.kind] || KIND_META.book;
+      return '<a class="shelf-item" style="--c:var(' + m.c + ')" target="_blank" rel="noopener" href="' + i.url + '">' +
+        '<span class="kind">' + icon(m.icon) + i.kind + '</span>' +
+        '<b>' + i.title + '</b>' +
+        '<span class="by">' + i.by + '</span>' +
+        '<span class="note-txt">' + i.note + '</span>' +
+        '<span class="shelf-go">Open' + icon('linkout') + '</span></a>';
+    }).join('') +
     '</div></div>').join('');
   return '<div class="view">' + head(n, 'The pack list', LIBRARY.intro) + shelves + '</div>';
 }
@@ -730,8 +802,8 @@ function cancelPreviewReset() {
 }
 
 function buildThreadPreviewContent(t) {
-  const shortWay = t.way.slice(0, 3).map(w => 
-    '<li><b>' + w.ref + ':</b> ' + w.note + '</li>'
+  const shortWay = t.way.slice(0, 3).map(w =>
+    '<li><b>' + refLink(w.ref) + ':</b> ' + linkRefs(w.note) + '</li>'
   ).join('');
 
   return (
@@ -746,7 +818,7 @@ function buildThreadPreviewContent(t) {
     '    <ul>' + shortWay + '</ul>' +
     '    <div class="preview-lands">' +
     '      <strong>Where it lands</strong>' +
-    '      <p>' + t.landsOn + '</p>' +
+    '      <p>' + linkRefs(t.landsOn) + '</p>' +
     '    </div>' +
     '  </div>' +
     '</div>'
@@ -1006,6 +1078,94 @@ function setupScrollspy() {
   });
 }
 
+/* ================= translation picker ================= */
+const VERSIONS = [
+  { code: 'NIV', full: 'New International Version' },
+  { code: 'NASB', full: 'New American Standard' },
+  { code: 'ESV', full: 'English Standard Version' },
+  { code: 'KJV', full: 'King James Version' },
+  { code: 'NLT', full: 'New Living Translation' },
+  { code: 'AMP', full: 'Amplified Bible' },
+  { code: 'MSG', full: 'The Message' },
+  { code: 'TPT', full: 'The Passion Translation' }
+];
+let ACTIVE_VERSION = 'NIV';
+function getVersion() { return ACTIVE_VERSION; }
+
+function initVersionPicker() {
+  const wrap = document.getElementById('verpick');
+  const btn = document.getElementById('verpick-btn');
+  const menu = document.getElementById('verpick-menu');
+  const val = document.getElementById('verpick-val');
+  if (!wrap || !btn || !menu || !val) return;
+
+  const saved = lsGet('thread-version');
+  if (saved && VERSIONS.some(v => v.code === saved)) ACTIVE_VERSION = saved;
+  val.textContent = ACTIVE_VERSION;
+
+  menu.innerHTML = '<span class="verpick-head">Verse pop-ups read in</span>' +
+    VERSIONS.map(v =>
+      '<button class="verpick-opt" type="button" role="option" data-v="' + v.code + '"' +
+      ' aria-selected="' + (v.code === ACTIVE_VERSION) + '">' +
+      '<span class="code">' + v.code + '</span><span class="full">' + v.full + '</span></button>').join('') +
+    '<span class="verpick-note">TPT is copyrighted, so pop-ups fall back to NLT with a link out.</span>';
+
+  const opts = () => Array.from(menu.querySelectorAll('.verpick-opt'));
+  const close = () => {
+    wrap.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    menu.hidden = true;
+    opts().forEach(o => o.classList.remove('cursor'));
+  };
+  const open = () => {
+    wrap.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    menu.hidden = false;
+    const sel = menu.querySelector('[aria-selected="true"]') || opts()[0];
+    if (sel) sel.classList.add('cursor');
+  };
+  const choose = code => {
+    ACTIVE_VERSION = code;
+    lsSet('thread-version', code);
+    val.textContent = code;
+    opts().forEach(o => o.setAttribute('aria-selected', String(o.dataset.v === code)));
+    close();
+    btn.focus();
+  };
+  const moveCursor = step => {
+    const list = opts();
+    const i = list.findIndex(o => o.classList.contains('cursor'));
+    const next = list[Math.max(0, Math.min(list.length - 1, (i < 0 ? 0 : i + step)))];
+    list.forEach(o => o.classList.remove('cursor'));
+    if (next) next.classList.add('cursor');
+  };
+
+  btn.addEventListener('click', ev => {
+    ev.stopPropagation();
+    menu.hidden ? open() : close();
+  });
+  menu.addEventListener('click', ev => {
+    const opt = ev.target.closest('.verpick-opt');
+    if (opt) choose(opt.dataset.v);
+  });
+  document.addEventListener('click', ev => {
+    if (!menu.hidden && !ev.target.closest('#verpick')) close();
+  });
+  wrap.addEventListener('keydown', ev => {
+    if (ev.key === 'Escape' && !menu.hidden) { ev.preventDefault(); close(); btn.focus(); return; }
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+      ev.preventDefault();
+      if (menu.hidden) { open(); return; }
+      moveCursor(ev.key === 'ArrowDown' ? 1 : -1);
+      return;
+    }
+    if ((ev.key === 'Enter' || ev.key === ' ') && !menu.hidden) {
+      const cur = menu.querySelector('.verpick-opt.cursor');
+      if (cur) { ev.preventDefault(); choose(cur.dataset.v); }
+    }
+  });
+}
+
 /* ================= hover scripture tooltips & local TPT cache ================= */
 const TPT_CACHE = {
   'John 3:16': '“For this is how God loved the world: He gave his unique, One and Only Son as a gift. So now everyone who believes in him will never perish, but experience everlasting life.”',
@@ -1144,7 +1304,7 @@ function initTooltip() {
 
 function showTooltip(link, ref) {
   if (tooltipTimer) clearTimeout(tooltipTimer);
-  const version = document.getElementById('version-select').value;
+  const version = getVersion();
   
   const rect = link.getBoundingClientRect();
   const scrollY = window.scrollY || window.pageYOffset;
@@ -1200,6 +1360,7 @@ function renderSections() {
   measureThreadPreviewHeight();
   wireAllSections();
   initMarquees();
+  initHeroChart();
   layoutRail();
 }
 
@@ -1276,16 +1437,6 @@ function layoutRail() {
 }
 window.addEventListener('resize', () => setTimeout(layoutRail, 200));
 
-function applyEdition(ed) {
-  TEXT_EDITION = (ed === 'orig') ? 'orig' : 'updated';
-  localStorage.setItem('thread-edition', TEXT_EDITION);
-  const y = window.scrollY;
-  renderSections();
-  window.scrollTo(0, y);
-  setupScrollspy();
-  document.querySelectorAll('.edition-btn').forEach(b => b.classList.toggle('active', b.dataset.ed === TEXT_EDITION));
-}
-
 function boot() {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
@@ -1310,29 +1461,16 @@ function boot() {
   });
 
   const root = document.documentElement;
-  const saved = localStorage.getItem('thread-theme');
+  const saved = lsGet('thread-theme');
   if (saved) root.dataset.theme = saved;
   document.getElementById('theme-toggle').addEventListener('click', () => {
     const dark = root.dataset.theme === 'dark' || (!root.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     root.dataset.theme = dark ? 'light' : 'dark';
-    localStorage.setItem('thread-theme', root.dataset.theme);
+    lsSet('thread-theme', root.dataset.theme);
   });
 
-  const select = document.getElementById('version-select');
-  const savedVer = localStorage.getItem('thread-version');
-  if (savedVer) select.value = savedVer;
-  select.addEventListener('change', () => {
-    localStorage.setItem('thread-version', select.value);
-  });
+  initVersionPicker();
 
-  // text edition toggle (original vs updated wording) — restore before first render
-  if (localStorage.getItem('thread-edition') === 'orig') TEXT_EDITION = 'orig';
-  document.querySelectorAll('.edition-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.ed === TEXT_EDITION);
-    btn.addEventListener('click', () => applyEdition(btn.dataset.ed));
-  });
-
-  // Render all sections (edition-aware) on the single page
   initRail();
   renderSections();
 

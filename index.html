@@ -266,15 +266,6 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
   justify-self: end;
 }
 
-.edition-toggle { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--card-2); flex-shrink: 0; }
-.edition-btn {
-  font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
-  letter-spacing: 0.07em; text-transform: uppercase;
-  color: var(--ink-faint); padding: 6px 11px; white-space: nowrap;
-}
-.edition-btn.active { background: var(--thread); color: #fff; }
-.edition-btn:not(.active):hover { color: var(--ink); }
-
 .theme-toggle {
   flex-shrink: 0; width: 34px; height: 34px;
   display: grid; place-items: center;
@@ -340,10 +331,9 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
   .topbar-actions {
     gap: 8px;
   }
-  .version-select-container select {
-    max-width: 82px;
-    padding-right: 24px;
-  }
+  .verpick-btn { padding: 6px 8px; }
+  .verpick-ic { display: none; }
+  .verpick-menu { min-width: 232px; }
   .navstrip {
     padding-top: 8px;
   }
@@ -415,6 +405,13 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
 }
 .chart-corner.tl { top: 0; left: 0; }
 .chart-corner.br { bottom: 0; right: 0; }
+/* the corner co-ordinates are real references — let them be read, not just seen */
+.chart-corner .ref-link {
+  pointer-events: auto;
+  color: inherit;
+  border-bottom-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+.chart-corner .ref-link:hover { color: var(--ink); }
 
 /* ---------- cards ---------- */
 .grid { display: grid; gap: clamp(20px, 3vw, 30px); }
@@ -457,8 +454,6 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
   transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
 .trailhead > span:last-child,
-.idea-row > div,
-.shelf-item > span:last-child,
 .station-meta > * {
   min-width: 0;
 }
@@ -579,19 +574,43 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
 .season-row-label svg { width: 13px; height: 13px; flex-shrink: 0; }
 .season-row p { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.55; }
 
-.insight-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-.insight-list li { display: flex; gap: 13px; align-items: flex-start; }
+.insight-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+}
+/* nine pieces of trail wisdom — a clean 3 x 3 beats 4 + 4 + 1 */
+@media (min-width: 1060px) { .insight-grid { grid-template-columns: repeat(3, 1fr); } }
+.insight-card {
+  background: color-mix(in srgb, var(--c) 4%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--c) 20%, var(--line));
+  border-radius: var(--r-lg);
+  padding: 20px 22px 22px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.insight-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+  border-color: color-mix(in srgb, var(--c) 45%, var(--line));
+}
+.insight-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.insight-ic { color: var(--c); opacity: 0.55; }
+.insight-ic svg { width: 22px; height: 22px; }
 .insight-marker {
-  flex-shrink: 0; width: 26px; height: 26px; margin-top: 2px;
+  flex-shrink: 0; width: 28px; height: 28px;
   display: grid; place-items: center;
   border-radius: 50%;
-  border: 2px dashed color-mix(in srgb, var(--c-pattern) 60%, transparent);
-  color: var(--c-pattern);
-  font-family: var(--font-label); font-size: 0.7rem; font-weight: 700;
+  border: 2px dashed color-mix(in srgb, var(--c) 60%, transparent);
+  color: var(--c);
+  font-family: var(--font-label); font-size: 0.72rem; font-weight: 700;
 }
-.insight-list b { display: block; }
-.insight-list .ins-txt { font-size: 0.96rem; color: var(--ink-soft); }
-.insight-list .ins-txt b { display: inline; color: var(--ink); }
+.insight-card > b { display: block; font-size: 1.04rem; margin-bottom: 6px; }
+.insight-card .ins-txt { font-size: 0.93rem; color: var(--ink-soft); line-height: 1.6; }
+.insight-card .ins-txt b { display: inline; color: var(--ink); }
 
 .case-card .case-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
 .case-card h3 { font-size: 1.15rem; }
@@ -661,24 +680,63 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .type-card .type-refs { font-family: var(--font-label); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-codes); margin: 4px 0 8px; }
 .type-card p { font-size: 0.93rem; color: var(--ink-soft); }
 
-.feast-row { display: grid; grid-template-columns: 118px 1fr; gap: 14px; padding: 14px 0; border-bottom: 1px dashed var(--line); }
-.feast-row:last-child { border-bottom: none; }
-.feast-when { font-family: var(--font-label); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); padding-top: 5px; }
-.feast-row h4 { font-size: 1.02rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.feast-row p { font-size: 0.93rem; color: var(--ink-soft); margin-top: 3px; }
+.feast-groups { display: grid; gap: 26px; }
+.feast-group-label {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--fc);
+}
+.feast-group-label svg { width: 15px; height: 15px; }
+.feast-group.is-done { --fc: var(--c-walk); }
+.feast-group.is-ahead { --fc: var(--c-codes); }
+.feast-cards {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+}
+/* four spring feasts and three autumn ones — give each group its own tidy block */
+@media (min-width: 900px) {
+  .feast-group.is-done .feast-cards { grid-template-columns: repeat(2, 1fr); }
+  .feast-group.is-ahead .feast-cards { grid-template-columns: repeat(3, 1fr); }
+}
+.feast-card {
+  background: color-mix(in srgb, var(--fc) 4%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--fc) 22%, var(--line));
+  border-left: 3px solid var(--fc);
+  border-radius: var(--r);
+  padding: 16px 18px 18px;
+  box-shadow: var(--shadow-sm);
+}
+.feast-card.is-ahead { border-left-style: dashed; }
+.feast-card-top { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 10px; }
+.feast-card-top .icon-chip { width: 34px; height: 34px; border-radius: 10px; color: var(--fc); }
+.feast-card .feast-id { flex: 1; min-width: 0; }
+.feast-card h4 { font-size: 1.02rem; }
+.feast-when {
+  font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint);
+}
+.feast-card p { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.6; }
 
 /* ---------- threefold witness ---------- */
 .triune-rails {
   display: grid;
   gap: 14px;
   margin-bottom: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(min(290px, 100%), 1fr));
+}
+.rail-label {
+  display: block; margin-bottom: 5px;
+  font-family: var(--font-label); font-size: 0.58rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase; color: var(--c);
 }
 .triune-rail {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 14px;
   align-items: flex-start;
-  padding: 16px 18px;
+  align-content: start;
+  padding: 18px 20px;
   border: 1px dashed color-mix(in srgb, var(--c-triune) 30%, var(--line));
   border-radius: var(--r);
   background: color-mix(in srgb, var(--c-triune) 5%, var(--card));
@@ -1005,29 +1063,62 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 }
 
 /* ---------- library ---------- */
-.shelf { margin-bottom: 26px; }
-.shelf-title { display: flex; align-items: center; gap: 10px; font-size: 1.15rem; margin-bottom: 12px; }
+.shelf { margin-bottom: 32px; }
+.shelf-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 1.15rem; margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--line);
+}
 .shelf-title svg { width: 19px; height: 19px; color: var(--c-library); }
-.shelf-items { display: grid; gap: 8px; }
+.shelf-items {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(310px, 100%), 1fr));
+}
+/* one card per resource: the kind chip carries the colour, so a shelf reads as a
+   shelf rather than a paragraph that happens to have links in it */
 .shelf-item {
-  display: flex; gap: 12px; align-items: baseline;
-  padding: 10px 14px;
-  background: var(--card);
-  border: 1px solid var(--line-soft);
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 15px 17px 14px;
+  background: color-mix(in srgb, var(--c) 3%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--c) 18%, var(--line-soft));
   border-radius: var(--r);
-  font-size: 0.94rem;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.shelf-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+  border-color: color-mix(in srgb, var(--c) 45%, var(--line));
 }
 .shelf-item .kind {
-  flex-shrink: 0;
-  font-family: var(--font-label); font-size: 0.58rem; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--c-library);
-  background: color-mix(in srgb, var(--c-library) 11%, transparent);
-  padding: 2.5px 8px; border-radius: 999px;
-  position: relative; top: -2px;
+  justify-self: start;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-label); font-size: 0.56rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 12%, transparent);
+  padding: 3px 9px 3px 7px; border-radius: 999px;
+  margin-bottom: 2px;
 }
-.shelf-item b a { text-decoration-color: color-mix(in srgb, var(--c-library) 50%, transparent); }
-.shelf-item span { color: var(--ink-soft); }
+.shelf-item .kind svg { width: 12px; height: 12px; }
+.shelf-item b { font-size: 1rem; line-height: 1.35; }
+.shelf-item .by {
+  font-family: var(--font-label); font-size: 0.66rem; font-weight: 600;
+  letter-spacing: 0.06em; color: var(--ink-faint);
+}
+.shelf-item .note-txt { font-size: 0.88rem; line-height: 1.55; color: var(--ink-soft); }
+.shelf-go {
+  display: inline-flex; align-items: center; gap: 5px; margin-top: 6px;
+  font-family: var(--font-label); font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase; color: var(--c);
+  opacity: 0; transition: opacity 0.18s ease;
+}
+.shelf-go svg { width: 12px; height: 12px; }
+.shelf-item:hover .shelf-go, .shelf-item:focus-visible .shelf-go { opacity: 1; }
 
 /* ---------- home / hero ---------- */
 .hero { padding: clamp(40px, 6vw, 58px) 0 10px; }
@@ -1060,8 +1151,36 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .home-section-title h2 { font-size: 1.3rem; }
 .home-section-title .rr { flex: 1; height: 12px; color: var(--thread); opacity: 0.5; }
 
-.big-idea { display: grid; gap: 12px; counter-reset: idea; }
-.idea-row { display: flex; gap: 14px; align-items: flex-start; }
+.big-idea {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+}
+/* five ideas: three across, then two wide ones — no orphan tile */
+@media (min-width: 1080px) {
+  .big-idea { grid-template-columns: repeat(6, 1fr); }
+  .idea-card { grid-column: span 2; }
+  .idea-card:nth-child(4), .idea-card:nth-child(5) { grid-column: span 3; }
+}
+.idea-card {
+  background: color-mix(in srgb, var(--c) 4%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--c) 20%, var(--line));
+  border-radius: var(--r-lg);
+  padding: 20px 22px 22px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.idea-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+  border-color: color-mix(in srgb, var(--c) 45%, var(--line));
+}
+.idea-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.idea-ic { color: var(--c); opacity: 0.55; }
+.idea-ic svg { width: 22px; height: 22px; }
 .idea-num {
   counter-increment: idea; flex-shrink: 0;
   width: 30px; height: 30px; margin-top: 2px;
@@ -1071,9 +1190,8 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   color: var(--thread);
   font-family: var(--font-label); font-size: 0.78rem; font-weight: 700;
 }
-.idea-num::before { content: counter(idea); }
-.idea-row b { display: block; font-size: 1.04rem; }
-.idea-row p { font-size: 0.95rem; color: var(--ink-soft); }
+.idea-card b { display: block; font-size: 1.06rem; margin-bottom: 6px; }
+.idea-card p { font-size: 0.94rem; color: var(--ink-soft); line-height: 1.6; }
 
 /* ---------- bento grid (how to read your Bible) ---------- */
 .bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; grid-auto-rows: minmax(112px, auto); --c: var(--c-walk); }
@@ -1284,41 +1402,65 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 
 /* ================= NEW COMPONENT STYLES ================= */
 
-/* Version select dropdown */
-.version-select-container {
-  position: relative;
-  flex-shrink: 0;
-}
-.version-select-container select {
+/* Translation picker — a map-room dropdown, not a native select */
+.verpick { position: relative; flex-shrink: 0; }
+.verpick-btn {
+  display: flex; align-items: center; gap: 6px;
   font-family: var(--font-label);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.09em;
   color: var(--ink-soft);
   background: var(--card-2);
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 6px 28px 6px 12px;
-  appearance: none;
-  -webkit-appearance: none;
+  padding: 6px 10px 6px 9px;
   cursor: pointer;
-  outline: none;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
-.version-select-container select:hover {
-  color: var(--ink);
-  border-color: var(--ink-faint);
+.verpick-btn:hover { color: var(--ink); border-color: var(--ink-faint); background: var(--card); }
+.verpick-ic { width: 13px; height: 13px; color: var(--gold); flex-shrink: 0; }
+.verpick-caret { width: 12px; height: 12px; color: var(--ink-faint); transition: transform 0.18s ease; }
+.verpick.open .verpick-btn { color: var(--ink); border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); background: var(--card); }
+.verpick.open .verpick-caret { transform: rotate(180deg); }
+
+.verpick-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 120;
+  min-width: 262px;
+  padding: 6px;
   background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-lift);
 }
-.version-select-container::after {
-  content: "▾";
-  font-size: 0.75rem;
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--ink-faint);
-  pointer-events: none;
+.verpick-menu::before {
+  content: ""; position: absolute; top: -5px; right: 17px;
+  width: 9px; height: 9px; transform: rotate(45deg);
+  background: var(--card);
+  border-left: 1px solid var(--line); border-top: 1px solid var(--line);
+}
+.verpick-head {
+  display: block; padding: 5px 9px 7px;
+  font-family: var(--font-label); font-size: 0.56rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint);
+  border-bottom: 1px dashed var(--line-soft); margin-bottom: 5px;
+}
+.verpick-opt {
+  display: flex; align-items: baseline; gap: 9px; width: 100%;
+  padding: 6px 9px; border-radius: 7px;
+  background: none; border: 0; text-align: left; cursor: pointer;
+  color: var(--ink-soft);
+}
+.verpick-opt .code {
+  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.1em; color: var(--ink); width: 40px; flex-shrink: 0;
+}
+.verpick-opt .full { font-size: 0.82rem; line-height: 1.3; }
+.verpick-opt:hover, .verpick-opt.cursor { background: var(--card-2); color: var(--ink); }
+.verpick-opt[aria-selected="true"] { background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.verpick-opt[aria-selected="true"] .code { color: var(--gold); }
+.verpick-note {
+  display: block; padding: 7px 9px 3px; margin-top: 4px;
+  border-top: 1px dashed var(--line-soft);
+  font-size: 0.72rem; line-height: 1.45; color: var(--ink-faint);
 }
 
 /* Section block and scrolling */
@@ -1638,6 +1780,10 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   color: var(--c);
   font-family: var(--font-serif);
 }
+.preview-body li b .ref-link {
+  color: var(--c);
+  border-bottom-color: color-mix(in srgb, var(--c) 45%, transparent);
+}
 .preview-lands {
   margin-top: 10px;
   background: var(--card);
@@ -1678,6 +1824,10 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .pillar-card .case-top .icon-chip {
   margin-bottom: 4px;
 }
+.pillar-card .lie, .pillar-card .truth { display: flex; align-items: flex-start; gap: 10px; }
+.pillar-card .lie > svg, .pillar-card .truth > svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 2px; }
+.pillar-card .lie > svg { color: var(--c-detour); }
+.pillar-card .truth > svg { color: var(--s-land); }
 .pillar-card .lie {
   background: color-mix(in srgb, var(--c-detour) 6%, var(--card));
   border: 1.2px solid color-mix(in srgb, var(--c-detour) 22%, var(--line));
@@ -1715,10 +1865,11 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   line-height: 1.55;
 }
 .pillar-card .practice .label {
-  display: block;
+  display: flex; align-items: center; gap: 6px;
   margin-bottom: 8px;
   color: var(--c);
 }
+.pillar-card .practice .label svg { width: 14px; height: 14px; }
 
 /* Detours nested cards */
 .detour-card .detour-rows {
@@ -1750,13 +1901,14 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   border-color: color-mix(in srgb, var(--s-land) 25%, var(--line));
 }
 .detour-card .row b {
-  display: block;
+  display: flex; align-items: center; gap: 6px;
   font-family: var(--font-label);
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 8px;
 }
+.detour-card .row b svg { width: 14px; height: 14px; flex-shrink: 0; }
 .detour-card .row.pull b { color: var(--c); }
 .detour-card .row.cost b { color: #d9534f; }
 .detour-card .row.home b { color: var(--s-land); }
@@ -1769,6 +1921,80 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .hero-thread {
   pointer-events: none;
   will-change: opacity, stroke-width;
+}
+
+/* ---------- the hero chart draws itself ----------
+   .hero-anim is added by JS only after every path length has been measured, so an
+   un-run script leaves a finished chart rather than an empty one. */
+.hero-anim .hero-thread {
+  stroke-dasharray: var(--len);
+  animation: hero-draw 1.5s cubic-bezier(.36,.28,.2,1) both;
+  animation-delay: calc(var(--i) * 0.05s);
+}
+@keyframes hero-draw {
+  from { stroke-dashoffset: var(--len); }
+  to { stroke-dashoffset: 0; }
+}
+.hero-anim .hero-spur {
+  stroke-dasharray: var(--len);
+  animation: hero-draw 0.75s cubic-bezier(.36,.28,.2,1) 1.5s both;
+}
+.hero-anim .hero-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hero-pop 0.5s cubic-bezier(.34,1.56,.64,1) 1.35s both;
+}
+@keyframes hero-pop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+/* the convergence keeps a slow heartbeat once everything has landed */
+.hero-node-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+.hero-anim .hero-node-halo { animation: hero-ping 3.4s ease-out 2.4s infinite; }
+@keyframes hero-ping {
+  0%   { transform: scale(1); opacity: 0.55; }
+  55%  { transform: scale(2.9); opacity: 0; }
+  100% { transform: scale(2.9); opacity: 0; }
+}
+.hero-anim .hero-cross {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: hero-rise 0.7s cubic-bezier(.22,.9,.3,1) 1.7s both;
+}
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(7px) scale(0.86); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-anim .hero-jesus { animation: hero-fade 0.6s ease 2.05s both; }
+@keyframes hero-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+/* the dotted drop from the cross to the convergence never stops travelling */
+.hero-anim .hero-drop {
+  animation: hero-fade 0.5s ease 1.9s both, hero-drip 1.4s linear 1.9s infinite;
+}
+@keyframes hero-drip {
+  to { stroke-dashoffset: -35; } /* multiple of the 5px dash period = seamless loop */
+}
+/* the brand mark's thread keeps the same slow march as the map routes */
+.brand-thread { animation: brand-march 3.6s linear infinite; }
+@keyframes brand-march {
+  to { stroke-dashoffset: -21.6; } /* 4 x the 5.4 dash period */
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-anim .hero-thread,
+  .hero-anim .hero-spur,
+  .hero-anim .hero-node,
+  .hero-anim .hero-node-halo,
+  .hero-anim .hero-cross,
+  .hero-anim .hero-jesus,
+  .hero-anim .hero-drop,
+  .brand-thread { animation: none; }
 }
 
 /* Shared route march — identical speed on the journey and tabernacle diagrams */
@@ -1850,7 +2076,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   <div class="topbar-row">
     <a class="brand" href="#/">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-        <path d="M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8" stroke-dasharray="3 2.4"/>
+        <path class="brand-thread" d="M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8" stroke-dasharray="3 2.4"/>
         <path d="M18.5 4.5v6M15.8 7h5.4"/>
       </svg>
       <span class="brand-name">The Thread</span>
@@ -1860,21 +2086,13 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
     <nav class="navstrip" id="nav" aria-label="Sections"></nav>
 
     <div class="topbar-actions">
-      <div class="edition-toggle" role="group" aria-label="Text edition">
-        <button class="edition-btn active" data-ed="updated" title="Updated wording from the latest revision">Updated</button>
-        <button class="edition-btn" data-ed="orig" title="Original wording, before the revision">Original</button>
-      </div>
-      <div class="version-select-container">
-        <select id="version-select" aria-label="Select Bible translation" title="Select Bible version">
-          <option value="NIV" selected>NIV</option>
-          <option value="NASB">NASB</option>
-          <option value="ESV">ESV</option>
-          <option value="KJV">KJV</option>
-          <option value="NLT">NLT</option>
-          <option value="AMP">AMP</option>
-          <option value="MSG">MSG</option>
-          <option value="TPT">TPT</option>
-        </select>
+      <div class="verpick" id="verpick">
+        <button class="verpick-btn" id="verpick-btn" type="button" aria-haspopup="listbox" aria-expanded="false" title="Translation used in verse pop-ups">
+          <svg class="verpick-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C10 4.4 7 4.1 4 4.6V19c3-.5 6-.2 8 1.6 2-1.8 5-2.1 8-1.6V4.6c-3-.5-6-.2-8 1.6z"/><path d="M12 6.2v14.4"/></svg>
+          <span class="verpick-val" id="verpick-val">NIV</span>
+          <svg class="verpick-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 9.8 5.5 5 5.5-5"/></svg>
+        </button>
+        <div class="verpick-menu" id="verpick-menu" role="listbox" aria-label="Bible translation" hidden></div>
       </div>
       <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light or dark theme" title="Toggle theme">
         <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 13.5A8.5 8.5 0 1 1 10.5 4a7 7 0 0 0 9.5 9.5z"/></svg>
@@ -1935,7 +2153,15 @@ const ICONS = {
   mountain: _ic('<path d="m3 19.5 6-10.5 3.6 6 2.4-3.5 6 8z"/>'),
   star: _ic('<path d="m12 4 2.2 4.7 5.2.7-3.8 3.6.9 5.1L12 15.7l-4.5 2.4.9-5.1-3.8-3.6 5.2-.7z"/>'),
   garment: _ic('<path d="M8.5 3.5 11 3.5 12 5.6 13 3.5 15.5 3.5 19.6 7.6 16.8 10.2 16 9.2 16 20.5 8 20.5 8 9.2 7.2 10.2 4.4 7.6 Z"/>'),
-  search: _ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>')
+  search: _ic('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>'),
+  ban: _ic('<circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/>'),
+  bolt: _ic('<path d="M13.4 2.8 5.6 13.4h5.2l-.2 7.8 7.8-10.6h-5.2z"/>'),
+  tool: _ic('<path d="M14.6 6.4a3.9 3.9 0 0 0 5.1 5.1l-8 8a2.3 2.3 0 0 1-3.2-3.2z"/><path d="m6.4 4.2 2 2M4.2 6.4l2 2M3.6 3.6l6.8 6.8"/>'),
+  magnet: _ic('<path d="M6 20.5V9.5a6 6 0 0 1 12 0v11h-4v-11a2 2 0 0 0-4 0v11z"/><path d="M6 15.5h4M14 15.5h4"/>'),
+  alert: _ic('<path d="M12 3.8 21 19.5H3z"/><path d="M12 9.6v4.2M12 16.6h.01"/>'),
+  play: _ic('<rect x="2.5" y="5" width="19" height="14" rx="3.2"/><path d="M10.2 9.4 14.8 12l-4.6 2.6z"/>'),
+  globe: _ic('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.3 2.4 3.4 5.3 3.4 8.5s-1.1 6.1-3.4 8.5c-2.3-2.4-3.4-5.3-3.4-8.5S9.7 5.9 12 3.5z"/>'),
+  mic: _ic('<rect x="9" y="3" width="6" height="10.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6"/>')
 };
 
 function icon(name) { return ICONS[name] || ICONS.cross; }
@@ -2193,30 +2419,30 @@ const PATTERN = {
         { k: 'What it is', v: 'The assignment and inheritance you were delivered FOR — fruitfulness, authority, giving instead of surviving. Not heaven: it has giants in it.' },
         { k: 'It feels like', v: 'Battles fought FROM victory rather than for it. “Every place the sole of your foot treads, I have given you” (Josh 1:3) — given, then walked.' },
         { k: 'God’s move', v: 'Partnership. The Jordan parts only after the priests step in (Josh 3:13-17). The Red Sea was done TO you; the Jordan is done WITH you.' },
-        { k: 'Provision', v: ver('Manna stops the day they eat the land’s produce (Josh 5:12). Not abandonment — promotion. Provision changes shape by season.', 'Manna stops the day after they eat the land’s produce (Josh 5:12). Not abandonment — promotion. Provision changes shape by season.') }
+        { k: 'Provision', v: 'Manna stops the day after they eat the land’s produce (Josh 5:12). Not abandonment — promotion. Provision changes shape by season.' }
       ]
     }
   ],
   insights: [
     { t: 'The exit is fast; the formation is slow.', x: 'One night out of Egypt; forty years getting Egypt out of them. Conversion is instant — renewal takes seasons (Rom 12:2). Don’t despise the slow part; it’s load-bearing.' },
-    { t: 'Identity comes before the test, never after it.', x: ver('“You are my beloved Son” (Matt 3:17) — before a single miracle or sermon. Then the very first attack: “IF you are the Son of God…” (Matt 4:3). The wilderness doesn’t ask what you can do. It asks whether you believe what the Voice said.', '“You are my beloved Son” (Mark 1:11) — before a single miracle or sermon. Then the very first attack: “IF you are the Son of God…” (Matt 4:3). The wilderness doesn’t ask what you can do. It asks whether you believe what the Voice said.') },
+    { t: 'Identity comes before the test, never after it.', x: '“You are my beloved Son” (Mark 1:11) — before a single miracle or sermon. Then the very first attack: “IF you are the Son of God…” (Matt 4:3). The wilderness doesn’t ask what you can do. It asks whether you believe what the Voice said.' },
     { t: 'Jesus re-ran Israel’s whole journey — and passed.', x: 'Carried into Egypt as a child (“out of Egypt I called my son,” Hos 11:1 / Matt 2:15), forty days in the wilderness matching forty years, answering every temptation from Deuteronomy 6–8 — Israel’s exact exam, retaken and aced. At the transfiguration, Moses and Elijah discuss His coming death — Luke calls it His “EXODUS” (Luke 9:31, Greek exodos). The cross is the true exodus.' },
     { t: 'Two crossings, two baptisms.', x: 'Red Sea: out of slavery — God does it while you stand still (Ex 14:13-14). Jordan: into inheritance — nothing moves until feet get wet (Josh 3:13). Paul calls the first crossing a baptism (1 Cor 10:2). Deliverance is received; inheritance is stepped into.' },
     { t: 'An 11-day trip took 40 years.', x: 'Deut 1:2 quietly notes: it’s eleven days from Horeb to Kadesh-barnea. The delay wasn’t geography — it was unbelief (Heb 3:19). The promise never expired; the generation did. God’s promises don’t have deadlines, but wandering has a cost.' },
-    { t: 'The giants were never the problem; the mirror was.', x: ver('Ten spies: “We seemed like grasshoppers IN OUR OWN EYES, and so we were in theirs” (Num 13:33). Same giants, same God — Caleb just did different math (“they are bread for us,” Num 14:9). Your self-image sets your ceiling more than your circumstances do.', 'Ten spies: “We seemed like grasshoppers IN OUR OWN EYES, and so we were in theirs” (Num 13:33). Same giants, same God — Caleb and Joshua just did different math (“they are bread for us,” Num 14:9). Your self-image sets your ceiling more than your circumstances do.') },
+    { t: 'The giants were never the problem; the mirror was.', x: 'Ten spies: “We seemed like grasshoppers IN OUR OWN EYES, and so we were in theirs” (Num 13:33). Same giants, same God — Caleb and Joshua just did different math (“they are bread for us,” Num 14:9). Your self-image sets your ceiling more than your circumstances do.' },
     { t: 'Manna is seasonal; don’t build a theology on a season.', x: 'Manna in the desert, produce in the land (Josh 5:12). When provision changes shape, it usually means the season changed — read the map before assuming God left.' },
     { t: 'The presence was in every season.', x: 'The pillar of cloud and fire showed up IN the wilderness (Ex 13:21-22) and never once left. The promised land is not where God starts loving you. He’s in the desert, on purpose, with you.' },
     { t: 'You can camp at the wrong address.', x: 'Some wanted to go back to Egypt (Num 14:4). Some settled east of the Jordan, close enough to see the land but not in it (Num 32). And a whole generation died within walking distance of the promise. The land is entered by rest and faith, not by intensity (Heb 4:9-11) — and it’s always still on offer: “TODAY, if you hear his voice” (Heb 4:7).' }
   ],
   cases: [
-    { name: 'Israel', sub: 'the master case study', p1: ver('400 years of slavery — bricks, quotas, and a pharaoh who decides your worth (Ex 1).', '400 years of slavery — bricks, quotas, and a pharaoh who decides your worth (Ex 1; the 400 years, Gen 15:13).'), p2: '40 years of manna, water from rocks, and a syllabus called Deuteronomy 8:2 — humbled, tested, fathered.', p3: 'Jordan parts, Jericho falls, and the fight is FROM promise, not for it (Josh 1:3).' },
+    { name: 'Israel', sub: 'the master case study', p1: '400 years of slavery — bricks, quotas, and a pharaoh who decides your worth (Ex 1; the 400 years, Gen 15:13).', p2: '40 years of manna, water from rocks, and a syllabus called Deuteronomy 8:2 — humbled, tested, fathered.', p3: 'Jordan parts, Jericho falls, and the fight is FROM promise, not for it (Josh 1:3).' },
     { name: 'Joseph', sub: 'the pit-to-palace arc', p1: 'Favored and naive in his father’s house; then the pit and the slave caravan (Gen 37).', p2: 'Potiphar’s house and prison — 13 years where “the word of the LORD tested him” (Ps 105:19).', p3: 'Palace at 30: feeding nations, forgiving brothers — “you meant evil; God meant good” (Gen 50:20).' },
-    { name: 'Moses', sub: 'the 40-40-40 life', p1: ver('40 years as a prince of Egypt — power, education, and a murder that proved zeal isn’t readiness (Ex 2).', '40 years as a prince of Egypt — power, education, and a murder that proved zeal isn’t readiness (Ex 2; the 40 years, Acts 7:23).'), p2: ver('40 years keeping sheep in Midian — the résumé God was actually building (Ex 3:1).', '40 years keeping sheep in Midian — the résumé God was actually building (Ex 3:1; Acts 7:30).'), p3: '40 years leading the exodus, face-to-face with God, “as a man speaks to his friend” (Ex 33:11).' },
+    { name: 'Moses', sub: 'the 40-40-40 life', p1: '40 years as a prince of Egypt — power, education, and a murder that proved zeal isn’t readiness (Ex 2; the 40 years, Acts 7:23).', p2: '40 years keeping sheep in Midian — the résumé God was actually building (Ex 3:1; Acts 7:30).', p3: '40 years leading the exodus, face-to-face with God, “as a man speaks to his friend” (Ex 33:11).' },
     { name: 'David', sub: 'anointed long before crowned', p1: 'Overlooked in Jesse’s house — the kid they didn’t bother calling in from the field (1 Sam 16:11).', p2: 'Anointed, then hunted — years of caves, Adullam, and psalms written on the run (1 Sam 22–26).', p3: 'Crowned at Hebron, then Jerusalem — a shepherd’s heart with a king’s authority (2 Sam 5).' },
-    { name: 'Ruth', sub: 'famine to family tree', p1: 'Moab: famine, three funerals, and a mother-in-law who renamed herself “Bitter” (Ruth 1).', p2: 'Gleaning leftover barley in a stranger’s field — faithful obscurity, one row at a time (Ruth 2).', p3: ver('Redeemed and married by Boaz — grandmother of kings, name in the genealogy of Jesus (Ruth 4; Matt 1:5).', 'Redeemed and married by Boaz — great-grandmother of kings, name in the genealogy of Jesus (Ruth 4; Matt 1:5).') },
+    { name: 'Ruth', sub: 'famine to family tree', p1: 'Moab: famine, three funerals, and a mother-in-law who renamed herself “Bitter” (Ruth 1).', p2: 'Gleaning leftover barley in a stranger’s field — faithful obscurity, one row at a time (Ruth 2).', p3: 'Redeemed and married by Boaz — great-grandmother of kings, name in the genealogy of Jesus (Ruth 4; Matt 1:5).' },
     { name: 'Elijah', sub: 'hidden before public', p1: 'Gilead obscurity — a nobody from nowhere with one conviction: “the LORD before whom I stand” (1 Kings 17:1).', p2: 'Cherith’s drying brook and a widow’s empty pantry — provision lessons in hiding (1 Kings 17).', p3: 'Carmel: one prayer, fire falls, a nation turns (1 Kings 18).' },
     { name: 'Peter', sub: 'the compressed desert', p1: 'Boats and nets and a temper — competence in a small pond (Luke 5).', p2: 'One catastrophic night: three denials, a rooster, and bitter weeping — his whole wilderness in a weekend (Luke 22:54-62).', p3: 'Breakfast on the beach, restored three times, then Pentecost: one sermon, three thousand people (John 21; Acts 2).' },
-    { name: 'Paul', sub: 'zeal, then formation, then fire', p1: 'Rising star of the Pharisees — impeccable credentials aimed in exactly the wrong direction (Phil 3:4-6).', p2: ver('Damascus, then Arabia, then roughly a decade of Tarsus silence before the story needs him (Gal 1:17-18; Acts 11:25).', 'Damascus, then Arabia, then years of Tarsus silence before the story needs him (Gal 1:17-18; Acts 11:25).'), p3: 'The apostle to the nations — letters from prisons that became half the New Testament.' },
+    { name: 'Paul', sub: 'zeal, then formation, then fire', p1: 'Rising star of the Pharisees — impeccable credentials aimed in exactly the wrong direction (Phil 3:4-6).', p2: 'Damascus, then Arabia, then years of Tarsus silence before the story needs him (Gal 1:17-18; Acts 11:25).', p3: 'The apostle to the nations — letters from prisons that became half the New Testament.' },
     { name: 'Jesus', sub: 'the pattern, perfected', p1: 'A refugee child in Egypt (Matt 2:14-15) and thirty years of Nazareth obscurity — a carpenter nobody quoted.', p2: 'Forty days, no bread, one open question: “IF you are the Son…” Answered entirely from Deuteronomy (Matt 4:1-11).', p3: 'Ministry in the Spirit’s power (Luke 4:14) — and His death called His “exodus” (Luke 9:31): the crossing that opens the land for everyone.' },
     { name: 'You', sub: 'same map, your dot', p1: 'Whatever raised you and named you before Jesus did — the systems, wounds, and paychecks of the old life.', p2: 'The unglamorous middle you may be in right now: daily bread, identity questions, no highlight reel. It is not punishment. It is formation — and He speaks sonship over you IN it, not after it.', p3: 'The inheritance side: walking in freedom, health, assignment, and rest — giants included, outcome not in doubt (Rom 8:37).' }
   ]
@@ -2770,13 +2996,13 @@ const REF_RE = /((?:[123]\s)?(?:Gen|Ex|Lev|Num|Deut|Josh|Judg|Ruth|Sam|Kings|Chr
 function refLink(r) {
   return '<a class="ref-link" target="_blank" rel="noopener" href="' + BG + encodeURIComponent(r) + '" data-ref="' + r + '">' + r + '</a>';
 }
-/* text edition: 'updated' (default) or 'orig'. ver(a,b) marks a field whose
-   wording changed in this pass; pick() resolves it for the active edition.
-   linkRefs unwraps it, so any text routed through linkRefs is edition-aware. */
-let TEXT_EDITION = 'updated';
-function ver(a, b) { return { __ed: true, a: a, b: b }; }
-function pick(x) { return (x && x.__ed) ? (TEXT_EDITION === 'orig' ? x.a : x.b) : x; }
-function linkRefs(html) { return pick(html).replace(REF_RE, (m) => refLink(m)); }
+function linkRefs(html) { return html.replace(REF_RE, (m) => refLink(m)); }
+/* Storage is a nice-to-have, never a dependency: opened straight off disk (or inside a
+   sandboxed preview) reading localStorage throws SecurityError, and an unguarded read
+   used to take boot() down with it — leaving a page with a header and no content. */
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* preferences just won't persist */ } }
+
 function refRow(refs) {
   return '<div class="pillar-refs">' + refs.map(refLink).join(' · ') + '</div>';
 }
@@ -2818,7 +3044,7 @@ function buildHeroChart() {
       ' C 150 ' + y0 + ', 200 ' + midY + ', 296 ' + midY +
       ' S 462 ' + CY + ', ' + CX + ' ' + CY;
     // Thin visual colored path
-    paths += '<path class="hero-thread" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.2" stroke-linecap="round"></path>';
+    paths += '<path class="hero-thread" data-thread="' + t.id + '" style="--i:' + i + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.2" stroke-linecap="round"></path>';
     // Thicker invisible trigger path on top of visual path
     paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round"></path>';
   });
@@ -2828,16 +3054,35 @@ function buildHeroChart() {
     ticks += '<line x1="' + x + '" y1="288" x2="' + x + '" y2="294" stroke="var(--line)" stroke-width="1.5"/>' +
       '<text x="' + x + '" y="306" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
   });
-  return '<svg viewBox="0 0 720 316" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
+  return '<svg class="hero-svg" viewBox="0 0 720 316" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
     paths +
-    '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
-    '<path d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
-    '<circle cx="' + CX + '" cy="' + CY + '" r="5.5" fill="var(--gold)"/>' +
-    '<path d="M' + CX + ' 118 v-26 M' + (CX - 9) + ' 101 h18" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>' +
-    '<line x1="' + CX + '" y1="124" x2="' + CX + '" y2="' + (CY - 8) + '" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>' +
-    '<text x="' + CX + '" y="82" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
+    '<path class="hero-spur hero-spur-glow" d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
+    '<path class="hero-spur" d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
+    '<circle class="hero-node-halo" cx="' + CX + '" cy="' + CY + '" r="5.5" fill="none" stroke="var(--gold)" stroke-width="1.6"/>' +
+    '<circle class="hero-node" cx="' + CX + '" cy="' + CY + '" r="5.5" fill="var(--gold)"/>' +
+    '<path class="hero-cross" d="M' + CX + ' 118 v-26 M' + (CX - 9) + ' 101 h18" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>' +
+    '<line class="hero-drop" x1="' + CX + '" y1="124" x2="' + CX + '" y2="' + (CY - 8) + '" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>' +
+    '<text class="hero-jesus" x="' + CX + '" y="82" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
     ticks +
     '</svg>';
+}
+
+/* Arms the hero chart's draw-in. Path lengths are measured here and handed to CSS,
+   so nothing is hidden until the measurement actually succeeded — if this never runs,
+   the chart simply renders finished. */
+function initHeroChart() {
+  const svg = document.querySelector('.hero-scroll .hero-svg');
+  if (!svg || svg.classList.contains('hero-anim')) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  try {
+    svg.querySelectorAll('.hero-thread').forEach(p => {
+      p.style.setProperty('--len', Math.ceil(p.getTotalLength()));
+    });
+    svg.querySelectorAll('.hero-spur').forEach(p => {
+      p.style.setProperty('--len', Math.ceil(p.getTotalLength()));
+    });
+  } catch (e) { return; }
+  svg.classList.add('hero-anim');
 }
 
 /* ================= journey diorama (pattern) — isometric 3-tier scene ================= */
@@ -3141,7 +3386,20 @@ function vStart() {
   const legend = THREADS.map(t => {
     return '<button class="legend-chip" data-thread="' + t.id + '" style="--c:var(' + t.cvar + ')"><span class="dot"></span>' + t.name + '</button>';
   }).join('');
-  const ideas = START.bigIdea.map(i => '<div class="idea-row"><span class="idea-num"></span><div><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div></div>').join('');
+  const IDEA_META = [
+    { icon: 'book', c: '--c-library' },
+    { icon: 'cross', c: '--thread' },
+    { icon: 'water', c: '--c-pattern' },
+    { icon: 'key', c: '--gold' },
+    { icon: 'walk', c: '--c-walk' }
+  ];
+  const ideas = START.bigIdea.map((i, ix) => {
+    const m = IDEA_META[ix % IDEA_META.length];
+    return '<div class="idea-card" style="--c:var(' + m.c + ')">' +
+      '<div class="idea-top"><span class="idea-num">' + (ix + 1) + '</span>' +
+      '<span class="idea-ic">' + icon(m.icon) + '</span></div>' +
+      '<b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div>';
+  }).join('');
   const trails = NAV.slice(1).map(t =>
     '<a class="trailhead" href="#/' + t.id + '" style="--c:var(' + t.cvar + ')">' +
     '<span class="icon-chip">' + icon(t.icon) + '</span>' +
@@ -3167,7 +3425,7 @@ function vStart() {
     '    </div>' +
     '  </div>' +
     '  <div class="chart-main">' +
-    '    <span class="chart-corner tl">Gen 1:1</span><span class="chart-corner br">Rev 22:21</span>' +
+    '    <span class="chart-corner tl">' + refLink('Gen 1:1') + '</span><span class="chart-corner br">' + refLink('Rev 22:21') + '</span>' +
     '    <div class="hero-scroll">' + buildHeroChart() + '</div>' +
     '    <div class="hero-legend">' + legend + '</div>' +
     '  </div>' +
@@ -3192,8 +3450,12 @@ function vPattern() {
     '<div class="season-rows">' + s.rows.map(r =>
       '<div class="season-row"><span class="season-row-label">' + icon(ROW_ICONS[r.k] || 'compass') + r.k + '</span><p>' + linkRefs(r.v) + '</p></div>').join('') +
     '</div></div>').join('');
+  const INSIGHT_ICONS = ['dune', 'name', 'cross', 'water', 'compass', 'mountain', 'bread', 'light', 'gate'];
   const insights = PATTERN.insights.map((i, ix) =>
-    '<li><span class="insight-marker">' + (ix + 1) + '</span><div><b>' + i.t + '</b><span class="ins-txt">' + linkRefs(i.x) + '</span></div></li>').join('');
+    '<div class="insight-card" style="--c:var(--c-pattern)">' +
+    '<div class="insight-top"><span class="insight-marker">' + (ix + 1) + '</span>' +
+    '<span class="insight-ic">' + icon(INSIGHT_ICONS[ix % INSIGHT_ICONS.length]) + '</span></div>' +
+    '<b>' + i.t + '</b><p class="ins-txt">' + linkRefs(i.x) + '</p></div>').join('');
   const cases = PATTERN.cases.map((c, ix) =>
     '<div class="card case-card" id="case-' + ix + '" style="--c:var(--c-pattern)">' +
     '<div class="case-top"><div><h3>' + c.name + '</h3><span class="case-sub">' + c.sub + '</span></div></div>' +
@@ -3205,7 +3467,7 @@ function vPattern() {
     '</div></div>').join('');
   return '<div class="view">' + head(n, 'Egypt → Wilderness → Promised Land', PATTERN.intro) +
     '<div class="chart-panel journey-panel">' +
-    '<span class="chart-corner tl">Gen 15:13</span><span class="chart-corner br">Josh 21:45</span>' +
+    '<span class="chart-corner tl">' + refLink('Gen 15:13') + '</span><span class="chart-corner br">' + refLink('Josh 21:45') + '</span>' +
     '<div class="journey-scroll">' + buildJourneySVG() + '</div>' +
     '<div class="journey-caps">' +
     '<div class="journey-cap" style="--c:var(--s-egypt)"><b>Egypt says</b><span>' + linkRefs('“You are what you produce.” Worth measured in bricks per day (Ex 5:13-14).') + '</span></div>' +
@@ -3214,7 +3476,7 @@ function vPattern() {
     '</div></div>' +
     '<div class="season-grid">' + seasons + '</div>' +
     '<div class="home-section-title"><h2>Trail wisdom</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
-    '<ol class="insight-list">' + insights + '</ol>' +
+    '<div class="insight-grid">' + insights + '</div>' +
     '<div class="home-section-title"><h2>Case studies</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<p class="lede" style="margin-bottom:16px">“These things happened to them as examples… written down for our instruction” (' + refLink('1 Cor 10:11') + '). The library of case studies, in three-phase view:</p>' +
     '<div class="grid grid-3">' + cases + '</div>' +
@@ -3272,8 +3534,22 @@ function vCodes() {
     '<div class="tabernacle-zone zone-most-holy"><div class="zone-header">Holy of Holies <span class="zone-sub">Behind the Veil</span></div><div class="zone-stations">' + mostHolyStations + '</div></div>' +
     '</div>';
 
-  const feasts = CODES.feasts.map(f =>
-    '<div class="feast-row"><div class="feast-when">' + f.when + '</div><div><h4>' + f.name + ' ' + badge(f.badge) + '</h4><p>' + linkRefs(f.body) + '</p></div></div>').join('');
+  /* icons and the spring/autumn split mirror the arc above, so the chart and the list
+     name the same seven things the same way */
+  const FEAST_ICONS = ['lamb', 'bread', 'grapes', 'wind', 'music', 'gate', 'temple'];
+  const feastCard = (f, ix) =>
+    '<div class="feast-card' + (ix < 4 ? ' is-done' : ' is-ahead') + '">' +
+    '<div class="feast-card-top"><span class="icon-chip">' + icon(FEAST_ICONS[ix]) + '</span>' +
+    '<div class="feast-id"><h4>' + f.name + '</h4><span class="feast-when">' + f.when + '</span></div>' +
+    badge(f.badge) + '</div>' +
+    '<p>' + linkRefs(f.body) + '</p></div>';
+  const feasts =
+    '<div class="feast-group is-done">' +
+    '<span class="feast-group-label">' + icon('light') + 'Spring — fulfilled, to the day</span>' +
+    '<div class="feast-cards">' + CODES.feasts.slice(0, 4).map((f, i) => feastCard(f, i)).join('') + '</div></div>' +
+    '<div class="feast-group is-ahead">' +
+    '<span class="feast-group-label">' + icon('music') + 'Autumn — the shape of what is ahead</span>' +
+    '<div class="feast-cards">' + CODES.feasts.slice(4).map((f, i) => feastCard(f, i + 4)).join('') + '</div></div>';
   const loose = CODES.loose.map(l =>
     '<div class="card type-card" style="--c:var(--c-codes)"><h3>' + l.name + ' ' + badge(l.badge) + '</h3><p>' + linkRefs(l.body) + '</p></div>').join('');
   return '<div class="view">' + head(n, 'The codes: written in advance', CODES.intro) +
@@ -3284,16 +3560,25 @@ function vCodes() {
     '<div class="tabpane" data-pane="types" hidden><p class="lede" style="margin-bottom:18px">' + linkRefs(CODES.typesNote) + '</p><div class="grid grid-2">' + types + '</div></div>' +
     '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container" style="margin-bottom:30px">' + buildTabernacleSVG() + '</div>' + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
     '<div class="tabpane" data-pane="feasts" hidden>' +
-    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">Lev 23:2</span><span class="chart-corner br">Col 2:16-17</span>' + buildFeastArc() + '</div>' +
-    '<div class="card">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
+    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + refLink('Lev 23:2') + '</span><span class="chart-corner br">' + refLink('Col 2:16-17') + '</span>' + buildFeastArc() + '</div>' +
+    '<div class="feast-groups">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
     '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
     '</div>';
 }
 
 function vTriune() {
   const n = NAV[4];
-  const rails = TRIUNE.rails.map(r =>
-    '<div class="triune-rail" style="--c:var(--c-triune)"><span class="icon-chip">' + icon('trinity') + '</span><div><h3>' + r.t + '</h3><p>' + linkRefs(r.x) + '</p></div></div>').join('');
+  const RAIL_META = [
+    { icon: 'scroll', label: 'Load-bearing' },
+    { icon: 'ear', label: 'Listen for it' },
+    { icon: 'wind', label: 'Hold loosely' }
+  ];
+  const rails = TRIUNE.rails.map((r, ix) => {
+    const m = RAIL_META[ix % RAIL_META.length];
+    return '<div class="triune-rail" style="--c:var(--c-triune)">' +
+      '<span class="icon-chip">' + icon(m.icon) + '</span>' +
+      '<div><span class="rail-label">' + m.label + '</span><h3>' + r.t + '</h3><p>' + linkRefs(r.x) + '</p></div></div>';
+  }).join('');
   const anchors = TRIUNE.anchors.map(a =>
     '<div class="card triune-anchor-card" style="--c:var(--c-triune)">' +
     '<h3>' + a.name + ' ' + badge(a.badge) + '</h3>' +
@@ -3309,7 +3594,7 @@ function vTriune() {
     '<p class="reading">' + linkRefs(p.reading) + '</p>' +
     refRow(p.refs) + '</div>').join('');
   return '<div class="view">' + head(n, 'Father, Son & Spirit in the story', TRIUNE.intro) +
-    '<div class="card triune-rails" style="--c:var(--c-triune)">' + rails + '</div>' +
+    '<div class="triune-rails">' + rails + '</div>' +
     '<div class="home-section-title"><h2>Explicit anchors</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<div class="grid grid-2">' + anchors + '</div>' +
     '<div class="home-section-title"><h2>Story echoes</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
@@ -3323,10 +3608,10 @@ function vWalking() {
   const cards = WALKING.pillars.map(p =>
     '<div class="card pillar-card" style="--c:var(--c-walk)">' +
     '<div class="case-top"><span class="icon-chip">' + icon(p.icon) + '</span><h3>' + p.name + '</h3></div>' +
-    '<p class="lie">🚫 <b>Old Software:</b> ' + p.lie + '</p>' +
-    '<p class="truth">⚡ <b>New Identity:</b> ' + p.truth + '</p>' +
+    '<p class="lie">' + icon('ban') + '<span><b>Old Software:</b> ' + p.lie + '</span></p>' +
+    '<p class="truth">' + icon('bolt') + '<span><b>New Identity:</b> ' + p.truth + '</span></p>' +
     '<p class="pillar-body">' + linkRefs(p.body) + '</p>' +
-    '<div class="practice"><span class="label">🛠️ Try this</span>' + linkRefs(p.practice) + '</div>' +
+    '<div class="practice"><span class="label">' + icon('tool') + 'Try this</span>' + linkRefs(p.practice) + '</div>' +
     refRow(p.refs) + '</div>').join('');
   return '<div class="view">' + head(n, 'Walking in the new covenant', WALKING.intro) +
     '<div class="hero-legend" style="justify-content:flex-start;padding:0 0 8px">' + words + '</div>' +
@@ -3340,9 +3625,9 @@ function vDetours() {
     '<div class="card detour-card" id="d-' + i + '" style="--c:var(--c-detour)">' +
     '<h3><span class="icon-chip" style="--c:var(--c-detour)">' + icon('fork') + '</span>' + d.name + '</h3>' +
     '<div class="detour-rows">' +
-    '<div class="row pull"><b>🧲 The pull</b><span>' + linkRefs(d.pull) + '</span></div>' +
-    '<div class="row cost"><b>⚠️ The cost</b><span>' + linkRefs(d.cost) + '</span></div>' +
-    '<div class="row home"><b>🧭 The way home</b><span>' + linkRefs(d.home) + '</span></div>' +
+    '<div class="row pull"><b>' + icon('magnet') + 'The pull</b><span>' + linkRefs(d.pull) + '</span></div>' +
+    '<div class="row cost"><b>' + icon('alert') + 'The cost</b><span>' + linkRefs(d.cost) + '</span></div>' +
+    '<div class="row home"><b>' + icon('compass') + 'The way home</b><span>' + linkRefs(d.home) + '</span></div>' +
     '</div>' + refRow(d.refs) + '</div>').join('');
   return '<div class="view">' + head(n, 'Detours: sincere wrong turns', DETOURS.intro) +
     '<div class="grid grid-2">' + cards + '</div></div>';
@@ -3378,11 +3663,24 @@ function vMind() {
 
 function vLibrary() {
   const n = NAV[8];
+  const KIND_META = {
+    video: { icon: 'play', c: '--c-detour' },
+    book: { icon: 'book', c: '--c-library' },
+    site: { icon: 'globe', c: '--c-triune' },
+    podcast: { icon: 'mic', c: '--c-mind' },
+    channel: { icon: 'play', c: '--c-walk' }
+  };
   const shelves = LIBRARY.shelves.map(s =>
-    '<div class="shelf" style="--c:var(--c-library)"><div class="shelf-title">' + icon(s.icon) + '<h3>' + s.title + '</h3></div>' +
-    '<div class="shelf-items">' + s.items.map(i =>
-      '<div class="shelf-item"><span class="kind">' + i.kind + '</span>' +
-      '<span><b><a target="_blank" rel="noopener" href="' + i.url + '">' + i.title + '</a></b> — ' + i.by + '. <span>' + i.note + '</span></span></div>').join('') +
+    '<div class="shelf"><div class="shelf-title">' + icon(s.icon) + '<h3>' + s.title + '</h3></div>' +
+    '<div class="shelf-items">' + s.items.map(i => {
+      const m = KIND_META[i.kind] || KIND_META.book;
+      return '<a class="shelf-item" style="--c:var(' + m.c + ')" target="_blank" rel="noopener" href="' + i.url + '">' +
+        '<span class="kind">' + icon(m.icon) + i.kind + '</span>' +
+        '<b>' + i.title + '</b>' +
+        '<span class="by">' + i.by + '</span>' +
+        '<span class="note-txt">' + i.note + '</span>' +
+        '<span class="shelf-go">Open' + icon('linkout') + '</span></a>';
+    }).join('') +
     '</div></div>').join('');
   return '<div class="view">' + head(n, 'The pack list', LIBRARY.intro) + shelves + '</div>';
 }
@@ -3495,8 +3793,8 @@ function cancelPreviewReset() {
 }
 
 function buildThreadPreviewContent(t) {
-  const shortWay = t.way.slice(0, 3).map(w => 
-    '<li><b>' + w.ref + ':</b> ' + w.note + '</li>'
+  const shortWay = t.way.slice(0, 3).map(w =>
+    '<li><b>' + refLink(w.ref) + ':</b> ' + linkRefs(w.note) + '</li>'
   ).join('');
 
   return (
@@ -3511,7 +3809,7 @@ function buildThreadPreviewContent(t) {
     '    <ul>' + shortWay + '</ul>' +
     '    <div class="preview-lands">' +
     '      <strong>Where it lands</strong>' +
-    '      <p>' + t.landsOn + '</p>' +
+    '      <p>' + linkRefs(t.landsOn) + '</p>' +
     '    </div>' +
     '  </div>' +
     '</div>'
@@ -3771,6 +4069,94 @@ function setupScrollspy() {
   });
 }
 
+/* ================= translation picker ================= */
+const VERSIONS = [
+  { code: 'NIV', full: 'New International Version' },
+  { code: 'NASB', full: 'New American Standard' },
+  { code: 'ESV', full: 'English Standard Version' },
+  { code: 'KJV', full: 'King James Version' },
+  { code: 'NLT', full: 'New Living Translation' },
+  { code: 'AMP', full: 'Amplified Bible' },
+  { code: 'MSG', full: 'The Message' },
+  { code: 'TPT', full: 'The Passion Translation' }
+];
+let ACTIVE_VERSION = 'NIV';
+function getVersion() { return ACTIVE_VERSION; }
+
+function initVersionPicker() {
+  const wrap = document.getElementById('verpick');
+  const btn = document.getElementById('verpick-btn');
+  const menu = document.getElementById('verpick-menu');
+  const val = document.getElementById('verpick-val');
+  if (!wrap || !btn || !menu || !val) return;
+
+  const saved = lsGet('thread-version');
+  if (saved && VERSIONS.some(v => v.code === saved)) ACTIVE_VERSION = saved;
+  val.textContent = ACTIVE_VERSION;
+
+  menu.innerHTML = '<span class="verpick-head">Verse pop-ups read in</span>' +
+    VERSIONS.map(v =>
+      '<button class="verpick-opt" type="button" role="option" data-v="' + v.code + '"' +
+      ' aria-selected="' + (v.code === ACTIVE_VERSION) + '">' +
+      '<span class="code">' + v.code + '</span><span class="full">' + v.full + '</span></button>').join('') +
+    '<span class="verpick-note">TPT is copyrighted, so pop-ups fall back to NLT with a link out.</span>';
+
+  const opts = () => Array.from(menu.querySelectorAll('.verpick-opt'));
+  const close = () => {
+    wrap.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    menu.hidden = true;
+    opts().forEach(o => o.classList.remove('cursor'));
+  };
+  const open = () => {
+    wrap.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    menu.hidden = false;
+    const sel = menu.querySelector('[aria-selected="true"]') || opts()[0];
+    if (sel) sel.classList.add('cursor');
+  };
+  const choose = code => {
+    ACTIVE_VERSION = code;
+    lsSet('thread-version', code);
+    val.textContent = code;
+    opts().forEach(o => o.setAttribute('aria-selected', String(o.dataset.v === code)));
+    close();
+    btn.focus();
+  };
+  const moveCursor = step => {
+    const list = opts();
+    const i = list.findIndex(o => o.classList.contains('cursor'));
+    const next = list[Math.max(0, Math.min(list.length - 1, (i < 0 ? 0 : i + step)))];
+    list.forEach(o => o.classList.remove('cursor'));
+    if (next) next.classList.add('cursor');
+  };
+
+  btn.addEventListener('click', ev => {
+    ev.stopPropagation();
+    menu.hidden ? open() : close();
+  });
+  menu.addEventListener('click', ev => {
+    const opt = ev.target.closest('.verpick-opt');
+    if (opt) choose(opt.dataset.v);
+  });
+  document.addEventListener('click', ev => {
+    if (!menu.hidden && !ev.target.closest('#verpick')) close();
+  });
+  wrap.addEventListener('keydown', ev => {
+    if (ev.key === 'Escape' && !menu.hidden) { ev.preventDefault(); close(); btn.focus(); return; }
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+      ev.preventDefault();
+      if (menu.hidden) { open(); return; }
+      moveCursor(ev.key === 'ArrowDown' ? 1 : -1);
+      return;
+    }
+    if ((ev.key === 'Enter' || ev.key === ' ') && !menu.hidden) {
+      const cur = menu.querySelector('.verpick-opt.cursor');
+      if (cur) { ev.preventDefault(); choose(cur.dataset.v); }
+    }
+  });
+}
+
 /* ================= hover scripture tooltips & local TPT cache ================= */
 const TPT_CACHE = {
   'John 3:16': '“For this is how God loved the world: He gave his unique, One and Only Son as a gift. So now everyone who believes in him will never perish, but experience everlasting life.”',
@@ -3909,7 +4295,7 @@ function initTooltip() {
 
 function showTooltip(link, ref) {
   if (tooltipTimer) clearTimeout(tooltipTimer);
-  const version = document.getElementById('version-select').value;
+  const version = getVersion();
   
   const rect = link.getBoundingClientRect();
   const scrollY = window.scrollY || window.pageYOffset;
@@ -3965,6 +4351,7 @@ function renderSections() {
   measureThreadPreviewHeight();
   wireAllSections();
   initMarquees();
+  initHeroChart();
   layoutRail();
 }
 
@@ -4041,16 +4428,6 @@ function layoutRail() {
 }
 window.addEventListener('resize', () => setTimeout(layoutRail, 200));
 
-function applyEdition(ed) {
-  TEXT_EDITION = (ed === 'orig') ? 'orig' : 'updated';
-  localStorage.setItem('thread-edition', TEXT_EDITION);
-  const y = window.scrollY;
-  renderSections();
-  window.scrollTo(0, y);
-  setupScrollspy();
-  document.querySelectorAll('.edition-btn').forEach(b => b.classList.toggle('active', b.dataset.ed === TEXT_EDITION));
-}
-
 function boot() {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
@@ -4075,29 +4452,16 @@ function boot() {
   });
 
   const root = document.documentElement;
-  const saved = localStorage.getItem('thread-theme');
+  const saved = lsGet('thread-theme');
   if (saved) root.dataset.theme = saved;
   document.getElementById('theme-toggle').addEventListener('click', () => {
     const dark = root.dataset.theme === 'dark' || (!root.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     root.dataset.theme = dark ? 'light' : 'dark';
-    localStorage.setItem('thread-theme', root.dataset.theme);
+    lsSet('thread-theme', root.dataset.theme);
   });
 
-  const select = document.getElementById('version-select');
-  const savedVer = localStorage.getItem('thread-version');
-  if (savedVer) select.value = savedVer;
-  select.addEventListener('change', () => {
-    localStorage.setItem('thread-version', select.value);
-  });
+  initVersionPicker();
 
-  // text edition toggle (original vs updated wording) — restore before first render
-  if (localStorage.getItem('thread-edition') === 'orig') TEXT_EDITION = 'orig';
-  document.querySelectorAll('.edition-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.ed === TEXT_EDITION);
-    btn.addEventListener('click', () => applyEdition(btn.dataset.ed));
-  });
-
-  // Render all sections (edition-aware) on the single page
   initRail();
   renderSections();
 
