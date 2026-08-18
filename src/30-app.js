@@ -2,8 +2,30 @@
 const BG = 'https://www.biblegateway.com/passage/?search=';
 const REF_RE = /((?:[123]\s)?(?:Gen|Ex|Lev|Num|Deut|Josh|Judg|Ruth|Sam|Kings|Chr|Ezra|Neh|Esth|Job|Ps|Prov|Eccl|Song|Isa|Jer|Lam|Ezek|Dan|Hos|Joel|Amos|Jonah|Mic|Micah|Nah|Hab|Zeph|Hag|Zech|Mal|Matt|Mark|Luke|John|Acts|Rom|Cor|Gal|Eph|Phil|Col|Thess|Tim|Titus|Heb|Jas|James|Pet|Jude|Rev)\s\d+(?::\d+(?:[-–]\d+(?::\d+)?)?(?:,\s?\d+(?:[-–]\d+)?)*)?)/g;
 
-function refLink(r) {
+function splitReferenceGroup(refs) {
+  const parts = String(refs).split(/\s*;\s*/).filter(Boolean);
+  let lastBook = '';
+  const expanded = [];
+  parts.forEach(part => {
+    const book = part.match(/^((?:[123]\s)?[A-Za-z]+)\s+\d/);
+    if (book) lastBook = book[1];
+    else if (lastBook && /^\d/.test(part)) part = lastBook + ' ' + part;
+    const commaGroup = part.match(/^((?:[123]\s)?[A-Za-z]+)\s+(\d+):(.+,.+)$/);
+    if (commaGroup) {
+      commaGroup[3].split(/\s*,\s*/).forEach(verse => expanded.push(commaGroup[1] + ' ' + commaGroup[2] + ':' + verse));
+    } else {
+      expanded.push(part);
+    }
+  });
+  return expanded;
+}
+
+function singleRefLink(r) {
   return '<a class="ref-link" target="_blank" rel="noopener" href="' + BG + encodeURIComponent(r) + '" data-ref="' + r + '">' + r + '</a>';
+}
+
+function refLink(r) {
+  return splitReferenceGroup(r).map(singleRefLink).join('<span class="ref-separator">; </span>');
 }
 function linkRefs(html) { return html.replace(REF_RE, (m) => refLink(m)); }
 /* Storage is a nice-to-have, never a dependency: opened straight off disk (or inside a
@@ -62,8 +84,8 @@ function buildHeroChart() {
   const eras = [[70, 'TORAH'], [180, 'HISTORY'], [277, 'POETS'], [398, 'PROPHETS'], [528, 'GOSPELS'], [622, 'LETTERS'], [694, 'REV']];
   let ticks = '';
   eras.forEach(([x, l]) => {
-    ticks += '<line x1="' + x + '" y1="288" x2="' + x + '" y2="294" stroke="var(--line)" stroke-width="1.5"/>' +
-      '<text x="' + x + '" y="306" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
+    ticks += '<line class="hero-era" x1="' + x + '" y1="288" x2="' + x + '" y2="294" stroke="var(--line)" stroke-width="1.5"/>' +
+      '<text class="hero-era" x="' + x + '" y="306" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
   });
   return '<svg class="hero-svg" viewBox="0 0 720 316" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
     labels + paths +
@@ -74,6 +96,7 @@ function buildHeroChart() {
     '<path class="hero-cross" d="M' + CX + ' 118 v-26 M' + (CX - 9) + ' 101 h18" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>' +
     '<line class="hero-drop" x1="' + CX + '" y1="124" x2="' + CX + '" y2="' + (CY - 8) + '" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>' +
     '<text class="hero-jesus" x="' + CX + '" y="82" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
+    '<text class="hero-mobile-testaments" x="' + CX + '" y="82" text-anchor="middle" font-size="8.5" letter-spacing="1.4" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">OLD TESTAMENT / NEW TESTAMENT</text>' +
     ticks +
     '</svg>';
 }
@@ -436,9 +459,9 @@ function vStart() {
     '    </div>' +
     '  </div>' +
     '  <div class="chart-main">' +
-    '    <span class="chart-corner tl">' + refLink('Gen 1:1') + '</span><span class="chart-corner br">' + refLink('Rev 22:21') + '</span>' +
-    '    <div class="hero-scroll">' + buildHeroChart() + '</div>' +
+    '    <div class="hero-scroll"><span class="chart-corner tl">' + refLink('Gen 1:1') + '</span><span class="chart-corner br">' + refLink('Rev 22:21') + '</span>' + buildHeroChart() + '</div>' +
     '    <div class="hero-legend">' + legend + '</div>' +
+    '    <div class="mobile-preview-header" id="mobile-preview-header" hidden aria-live="polite"></div>' +
     '  </div>' +
     '</div>' +
     '<p class="hero-verse">' + START.heroVerse.text + '<span class="vref">— ' + refLink(START.heroVerse.ref) + ' · the Emmaus road</span></p>' +
@@ -499,7 +522,7 @@ function vThreads() {
   const n = NAV[2];
   const rows = THREADS.map(t => {
     const wps = t.way.map(w =>
-      '<div class="wp-card' + (w.j ? ' wp-cross' : '') + '"><span class="wp-ref">' + refLink(w.ref) + (w.j ? ' · lands here' : '') + '</span><p>' + linkRefs(w.note) + '</p></div>').join('');
+      '<div class="wp-card' + (w.j ? ' wp-cross' : '') + '" data-verse-ref="' + escapeScriptureText(splitReferenceGroup(w.ref)[0]) + '"><span class="wp-ref">' + refLink(w.ref) + (w.j ? ' · lands here' : '') + '</span><p>' + linkRefs(w.note) + '</p></div>').join('');
     return '<div class="thread-row" id="t-' + t.id + '" style="--c:var(' + t.cvar + ')">' +
       '<div class="thread-row-head">' +
       '<span class="icon-chip">' + icon(t.icon) + '</span>' +
@@ -816,6 +839,10 @@ function cancelPreviewReset() {
   if (previewResetTimer) clearTimeout(previewResetTimer);
 }
 
+function buildThreadPreviewHeader(t) {
+  return '<span class="preview-icon">' + icon(t.icon) + '</span><h3>' + t.name + '</h3>';
+}
+
 function buildThreadPreviewContent(t) {
   const shortWay = t.way.slice(0, 3).map(w =>
     '<li><b>' + refLink(w.ref) + ':</b> ' + linkRefs(w.note) + '</li>'
@@ -823,10 +850,7 @@ function buildThreadPreviewContent(t) {
 
   return (
     '<div class="preview-content" style="--c: var(' + t.cvar + ')">' +
-    '  <div class="preview-header">' +
-    '    <span class="preview-icon">' + icon(t.icon) + '</span>' +
-    '    <h3>' + t.name + '</h3>' +
-    '  </div>' +
+    '  <div class="preview-header">' + buildThreadPreviewHeader(t) + '</div>' +
     '  <p class="preview-tag">' + t.tag + '</p>' +
     '  <div class="preview-body">' +
     '    <h4>Journey Milestones:</h4>' +
@@ -871,6 +895,17 @@ function measureThreadPreviewHeight() {
   });
 
   previewEl.style.setProperty('--thread-preview-lock-height', Math.max(lockedHeight, 420) + 'px');
+  syncMobileStickyOffsets();
+}
+
+function syncMobileStickyOffsets() {
+  const heroChart = document.querySelector('.hero-chart');
+  const chartMain = heroChart && heroChart.querySelector('.chart-main');
+  const topbar = document.querySelector('.topbar');
+  if (!heroChart || !chartMain || !topbar) return;
+  heroChart.style.setProperty('--mobile-sticky-top', Math.ceil(topbar.getBoundingClientRect().height) + 'px');
+  const heroSvg = heroChart.querySelector('.hero-svg');
+  if (heroSvg) heroSvg.setAttribute('viewBox', window.innerWidth <= 720 ? '28 0 664 316' : '0 0 720 316');
 }
 
 function scheduleThreadPreviewMeasure() {
@@ -888,6 +923,12 @@ function updateThreadPreview(threadId) {
   if (!previewEl) return;
 
   previewEl.innerHTML = buildThreadPreviewContent(t);
+  const mobileHeader = document.getElementById('mobile-preview-header');
+  if (mobileHeader) {
+    mobileHeader.hidden = false;
+    mobileHeader.style.setProperty('--c', 'var(' + t.cvar + ')');
+    mobileHeader.innerHTML = buildThreadPreviewHeader(t);
+  }
   activePreviewThreadId = threadId;
 }
 
@@ -895,6 +936,11 @@ function resetThreadPreview() {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
   activePreviewThreadId = null;
+  const mobileHeader = document.getElementById('mobile-preview-header');
+  if (mobileHeader) {
+    mobileHeader.hidden = true;
+    mobileHeader.innerHTML = '';
+  }
   previewEl.innerHTML = 
     '  <div class="preview-placeholder">' +
     '    <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
@@ -1117,25 +1163,29 @@ const VERSIONS = [
 ];
 let ACTIVE_VERSION = 'NIV';
 function getVersion() { return ACTIVE_VERSION; }
+function applyVersion(code) {
+  if (!VERSIONS.some(v => v.code === code)) return;
+  ACTIVE_VERSION = code;
+  lsSet('thread-version', code);
+  document.querySelectorAll('.verpick-val').forEach(val => { val.textContent = code; });
+  document.querySelectorAll('.verpick-opt').forEach(o => o.setAttribute('aria-selected', String(o.dataset.v === code)));
+}
 
-function initVersionPicker() {
-  const wrap = document.getElementById('verpick');
-  const btn = document.getElementById('verpick-btn');
-  const menu = document.getElementById('verpick-menu');
-  const val = document.getElementById('verpick-val');
-  if (!wrap || !btn || !menu || !val) return;
-
-  const saved = lsGet('thread-version');
-  if (saved && VERSIONS.some(v => v.code === saved)) ACTIVE_VERSION = saved;
-  val.textContent = ACTIVE_VERSION;
-
-  menu.innerHTML = '<span class="verpick-head">Verse pop-ups read in</span>' +
+function versionMenuHtml(heading) {
+  return '<span class="verpick-head">' + heading + '</span>' +
     VERSIONS.map(v =>
       '<button class="verpick-opt" type="button" role="option" data-v="' + v.code + '"' +
       ' aria-selected="' + (v.code === ACTIVE_VERSION) + '">' +
-      '<span class="code">' + v.code + '</span><span class="full">' + v.full + '</span></button>').join('') +
-    '<span class="verpick-note">TPT pop-ups are supplied by YouVersion; the other translations use Bolls.life.</span>';
+      '<span class="code">' + v.code + '</span><span class="full">' + v.full + '</span></button>').join('');
+}
 
+function wireVersionPicker(wrap, onChoose) {
+  const btn = wrap && wrap.querySelector('.verpick-btn');
+  const menu = wrap && wrap.querySelector('.verpick-menu');
+  const val = wrap && wrap.querySelector('.verpick-val');
+  if (!wrap || !btn || !menu || !val) return null;
+
+  val.textContent = ACTIVE_VERSION;
   const opts = () => Array.from(menu.querySelectorAll('.verpick-opt'));
   const close = () => {
     wrap.classList.remove('open');
@@ -1151,11 +1201,9 @@ function initVersionPicker() {
     if (sel) sel.classList.add('cursor');
   };
   const choose = code => {
-    ACTIVE_VERSION = code;
-    lsSet('thread-version', code);
-    val.textContent = code;
-    opts().forEach(o => o.setAttribute('aria-selected', String(o.dataset.v === code)));
+    applyVersion(code);
     close();
+    if (onChoose) onChoose(code);
     btn.focus();
   };
   const moveCursor = step => {
@@ -1175,7 +1223,7 @@ function initVersionPicker() {
     if (opt) choose(opt.dataset.v);
   });
   document.addEventListener('click', ev => {
-    if (!menu.hidden && !ev.target.closest('#verpick')) close();
+    if (!menu.hidden && !wrap.contains(ev.target)) close();
   });
   wrap.addEventListener('keydown', ev => {
     if (ev.key === 'Escape' && !menu.hidden) { ev.preventDefault(); close(); btn.focus(); return; }
@@ -1190,6 +1238,21 @@ function initVersionPicker() {
       if (cur) { ev.preventDefault(); choose(cur.dataset.v); }
     }
   });
+  return { close };
+}
+
+function initVersionPicker() {
+  const wrap = document.getElementById('verpick');
+  const btn = document.getElementById('verpick-btn');
+  const menu = document.getElementById('verpick-menu');
+  const val = document.getElementById('verpick-val');
+  if (!wrap || !btn || !menu || !val) return;
+
+  const saved = lsGet('thread-version');
+  if (saved && VERSIONS.some(v => v.code === saved)) ACTIVE_VERSION = saved;
+  val.textContent = ACTIVE_VERSION;
+  menu.innerHTML = versionMenuHtml('Verse pop-ups read in');
+  wireVersionPicker(wrap);
 }
 
 /* ================= hover scripture tooltips & translation APIs ================= */
@@ -1215,6 +1278,7 @@ let tooltipPinned = false;
 let tooltipRequestId = 0;
 let contextDialogEl = null;
 let contextRequestId = 0;
+let contextVersionPicker = null;
 
 function parseReference(refStr) {
   const clean = refStr.replace(/–/g, '-').trim();
@@ -1276,11 +1340,18 @@ function escapeScriptureText(text) {
   })[character]);
 }
 
+function cleanBollsText(text) {
+  return String(text)
+    .replace(/<s>[\s\S]*?<\/s>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .trim();
+}
+
 async function fetchTptFromYouVersion(ref) {
   const passage = toYouVersionPassage(ref);
   if (!passage) throw new Error('Reference not recognized.');
   const text = await fetchTptPassage(passage);
-  return escapeScriptureText(text) + '<span class="tooltip-note">The Passion Translation® (TPT) · supplied by YouVersion. Copyright © 2020 Passion &amp; Fire Ministries, Inc.</span>';
+  return escapeScriptureText(text);
 }
 
 async function fetchTptPassage(passage) {
@@ -1333,7 +1404,7 @@ async function fetchFromBolls(ref, version) {
   if (!filtered.length) return 'Verse not found in ' + version + '.';
 
   return filtered.map(v => {
-    return v.text.replace(/<[^>]+>/g, '').trim();
+    return cleanBollsText(v.text);
   }).join(' ');
 }
 
@@ -1349,55 +1420,55 @@ async function getBollsChapter(version, bookId, chapter) {
   return chapterCache[cacheKey];
 }
 
-async function loadVerseContext(ref, version) {
+async function loadVerseContext(ref, version, radius) {
   const parsed = parseReference(ref);
   if (!parsed) throw new Error('Reference not recognized.');
   return version === 'TPT'
-    ? loadTptContext(parsed)
-    : loadBollsContext(parsed, version);
+    ? loadTptContext(parsed, radius)
+    : loadBollsContext(parsed, version, radius);
 }
 
-async function loadBollsContext(parsed, version) {
+async function loadBollsContext(parsed, version, radius) {
   const verses = await getBollsChapter(version, parsed.bookId, parsed.chapter);
   if (!verses || !verses.length) throw new Error('Verse not found.');
   const selectedStart = parsed.verseStart === null ? 1 : parsed.verseStart;
   const selectedEnd = parsed.verseEnd || selectedStart;
-  const rangeStart = Math.max(1, selectedStart - 4);
-  const rangeEnd = selectedEnd + 4;
+  const rangeStart = Math.max(1, selectedStart - radius);
+  const rangeEnd = selectedEnd + radius;
   const rows = verses.filter(v => v.verse >= rangeStart && v.verse <= rangeEnd);
-  return rows.map(v => {
+  return '<p class="context-passage">' + rows.map(v => {
     const selected = v.verse >= selectedStart && v.verse <= selectedEnd;
-    const text = escapeScriptureText(String(v.text).replace(/<[^>]+>/g, '').trim());
-    return '<p class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + v.verse + '</sup><span>' + text + '</span></p>';
-  }).join('');
+    const text = escapeScriptureText(cleanBollsText(v.text));
+    return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + v.verse + '</sup>' + text + '</span>';
+  }).join(' ') + '</p>';
 }
 
-async function loadTptContext(parsed) {
+async function loadTptContext(parsed, radius) {
   const book = YOUVERSION_USFM_BOOKS[parsed.bookId];
   if (!book) throw new Error('Reference not recognized.');
   const selectedStart = parsed.verseStart === null ? 1 : parsed.verseStart;
   const selectedEnd = parsed.verseEnd || selectedStart;
-  const beforeStart = Math.max(1, selectedStart - 4);
-  const afterEnd = selectedEnd + 4;
+  const beforeStart = Math.max(1, selectedStart - radius);
+  const afterEnd = selectedEnd + radius;
   const passage = (start, end) => book + '.' + parsed.chapter + '.' + start + (end > start ? '-' + end : '');
   const requests = [];
 
   if (beforeStart < selectedStart) {
     requests.push(fetchTptPassage(passage(beforeStart, selectedStart - 1)).then(text =>
-      '<div class="context-block">' + escapeScriptureText(text) + '</div>'
+      '<span class="context-block">' + escapeScriptureText(text) + '</span>'
     ));
   }
   requests.push(fetchTptPassage(passage(selectedStart, selectedEnd)).then(text =>
-    '<div class="context-block is-selected">' + escapeScriptureText(text) + '</div>'
+    '<span class="context-block is-selected">' + escapeScriptureText(text) + '</span>'
   ));
   requests.push(fetchTptPassage(passage(selectedEnd + 1, afterEnd)).then(text =>
-    '<div class="context-block">' + escapeScriptureText(text) + '</div>'
+    '<span class="context-block">' + escapeScriptureText(text) + '</span>'
   ));
 
   const results = await Promise.allSettled(requests);
   const blocks = results.filter(result => result.status === 'fulfilled').map(result => result.value);
   if (!blocks.length) throw new Error('Verse not found.');
-  return blocks.join('') + '<p class="context-source">The Passion Translation® (TPT) · supplied by YouVersion. Copyright © 2020 Passion &amp; Fire Ministries, Inc.</p>';
+  return '<p class="context-passage">' + blocks.join(' ') + '</p>';
 }
 
 function initTooltip() {
@@ -1407,15 +1478,35 @@ function initTooltip() {
 
   contextDialogEl = document.createElement('dialog');
   contextDialogEl.className = 'verse-context-dialog';
+  contextDialogEl.tabIndex = -1;
   contextDialogEl.innerHTML =
     '<div class="context-dialog-inner">' +
     '  <header class="context-dialog-head"><div><span class="label">See in context</span><h3></h3></div>' +
-    '  <button class="context-dialog-close" type="button" aria-label="Close">×</button></header>' +
+    '  <div class="context-dialog-actions"><div class="verpick context-verpick">' +
+    '    <button class="verpick-btn" type="button" aria-haspopup="listbox" aria-expanded="false" title="Bible translation">' +
+    '      <svg class="verpick-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C10 4.4 7 4.1 4 4.6V19c3-.5 6-.2 8 1.6 2-1.8 5-2.1 8-1.6V4.6c-3-.5-6-.2-8 1.6z"/><path d="M12 6.2v14.4"/></svg>' +
+    '      <span class="verpick-val">' + ACTIVE_VERSION + '</span>' +
+    '      <svg class="verpick-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 9.8 5.5 5 5.5-5"/></svg>' +
+    '    </button><div class="verpick-menu" role="listbox" aria-label="Bible translation" hidden></div></div>' +
+    '    <button class="context-dialog-close" type="button" aria-label="Close">×</button></div></header>' +
     '  <div class="context-dialog-body" aria-live="polite"></div>' +
+    '  <footer class="context-dialog-foot"><button class="context-more-button" type="button">Even more context</button></footer>' +
     '</div>';
   document.body.appendChild(contextDialogEl);
+  const contextPickerWrap = contextDialogEl.querySelector('.context-verpick');
+  contextPickerWrap.querySelector('.verpick-menu').innerHTML = versionMenuHtml('Read this passage in');
+  contextVersionPicker = wireVersionPicker(contextPickerWrap, code => {
+    contextDialogEl.dataset.version = code;
+    refreshVerseContext(false);
+  });
+
+  tooltipEl.addEventListener('mouseenter', () => {
+    if (tooltipTimer) clearTimeout(tooltipTimer);
+  });
+  tooltipEl.addEventListener('mouseleave', () => hideTooltip());
 
   document.body.addEventListener('mouseover', ev => {
+    if (tooltipPinned) return;
     const link = ev.target.closest('.ref-link');
     if (!link) return;
     const ref = link.dataset.ref || link.textContent;
@@ -1445,10 +1536,22 @@ function initTooltip() {
       return;
     }
 
+    const waypoint = ev.target.closest('.wp-card[data-verse-ref]');
+    if (waypoint) {
+      ev.preventDefault();
+      showTooltip(waypoint, waypoint.dataset.verseRef, true);
+      return;
+    }
+
     if (tooltipPinned && !ev.target.closest('.verse-tooltip')) hideTooltip(true);
   });
 
   contextDialogEl.querySelector('.context-dialog-close').addEventListener('click', () => contextDialogEl.close());
+  contextDialogEl.querySelector('.context-more-button').addEventListener('click', () => {
+    contextDialogEl.dataset.radius = String((parseInt(contextDialogEl.dataset.radius, 10) || 4) + 6);
+    refreshVerseContext(true);
+  });
+  contextDialogEl.addEventListener('close', () => { if (contextVersionPicker) contextVersionPicker.close(); });
   contextDialogEl.addEventListener('click', ev => {
     if (ev.target === contextDialogEl) contextDialogEl.close();
   });
@@ -1513,22 +1616,55 @@ function hideTooltip(force) {
   }, 200);
 }
 
-function openVerseContext(ref, version) {
-  if (!contextDialogEl || !ref) return;
+function refreshVerseContext(preserveSelection) {
+  if (!contextDialogEl) return;
+  const ref = contextDialogEl.dataset.ref;
+  const version = contextDialogEl.dataset.version || getVersion();
+  const radius = parseInt(contextDialogEl.dataset.radius, 10) || 4;
+  if (!ref) return;
   const requestId = ++contextRequestId;
-  contextDialogEl.querySelector('h3').textContent = ref + ' · ' + version;
   const body = contextDialogEl.querySelector('.context-dialog-body');
-  body.innerHTML = '<p class="context-loading">Loading surrounding verses…</p>';
-  if (typeof contextDialogEl.showModal === 'function') contextDialogEl.showModal();
-  else contextDialogEl.setAttribute('open', '');
+  const moreButton = contextDialogEl.querySelector('.context-more-button');
+  const selectedBefore = preserveSelection && body.querySelector('.is-selected');
+  const selectedOffsetBefore = selectedBefore ? selectedBefore.offsetTop : 0;
+  const scrollBefore = body.scrollTop;
+  if (!preserveSelection) body.innerHTML = '<p class="context-loading">Loading surrounding verses…</p>';
+  moreButton.disabled = true;
+  moreButton.textContent = preserveSelection ? 'Loading more…' : 'Even more context';
 
-  loadVerseContext(ref, version).then(html => {
+  loadVerseContext(ref, version, radius).then(html => {
     if (requestId !== contextRequestId) return;
     body.innerHTML = html;
+    if (preserveSelection) {
+      const selectedAfter = body.querySelector('.is-selected');
+      if (selectedAfter) body.scrollTop = scrollBefore + selectedAfter.offsetTop - selectedOffsetBefore;
+    }
+    moreButton.disabled = false;
+    moreButton.textContent = 'Even more context';
   }).catch(() => {
     if (requestId !== contextRequestId) return;
     body.innerHTML = '<p>Unable to load the surrounding verses right now.</p>';
+    moreButton.disabled = false;
+    moreButton.textContent = 'Even more context';
   });
+}
+
+function openVerseContext(ref, version) {
+  if (!contextDialogEl || !ref) return;
+  version = version || getVersion();
+  contextDialogEl.dataset.ref = ref;
+  contextDialogEl.dataset.version = version;
+  contextDialogEl.dataset.radius = '4';
+  contextDialogEl.querySelector('h3').textContent = ref;
+  applyVersion(version);
+  const body = contextDialogEl.querySelector('.context-dialog-body');
+  body.scrollTop = 0;
+  if (!contextDialogEl.open) {
+    if (typeof contextDialogEl.showModal === 'function') contextDialogEl.showModal();
+    else contextDialogEl.setAttribute('open', '');
+  }
+  contextDialogEl.focus({ preventScroll: true });
+  refreshVerseContext(false);
 }
 
 function renderSections() {
@@ -1536,10 +1672,11 @@ function renderSections() {
   let html = '';
   NAV.forEach(n => {
     const fn = VIEWS[n.id];
-    if (fn) html += '<section id="' + n.id + '" class="section-block">' + fn() + '</section>';
+    if (fn) html += '<section id="' + n.id + '" class="section-block" style="--section-c:var(' + n.cvar + ')">' + fn() + '</section>';
   });
   container.innerHTML = html;
   measureThreadPreviewHeight();
+  syncMobileStickyOffsets();
   wireAllSections();
   initMarquees();
   initHeroChart();
@@ -1559,30 +1696,36 @@ function initMarquees() {
     if (!track.dataset.orig) track.dataset.orig = track.innerHTML;
     track.innerHTML = track.dataset.orig;
     mq.scrollLeft = 0;
-    if (reduced || track.scrollWidth <= mq.clientWidth + 4) return;
+    if (reduced) return;
 
     track.innerHTML =
       '<div class="marquee-group">' + track.dataset.orig + '</div>' +
       '<div class="marquee-group" aria-hidden="true">' + track.dataset.orig + '</div>';
 
     const firstGroup = track.querySelector('.marquee-group');
+    track.querySelectorAll('.marquee-group[aria-hidden="true"] a, .marquee-group[aria-hidden="true"] button').forEach(el => el.tabIndex = -1);
     const loopWidth = firstGroup.offsetWidth + 10;
     let frame = 0;
     let lastTime = 0;
+    let scrollPosition = 0;
     let dragging = false;
-    let moved = false;
+    let hoverPaused = false;
+    let tapPaused = false;
+    let ignoreHoverUntilLeave = false;
+    let suppressClickUntil = 0;
     let startX = 0;
     let startScroll = 0;
 
     const wrapScroll = () => {
-      if (mq.scrollLeft >= loopWidth) mq.scrollLeft -= loopWidth;
-      else if (mq.scrollLeft < 0) mq.scrollLeft += loopWidth;
+      if (scrollPosition >= loopWidth) scrollPosition -= loopWidth;
+      else if (scrollPosition < 0) scrollPosition += loopWidth;
+      mq.scrollLeft = scrollPosition;
     };
 
     const tick = time => {
       if (!lastTime) lastTime = time;
-      if (!dragging) {
-        mq.scrollLeft += Math.min(time - lastTime, 40) * 0.022;
+      if (!dragging && !hoverPaused && !tapPaused) {
+        scrollPosition += Math.min(time - lastTime, 40) * 0.022;
         wrapScroll();
       }
       lastTime = time;
@@ -1590,33 +1733,56 @@ function initMarquees() {
     };
 
     const onPointerDown = ev => {
+      if (ev.pointerType === 'mouse' && ev.button !== 0) return;
       dragging = true;
-      moved = false;
       startX = ev.clientX;
-      startScroll = mq.scrollLeft;
+      startScroll = scrollPosition;
       mq.classList.add('is-dragging');
       mq.setPointerCapture(ev.pointerId);
     };
     const onPointerMove = ev => {
       if (!dragging) return;
       const delta = ev.clientX - startX;
-      if (Math.abs(delta) > 4) moved = true;
-      const nextScroll = startScroll - delta;
-      mq.scrollLeft = nextScroll < 0 ? nextScroll + loopWidth : nextScroll;
+      scrollPosition = startScroll - delta;
       wrapScroll();
     };
     const onPointerEnd = ev => {
       if (!dragging) return;
       dragging = false;
+      const wasDrag = Math.abs(ev.clientX - startX) > 6;
+      suppressClickUntil = wasDrag ? performance.now() + 250 : 0;
+      if (wasDrag) {
+        tapPaused = false;
+        hoverPaused = false;
+        ignoreHoverUntilLeave = true;
+      }
+      else if (ev.pointerType !== 'mouse') tapPaused = true;
       lastTime = performance.now();
       mq.classList.remove('is-dragging');
+      mq.classList.toggle('is-paused', hoverPaused || tapPaused);
       if (mq.hasPointerCapture(ev.pointerId)) mq.releasePointerCapture(ev.pointerId);
     };
     const onClick = ev => {
-      if (!moved) return;
+      if (performance.now() >= suppressClickUntil) return;
       ev.preventDefault();
       ev.stopImmediatePropagation();
-      moved = false;
+    };
+    const onMouseEnter = () => {
+      if (ignoreHoverUntilLeave) return;
+      hoverPaused = true;
+      mq.classList.add('is-paused');
+    };
+    const onMouseLeave = () => {
+      ignoreHoverUntilLeave = false;
+      hoverPaused = false;
+      mq.classList.toggle('is-paused', tapPaused);
+      lastTime = performance.now();
+    };
+    const onDocumentPointerDown = ev => {
+      if (!tapPaused || mq.contains(ev.target)) return;
+      tapPaused = false;
+      mq.classList.toggle('is-paused', hoverPaused);
+      lastTime = performance.now();
     };
 
     mq.addEventListener('pointerdown', onPointerDown);
@@ -1624,6 +1790,9 @@ function initMarquees() {
     mq.addEventListener('pointerup', onPointerEnd);
     mq.addEventListener('pointercancel', onPointerEnd);
     mq.addEventListener('click', onClick, true);
+    mq.addEventListener('mouseenter', onMouseEnter);
+    mq.addEventListener('mouseleave', onMouseLeave);
+    document.addEventListener('pointerdown', onDocumentPointerDown);
     frame = requestAnimationFrame(tick);
 
     marqueeCleanups.push(() => {
@@ -1634,6 +1803,9 @@ function initMarquees() {
       mq.removeEventListener('pointerup', onPointerEnd);
       mq.removeEventListener('pointercancel', onPointerEnd);
       mq.removeEventListener('click', onClick, true);
+      mq.removeEventListener('mouseenter', onMouseEnter);
+      mq.removeEventListener('mouseleave', onMouseLeave);
+      document.removeEventListener('pointerdown', onDocumentPointerDown);
     });
   });
 }
@@ -1691,6 +1863,26 @@ function layoutRail() {
 }
 window.addEventListener('resize', () => setTimeout(layoutRail, 200));
 
+function initBackToTop() {
+  const button = document.getElementById('back-to-top');
+  if (!button) return;
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    button.classList.toggle('visible', window.scrollY > Math.max(520, window.innerHeight * 0.75));
+  };
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }, { passive: true });
+  button.addEventListener('click', () => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+  });
+  update();
+}
+
 function boot() {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
@@ -1724,6 +1916,7 @@ function boot() {
   });
 
   initVersionPicker();
+  initBackToTop();
 
   initRail();
   renderSections();
