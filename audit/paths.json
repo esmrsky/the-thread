@@ -292,18 +292,28 @@
    "name": "dark-toggle-has-garment-token",
    "steps": [
     {
-     "click": "#theme-toggle"
+     "click": "#prefs-btn"
     },
     {
-     "wait": 200
+     "wait": 250
+    },
+    {
+     "click": ".seg[data-pref=theme] button[data-v=dark]"
+    },
+    {
+     "wait": 250
     },
     {
      "assert": "document.documentElement.dataset.theme === 'dark'",
-     "name": "toggle sets dark"
+     "name": "the panel sets dark"
     },
     {
      "assert": "getComputedStyle(document.documentElement).getPropertyValue('--t-garment').trim().toLowerCase() !== '#9e4b86'",
-     "name": "--t-garment has a dark value under the toggle"
+     "name": "--t-garment has a dark value under the manual toggle"
+    },
+    {
+     "eval": "localStorage.removeItem('thread-theme')",
+     "print": false
     }
    ]
   },
@@ -535,8 +545,8 @@
    "width": 1280,
    "steps": [
     {
-     "assert": "(() => { const bad = []; document.querySelectorAll('.grid-3, .grid-2').forEach(g => { const k = [...g.children]; if (k.length < 2) return; const last = k[k.length-1].getBoundingClientRect(); const prev = k[k.length-2].getBoundingClientRect(); if (last.top >= prev.bottom - 2 && last.width < g.getBoundingClientRect().width - 4) bad.push(g.className + ':' + k.length); }); window.__orphans = bad; return bad.length === 0; })()",
-     "name": "no card sits alone on a short last row"
+     "assert": "(() => { const sels=['.grid-2','.grid-3','.season-grid','.insight-grid','.feast-cards','.triune-rails','.mind-panel-grid','.tv-grid','.shelf-items','.big-idea','.bento']; const bad=[]; sels.forEach(sel=>document.querySelectorAll(sel).forEach(g=>{const kids=[...g.children].filter(k=>getComputedStyle(k).display!=='none'); if(kids.length<2) return; const gw=g.getBoundingClientRect().width; const rows={};kids.forEach(k=>{const r=k.getBoundingClientRect(); (rows[Math.round(r.top)] ||= []).push(r);}); const keys=Object.keys(rows).map(Number).sort((a,b)=>a-b);if(keys.length<2) return; const last=rows[keys[keys.length-1]]; const covered=last.reduce((n,r)=>n+r.width,0);if(covered < gw-40) bad.push(sel+' '+Math.round(covered)+'/'+Math.round(gw));})); window.__orphans=bad; return bad.length===0; })()",
+     "name": "every card grid fills its last row (11 grid types)"
     }
    ]
   },
@@ -626,6 +636,226 @@
     {
      "assert": "[...document.querySelectorAll('.context-verse-number')].some(n => /^7:/.test(n.textContent))",
      "name": "asking for more context reaches back into the previous chapter"
+    }
+   ]
+  },
+  {
+   "name": "grids-leave-no-orphan-narrow",
+   "width": 643,
+   "steps": [
+    {
+     "assert": "(() => { const sels=['.grid-2','.grid-3','.season-grid','.insight-grid','.feast-cards','.triune-rails','.mind-panel-grid','.tv-grid','.shelf-items','.big-idea','.bento']; const bad=[]; sels.forEach(sel=>document.querySelectorAll(sel).forEach(g=>{const kids=[...g.children].filter(k=>getComputedStyle(k).display!=='none'); if(kids.length<2) return; const gw=g.getBoundingClientRect().width; const rows={};kids.forEach(k=>{const r=k.getBoundingClientRect(); (rows[Math.round(r.top)] ||= []).push(r);}); const keys=Object.keys(rows).map(Number).sort((a,b)=>a-b);if(keys.length<2) return; const last=rows[keys[keys.length-1]]; const covered=last.reduce((n,r)=>n+r.width,0);if(covered < gw-40) bad.push(sel+' '+Math.round(covered)+'/'+Math.round(gw));})); window.__orphans=bad; return bad.length===0; })()",
+     "name": "no orphan card at 643px either"
+    }
+   ]
+  },
+  {
+   "name": "grids-leave-no-orphan-mobile",
+   "width": 375,
+   "steps": [
+    {
+     "assert": "(() => { const sels=['.grid-2','.grid-3','.season-grid','.insight-grid','.feast-cards','.triune-rails','.mind-panel-grid','.tv-grid','.shelf-items','.big-idea','.bento']; const bad=[]; sels.forEach(sel=>document.querySelectorAll(sel).forEach(g=>{const kids=[...g.children].filter(k=>getComputedStyle(k).display!=='none'); if(kids.length<2) return; const gw=g.getBoundingClientRect().width; const rows={};kids.forEach(k=>{const r=k.getBoundingClientRect(); (rows[Math.round(r.top)] ||= []).push(r);}); const keys=Object.keys(rows).map(Number).sort((a,b)=>a-b);if(keys.length<2) return; const last=rows[keys[keys.length-1]]; const covered=last.reduce((n,r)=>n+r.width,0);if(covered < gw-40) bad.push(sel+' '+Math.round(covered)+'/'+Math.round(gw));})); window.__orphans=bad; return bad.length===0; })()",
+     "name": "no orphan card at 375px either"
+    }
+   ]
+  },
+  {
+   "name": "verse-popup-fades-without-sliding",
+   "width": 1280,
+   "steps": [
+    {
+     "assert": "!getComputedStyle(document.querySelector('.verse-tooltip')).transitionProperty.includes('transform')",
+     "name": "the pop-up fades in place, it does not slide up"
+    }
+   ]
+  },
+  {
+   "name": "context-dialog-arrives-smoothly",
+   "width": 1280,
+   "steps": [
+    {
+     "eval": "(() => { const l=[...document.querySelectorAll('.ref-link')].find(a=>/^1 Cor 10:11/.test(a.dataset.ref)); l.id='audit-c'; })()",
+     "print": false
+    },
+    {
+     "click": "#audit-c"
+    },
+    {
+     "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
+     "timeout": 8000
+    },
+    {
+     "click": ".verse-tooltip .tooltip-context-button"
+    },
+    {
+     "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
+     "timeout": 20000
+    },
+    {
+     "assert": "getComputedStyle(document.querySelector('.verse-context-dialog')).animationName !== 'none'",
+     "name": "the lightbox animates in rather than appearing"
+    },
+    {
+     "assert": "getComputedStyle(document.querySelector('.context-verse.is-selected .ctx-t')).textDecorationLine === 'underline'",
+     "name": "the underline is on the verse text"
+    },
+    {
+     "assert": "getComputedStyle(document.querySelector('.context-verse.is-selected .context-verse-number')).textDecorationLine === 'none'",
+     "name": "the verse number is outside the underline, so there is no gap before the first word"
+    }
+   ]
+  },
+  {
+   "name": "translation-swap-does-not-blank-the-box",
+   "width": 1280,
+   "steps": [
+    {
+     "eval": "(() => { const l=[...document.querySelectorAll('.ref-link')].find(a=>/^1 Cor 10:11/.test(a.dataset.ref)); l.id='audit-c2'; })()",
+     "print": false
+    },
+    {
+     "click": "#audit-c2"
+    },
+    {
+     "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
+     "timeout": 8000
+    },
+    {
+     "click": ".verse-tooltip .tooltip-context-button"
+    },
+    {
+     "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
+     "timeout": 20000
+    },
+    {
+     "wait": 450
+    },
+    {
+     "eval": "(() => { const b=document.querySelector('.context-dialog-body'); window.__h0=b.getBoundingClientRect().height; window.__blanked=false; window.__sawRefreshing=false; window.__lockedHeight=false; new MutationObserver(()=>{ if(/Loading surrounding/.test(b.textContent)||b.textContent.trim()==='') window.__blanked=true; }).observe(b,{childList:true,subtree:true,characterData:true}); new MutationObserver(()=>{ if(b.classList.contains('is-refreshing')) window.__sawRefreshing=true; if(b.style.minHeight) window.__lockedHeight=true; }).observe(b,{attributes:true,attributeFilter:['class','style']}); return window.__h0; })()",
+     "print": false
+    },
+    {
+     "click": ".verse-context-dialog .verpick-btn"
+    },
+    {
+     "wait": 300
+    },
+    {
+     "click": ".verse-context-dialog .verpick-opt[data-v=NLT]"
+    },
+    {
+     "waitFor": "document.querySelector('.verse-context-dialog .verpick-val').textContent === 'NLT' && document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
+     "timeout": 20000
+    },
+    {
+     "assert": "window.__blanked === false",
+     "name": "the passage is never emptied while the new translation loads"
+    },
+    {
+     "assert": "window.__sawRefreshing === true",
+     "name": "the old passage stays on screen and dims while the new one loads"
+    },
+    {
+     "assert": "window.__sawRefreshing === true && window.__lockedHeight === true",
+     "name": "the old passage stays on screen and dims, with its height held, while the new one loads"
+    },
+    {
+     "assert": "Math.abs(document.querySelector('.context-dialog-body').getBoundingClientRect().height - window.__h0) < 6",
+     "name": "the box does not collapse and re-expand"
+    }
+   ]
+  },
+  {
+   "name": "mobile-translation-picker-not-cramped",
+   "width": 375,
+   "steps": [
+    {
+     "assert": "getComputedStyle(document.querySelector('.verpick-ic')).display !== 'none'",
+     "name": "the picker keeps its icon on a phone"
+    },
+    {
+     "assert": "parseFloat(getComputedStyle(document.querySelector('.verpick-btn')).paddingLeft) >= 9",
+     "name": "the picker has breathing room"
+    }
+   ]
+  },
+  {
+   "name": "reading-settings-panel",
+   "width": 1280,
+   "steps": [
+    {
+     "click": "#prefs-btn"
+    },
+    {
+     "wait": 250
+    },
+    {
+     "assert": "!document.getElementById('prefs-menu').hidden",
+     "name": "the settings panel opens"
+    },
+    {
+     "assert": "[...document.querySelectorAll('.seg')].map(s => s.dataset.pref).join(',') === 'theme,font,lh'",
+     "name": "colours, typeface and line height are all offered"
+    },
+    {
+     "eval": "window.__f0 = getComputedStyle(document.body).fontFamily",
+     "print": false
+    },
+    {
+     "click": ".seg[data-pref=font] button[data-v=sans]"
+    },
+    {
+     "wait": 250
+    },
+    {
+     "assert": "getComputedStyle(document.body).fontFamily !== window.__f0 && /Avenir|system-ui|Helvetica/.test(getComputedStyle(document.body).fontFamily)",
+     "name": "choosing sans changes the reading face"
+    },
+    {
+     "eval": "window.__lh0 = parseFloat(getComputedStyle(document.body).lineHeight)",
+     "print": false
+    },
+    {
+     "click": ".seg[data-pref=lh] button[data-v=roomy]"
+    },
+    {
+     "wait": 250
+    },
+    {
+     "assert": "parseFloat(getComputedStyle(document.body).lineHeight) > window.__lh0",
+     "name": "line height responds"
+    },
+    {
+     "click": ".seg[data-pref=theme] button[data-v=dark]"
+    },
+    {
+     "wait": 250
+    },
+    {
+     "assert": "document.documentElement.dataset.theme === 'dark'",
+     "name": "colours switch from the same panel"
+    },
+    {
+     "assert": "localStorage.getItem('thread-font') === 'sans' && localStorage.getItem('thread-lh') === 'roomy'",
+     "name": "the choices are remembered"
+    },
+    {
+     "eval": "['thread-theme','thread-font','thread-lh'].forEach(k => localStorage.removeItem(k))",
+     "print": false
+    }
+   ]
+  },
+  {
+   "name": "thread-header-fits-a-phone",
+   "width": 375,
+   "steps": [
+    {
+     "assert": "(() => { const h = document.querySelector('#t-lamb .thread-row-title h3'); const lh = parseFloat(getComputedStyle(h).lineHeight); return h.getBoundingClientRect().height < lh * 1.6; })()",
+     "name": "the thread title is not broken across two lines"
+    },
+    {
+     "assert": "document.querySelector('#t-lamb .thread-row-head').getBoundingClientRect().height < 145",
+     "name": "the header does not eat 154px of a 375px screen"
     }
    ]
   }

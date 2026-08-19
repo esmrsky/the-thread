@@ -20,10 +20,32 @@
         </button>
         <div class="verpick-menu" id="verpick-menu" role="listbox" aria-label="Bible translation" hidden></div>
       </div>
-      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light or dark theme" title="Toggle theme">
-        <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 13.5A8.5 8.5 0 1 1 10.5 4a7 7 0 0 0 9.5 9.5z"/></svg>
-        <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
-      </button>
+      <div class="prefs" id="prefs">
+        <button class="theme-toggle prefs-btn" id="prefs-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Reading settings" title="Reading settings">
+          <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 13.5A8.5 8.5 0 1 1 10.5 4a7 7 0 0 0 9.5 9.5z"/></svg>
+          <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+        </button>
+        <div class="prefs-menu" id="prefs-menu" role="dialog" aria-label="Reading settings" hidden>
+          <span class="prefs-head">Colours</span>
+          <div class="seg" data-pref="theme">
+            <button type="button" data-v="system">System</button>
+            <button type="button" data-v="light">Light</button>
+            <button type="button" data-v="dark">Dark</button>
+          </div>
+          <span class="prefs-head">Typeface</span>
+          <div class="seg" data-pref="font">
+            <button type="button" data-v="serif" style="font-family:var(--font-serif)">Serif</button>
+            <button type="button" data-v="sans" style="font-family:var(--font-sans)">Sans</button>
+          </div>
+          <span class="prefs-head">Line height</span>
+          <div class="seg" data-pref="lh">
+            <button type="button" data-v="snug">Snug</button>
+            <button type="button" data-v="normal">Normal</button>
+            <button type="button" data-v="roomy">Roomy</button>
+          </div>
+          <span class="prefs-note">Kept on this device.</span>
+        </div>
+      </div>
     </div>
   </div>
 </header>

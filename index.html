@@ -67,6 +67,10 @@ body { margin: 0; }
   --shadow-lift: 0 2px 4px rgba(43,38,32,.06), 0 16px 36px -14px rgba(43,38,32,.28);
 
   --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+  --font-sans: "Avenir Next", Avenir, "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  /* what body copy reads in — swapped by the reading settings, not by the palette */
+  --font-body: var(--font-serif);
+  --lh: 1.75;
   --font-label: "Avenir Next", Avenir, Futura, "Gill Sans", "Trebuchet MS", system-ui, sans-serif;
 
   --r: 10px;
@@ -177,9 +181,9 @@ html, body {
 }
 
 body {
-  font-family: var(--font-serif);
+  font-family: var(--font-body);
   font-size: 1.08rem;
-  line-height: 1.75;
+  line-height: var(--lh);
   color: var(--ink);
   background-color: var(--paper);
   background-image:
@@ -188,13 +192,17 @@ body {
   background-size: 56px 56px;
 }
 
-h1, h2, h3, h4 { font-family: var(--font-serif); line-height: 1.18; margin: 0; text-wrap: balance; }
+h1, h2, h3, h4 { font-family: var(--font-body); line-height: 1.18; margin: 0; text-wrap: balance; }
 p { margin: 0; }
 a { color: inherit; }
 svg { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; padding: 0; }
 p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: break-word; }
 p, li { text-wrap: pretty; }
+
+:root[data-font="sans"] { --font-body: var(--font-sans); }
+:root[data-lh="snug"] { --lh: 1.62; }
+:root[data-lh="roomy"] { --lh: 1.95; }
 
 ::selection { background: color-mix(in srgb, var(--thread) 25%, transparent); }
 
@@ -543,7 +551,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .for-you b { color: var(--ink); font-style: normal; }
 
 /* ---------- pattern / seasons ---------- */
-.season-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 14px; }
+.season-grid { display: flex; flex-wrap: wrap; gap: 14px; }
 .season-card {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--c) 7%, transparent), transparent 42%),
@@ -555,10 +563,6 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-@media (min-width: 620px) and (max-width: 900px) {
-  .season-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .season-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
 .season-head {
   display: flex; align-items: center; gap: 13px;
@@ -585,12 +589,12 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .season-row p { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.55; }
 
 .insight-grid {
-  display: grid;
+  display: flex;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  flex-wrap: wrap;
 }
 /* nine pieces of trail wisdom — a clean 3 x 3 beats 4 + 4 + 1 */
-@media (min-width: 1060px) { .insight-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1060px) { .insight-grid > * { flex-basis: calc(33.333% - 12px); } }
 .insight-card {
   background: color-mix(in srgb, var(--c) 4%, var(--card));
   border: 1px solid color-mix(in srgb, var(--c) 20%, var(--line));
@@ -706,13 +710,8 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .feast-group.is-done { --fc: var(--c-walk); }
 .feast-group.is-ahead { --fc: var(--c-codes); }
 .feast-cards {
-  display: grid; gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-}
-/* four spring feasts and three autumn ones — give each group its own tidy block */
-@media (min-width: 900px) {
-  .feast-group.is-done .feast-cards { grid-template-columns: repeat(2, 1fr); }
-  .feast-group.is-ahead .feast-cards { grid-template-columns: repeat(3, 1fr); }
+  display: flex; gap: 14px;
+  flex-wrap: wrap;
 }
 .feast-card {
   background: color-mix(in srgb, var(--fc) 4%, var(--card));
@@ -735,10 +734,10 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 
 /* ---------- threefold witness ---------- */
 .triune-rails {
-  display: grid;
+  display: flex;
   gap: 14px;
   margin-bottom: 28px;
-  grid-template-columns: repeat(auto-fit, minmax(min(290px, 100%), 1fr));
+  flex-wrap: wrap;
 }
 .rail-label {
   display: block; margin-bottom: 5px;
@@ -914,7 +913,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   font-style: italic;
 }
 .tab-station-card h3 {
-  font-family: var(--font-serif);
+  font-family: var(--font-body);
   font-size: 1.08rem;
   font-weight: 700;
   color: var(--ink);
@@ -973,8 +972,8 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   font-size: 1rem;
 }
 .mind-panel-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
 }
 .mind-panel {
@@ -1037,8 +1036,8 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 }
 
 .tv-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
 }
 .tv-box {
@@ -1093,8 +1092,8 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 }
 .shelf-title svg { width: 19px; height: 19px; color: var(--c-library); }
 .shelf-items {
-  display: grid; gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(min(310px, 100%), 1fr));
+  display: flex; gap: 12px;
+  flex-wrap: wrap;
 }
 /* one card per resource: the kind chip carries the colour, so a shelf reads as a
    shelf rather than a paragraph that happens to have links in it */
@@ -1203,15 +1202,9 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .home-section-title .rr { flex: 1; height: 12px; color: var(--thread); opacity: 0.5; }
 
 .big-idea {
-  display: grid;
+  display: flex;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
-}
-/* five ideas: three across, then two wide ones — no orphan tile */
-@media (min-width: 1080px) {
-  .big-idea { grid-template-columns: repeat(6, 1fr); }
-  .idea-card { grid-column: span 2; }
-  .idea-card:nth-child(4), .idea-card:nth-child(5) { grid-column: span 3; }
+  flex-wrap: wrap;
 }
 .idea-card {
   background: color-mix(in srgb, var(--c) 4%, var(--card));
@@ -1357,6 +1350,18 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 @media (max-width: 780px) {
   .thread-row-foot { grid-template-columns: 1fr; }
   .wp-card { flex-basis: 220px; }
+}
+/* On a phone the icon, a wrapping title, its tag and a waypoint pill were all competing for
+   347px, which cost 154px of header and broke the title across two lines. Give the title the
+   full width on its own row and let the chip and the count share the one above it. */
+@media (max-width: 600px) {
+  .thread-row-head { flex-wrap: wrap; row-gap: 8px; padding: 14px 16px 12px; }
+  .thread-row-head .icon-chip { order: 1; }
+  .thread-count { order: 1; margin-left: auto; }
+  .thread-row-title { order: 2; flex: 1 1 100%; }
+  .wp-card { flex-basis: min(76vw, 280px); }
+  .marquee-track { padding-left: 16px; padding-right: 16px; }
+  .thread-row-foot { padding: 12px 16px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .thread-marquee { overflow-x: auto; touch-action: auto; }
@@ -1565,19 +1570,17 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   padding: 14px 16px;
   box-shadow: var(--shadow-lift);
   pointer-events: auto;
-  font-family: var(--font-serif);
+  font-family: var(--font-body);
   font-size: 0.94rem;
   line-height: 1.55;
   color: var(--ink);
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.15s ease, transform 0.15s ease, top 0.18s ease, left 0.18s ease;
+  transition: opacity 0.16s ease, top 0.18s ease, left 0.18s ease;
 }
 .verse-tooltip.is-pinned { pointer-events: auto; }
 .verse-tooltip.open {
   display: block;
   opacity: 1;
-  transform: translateY(0);
 }
 .verse-tooltip .tooltip-ref {
   font-family: var(--font-label);
@@ -1629,6 +1632,16 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   overflow: hidden;
 }
 .verse-context-dialog:focus { outline: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .verse-context-dialog[open] { animation: ctx-in 0.24s cubic-bezier(.2, .7, .3, 1) both; }
+  .verse-context-dialog[open]::backdrop { animation: ctx-veil 0.24s ease both; }
+  @keyframes ctx-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: none; } }
+  @keyframes ctx-veil { from { opacity: 0; } to { opacity: 1; } }
+}
+/* Swapping translation used to blank the body, collapsing the box and flashing. The old passage
+   now stays put and dims while the new one loads, so the height never jumps. */
+.context-dialog-body.is-refreshing { opacity: 0.4; }
+.context-dialog-body { transition: opacity 0.18s ease; }
 .verse-context-dialog::backdrop { background: color-mix(in srgb, var(--paper) 22%, rgba(0,0,0,.72)); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
 .context-dialog-inner { display: flex; flex-direction: column; max-height: min(82dvh, 760px); }
 .context-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 22px 15px; border-bottom: 1px solid var(--line); }
@@ -1662,7 +1675,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .context-verse, .context-block { display: inline; }
 .context-verse + .context-verse::before, .context-block + .context-block::before { content: " "; }
 .context-verse-number { margin-right: 0.3em; color: var(--ink-faint); font-family: var(--font-label); font-size: 0.62rem; font-weight: 700; }
-.context-verse.is-selected, .context-block.is-selected {
+.context-verse.is-selected .ctx-t, .context-block.is-selected {
   padding: 0.08em 0.14em;
   color: var(--ink);
   background: color-mix(in srgb, var(--thread) 16%, transparent);
@@ -2000,7 +2013,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   height: 22px;
 }
 .preview-header h3 {
-  font-family: var(--font-serif);
+  font-family: var(--font-body);
   font-size: 1.38rem;
   font-weight: 700;
   color: var(--ink);
@@ -2044,7 +2057,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 }
 .preview-body li b {
   color: var(--c);
-  font-family: var(--font-serif);
+  font-family: var(--font-body);
 }
 .preview-body li b .ref-link {
   color: var(--c);
@@ -2357,8 +2370,8 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   .topbar-actions {
     gap: 8px;
   }
-  .verpick-btn { padding: 6px 8px; }
-  .verpick-ic { display: none; }
+  .verpick-btn { padding: 6px 11px 6px 9px; }
+  .verpick-ic { display: block; }
   .verpick-menu { min-width: 232px; }
   .navstrip {
     padding-top: 8px;
@@ -2368,6 +2381,62 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
     padding: 6px 9px;
   }
 }
+
+
+/* ---------- no card is ever left alone beside dead space ----------
+   These rows wrap and grow: whatever lands on the last row expands to fill it, whatever the
+   count and whatever the width. It replaces per-count nth-child arithmetic that only held at
+   the one breakpoint it was written for. */
+.season-grid > *, .insight-grid > *, .feast-cards > *, .triune-rails > *,
+.mind-panel-grid > *, .tv-grid > *, .shelf-items > *, .big-idea > * { min-width: 0; }
+.season-grid > * { flex: 1 1 280px; }
+.insight-grid > * { flex: 1 1 300px; }
+.feast-cards > * { flex: 1 1 300px; }
+.triune-rails > * { flex: 1 1 290px; }
+.mind-panel-grid > * { flex: 1 1 260px; }
+.tv-grid > * { flex: 1 1 260px; }
+.shelf-items > * { flex: 1 1 310px; }
+.big-idea > * { flex: 1 1 280px; }
+
+
+/* ---------- reading settings ---------- */
+.prefs { position: relative; flex-shrink: 0; }
+.prefs-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: var(--z-menu);
+  min-width: 252px;
+  padding: 12px 13px 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-lift);
+}
+.prefs-menu::before {
+  content: ""; position: absolute; top: -5px; right: 12px;
+  width: 9px; height: 9px; transform: rotate(45deg);
+  background: var(--card);
+  border-left: 1px solid var(--line); border-top: 1px solid var(--line);
+}
+.prefs-head {
+  display: block; margin: 0 0 6px;
+  font-family: var(--font-label); font-size: 0.56rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint);
+}
+.seg { display: flex; gap: 2px; padding: 3px; margin-bottom: 14px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--card-2); }
+.seg button {
+  flex: 1 1 auto; padding: 7px 10px; border-radius: 999px;
+  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em;
+  color: var(--ink-soft); white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--thread) 14%, var(--card));
+  color: var(--thread);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--thread) 30%, transparent);
+}
+.prefs-note { display: block; font-size: 0.68rem; color: var(--ink-faint); line-height: 1.4; }
+@media (max-width: 520px) { .prefs-menu { min-width: min(252px, calc(100vw - 28px)); } }
 </style>
 </head>
 <body>
@@ -2393,10 +2462,32 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
         </button>
         <div class="verpick-menu" id="verpick-menu" role="listbox" aria-label="Bible translation" hidden></div>
       </div>
-      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light or dark theme" title="Toggle theme">
-        <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 13.5A8.5 8.5 0 1 1 10.5 4a7 7 0 0 0 9.5 9.5z"/></svg>
-        <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
-      </button>
+      <div class="prefs" id="prefs">
+        <button class="theme-toggle prefs-btn" id="prefs-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Reading settings" title="Reading settings">
+          <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 13.5A8.5 8.5 0 1 1 10.5 4a7 7 0 0 0 9.5 9.5z"/></svg>
+          <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+        </button>
+        <div class="prefs-menu" id="prefs-menu" role="dialog" aria-label="Reading settings" hidden>
+          <span class="prefs-head">Colours</span>
+          <div class="seg" data-pref="theme">
+            <button type="button" data-v="system">System</button>
+            <button type="button" data-v="light">Light</button>
+            <button type="button" data-v="dark">Dark</button>
+          </div>
+          <span class="prefs-head">Typeface</span>
+          <div class="seg" data-pref="font">
+            <button type="button" data-v="serif" style="font-family:var(--font-serif)">Serif</button>
+            <button type="button" data-v="sans" style="font-family:var(--font-sans)">Sans</button>
+          </div>
+          <span class="prefs-head">Line height</span>
+          <div class="seg" data-pref="lh">
+            <button type="button" data-v="snug">Snug</button>
+            <button type="button" data-v="normal">Normal</button>
+            <button type="button" data-v="roomy">Roomy</button>
+          </div>
+          <span class="prefs-note">Kept on this device.</span>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -4563,6 +4654,52 @@ function wireVersionPicker(wrap, onChoose) {
   return { close };
 }
 
+/* Colours, typeface and line height are one panel: they are all "how this reads to me",
+   and a lone sun/moon button could only ever answer a third of that. */
+const PREFS = {
+  theme: { key: 'thread-theme', def: 'system' },
+  font: { key: 'thread-font', def: 'serif' },
+  lh: { key: 'thread-lh', def: 'normal' }
+};
+function applyPref(name, value) {
+  const root = document.documentElement;
+  if (name === 'theme') {
+    if (value === 'system') delete root.dataset.theme;
+    else root.dataset.theme = value;
+  } else if (name === 'font') {
+    if (value === 'serif') delete root.dataset.font;
+    else root.dataset.font = value;
+  } else if (name === 'lh') {
+    if (value === 'normal') delete root.dataset.lh;
+    else root.dataset.lh = value;
+  }
+  lsSet(PREFS[name].key, value);
+  document.querySelectorAll('.seg[data-pref="' + name + '"] button').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.v === value)));
+}
+function initPrefs() {
+  Object.keys(PREFS).forEach(name => {
+    let saved = lsGet(PREFS[name].key);
+    if (name === 'theme' && saved !== 'light' && saved !== 'dark' && saved !== 'system') saved = null;
+    applyPref(name, saved || PREFS[name].def);
+  });
+
+  const wrap = document.getElementById('prefs');
+  const btn = document.getElementById('prefs-btn');
+  const menu = document.getElementById('prefs-menu');
+  if (!wrap || !btn || !menu) return;
+  const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+  const open = () => { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); };
+  btn.addEventListener('click', ev => { ev.stopPropagation(); menu.hidden ? open() : close(); });
+  menu.addEventListener('click', ev => {
+    const b = ev.target.closest('.seg button');
+    if (!b) return;
+    applyPref(b.parentElement.dataset.pref, b.dataset.v);
+  });
+  document.addEventListener('click', ev => { if (!menu.hidden && !wrap.contains(ev.target)) close(); });
+  wrap.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !menu.hidden) { ev.preventDefault(); close(); btn.focus(); } });
+}
+
 function initVersionPicker() {
   const wrap = document.getElementById('verpick');
   const btn = document.getElementById('verpick-btn');
@@ -4818,7 +4955,8 @@ async function loadBollsContext(parsed, version, radius) {
     const selected = v.chapter === parsed.chapter && v.verse >= selectedStart && v.verse <= selectedEnd;
     const text = cleanBollsText(v.text);
     const num = v.chapter === parsed.chapter ? String(v.verse) : v.chapter + ':' + v.verse;
-    return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num + '</sup>' + text + '</span>';
+    return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num +
+      '</sup><span class="ctx-t">' + text + '</span></span>';
   }).join(' ') + '</p>';
 }
 
@@ -4876,7 +5014,7 @@ function initTooltip() {
   contextPickerWrap.querySelector('.verpick-menu').innerHTML = versionMenuHtml('Read this passage in');
   contextVersionPicker = wireVersionPicker(contextPickerWrap, code => {
     contextDialogEl.dataset.version = code;
-    refreshVerseContext(false);
+    refreshVerseContext(true);
   });
 
   tooltipEl.addEventListener('mouseenter', () => {
@@ -5026,12 +5164,15 @@ function refreshVerseContext(preserveSelection) {
   const selectedOffsetBefore = selectedBefore ? selectedBefore.offsetTop : 0;
   const scrollBefore = body.scrollTop;
   if (!preserveSelection) body.innerHTML = '<p class="context-loading">Loading surrounding verses…</p>';
+  else { body.style.minHeight = body.offsetHeight + 'px'; body.classList.add('is-refreshing'); }
   moreButton.disabled = true;
   moreButton.textContent = preserveSelection ? 'Loading more…' : 'Even more context';
 
   loadVerseContext(ref, version, radius).then(html => {
     if (requestId !== contextRequestId) return;
+    body.classList.remove('is-refreshing');
     setHTML(body, html);
+    requestAnimationFrame(() => { body.style.minHeight = ''; });
     if (preserveSelection) {
       const selectedAfter = body.querySelector('.is-selected');
       if (selectedAfter) body.scrollTop = scrollBefore + selectedAfter.offsetTop - selectedOffsetBefore;
@@ -5040,6 +5181,8 @@ function refreshVerseContext(preserveSelection) {
     moreButton.textContent = 'Even more context';
   }).catch(() => {
     if (requestId !== contextRequestId) return;
+    body.classList.remove('is-refreshing');
+    body.style.minHeight = '';
     body.innerHTML = '<p>Unable to load the surrounding verses right now.</p>';
     moreButton.disabled = false;
     moreButton.textContent = 'Even more context';
@@ -5348,14 +5491,7 @@ function boot() {
     });
   });
 
-  const root = document.documentElement;
-  const saved = lsGet('thread-theme');
-  if (saved) root.dataset.theme = saved;
-  document.getElementById('theme-toggle').addEventListener('click', () => {
-    const dark = root.dataset.theme === 'dark' || (!root.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    root.dataset.theme = dark ? 'light' : 'dark';
-    lsSet('thread-theme', root.dataset.theme);
-  });
+  initPrefs();
 
   initVersionPicker();
   initBackToTop();

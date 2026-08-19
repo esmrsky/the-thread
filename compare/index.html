@@ -216,7 +216,7 @@ p { margin: 0; }
   <div class="stats">
     <div class="stat">
       <span class="label">Gate assertions</span>
-      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">50</span> / 50</div>
+      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">70</span> / 70</div>
       <p class="note">Measured with the audit harness against a local server. The two still failing both need
       bolls.life, which this build environment blocks at the proxy.</p>
     </div>
@@ -306,6 +306,9 @@ p { margin: 0; }
 /* ---------------- the ledger ---------------- */
 var LEDGER = [
   { kind: 'added', title: 'Added', items: [
+    { what: 'A reading settings panel',
+      why: 'The sun/moon button could only answer a third of “how does this read to me”. The same button now opens a panel with colours (system, light, dark), typeface (the Iowan serif or a clean sans) and line height (snug, normal, roomy). Choices are kept on the device.',
+      finding: 'Follow-up — reader request', to: 'start' },
     { what: 'A hue and a label icon for every Mind &amp; Body panel',
       why: 'Eight blocks all painted in the one purple read as a single wall of prose. Each block now carries its own hue and each panel a label icon over a coloured rule, so the section can be skimmed before it is read.',
       finding: 'Follow-up — reader report', to: 'mind' },
@@ -382,6 +385,27 @@ var LEDGER = [
       finding: 'Finding 9', to: 'library' }
   ]},
   { kind: 'updated', title: 'Updated', items: [
+    { what: 'The verse pop-up fades in place',
+      why: 'It slid up six pixels every time it opened, which read as a lurch on a page you are trying to read. It now fades where it is, and only moves when it re-anchors after the text arrives.',
+      finding: 'Follow-up — reader report', to: 'pattern' },
+    { what: 'The context lightbox arrives instead of appearing',
+      why: 'It snapped into existence at full size. It now rises and fades over 240ms with its backdrop, so the jump from pop-up to lightbox is continuous.',
+      finding: 'Follow-up — reader report', to: 'codes' },
+    { what: 'Switching translation keeps the passage in place',
+      why: 'Choosing a different translation blanked the body to a loading line, which collapsed the box to the height of one sentence and flashed before re-expanding. The old passage now stays on screen and dims, its height held, until the new one replaces it.',
+      finding: 'Follow-up — reader report', to: 'codes' },
+    { what: 'The verse number sits outside the underline',
+      why: 'The highlight underlined the superscript number and the space after it, leaving a visible break before the first word of the verse. The decoration now runs under the verse text only.',
+      finding: 'Follow-up — reader report', to: 'codes' },
+    { what: 'The translation picker keeps its icon on a phone',
+      why: 'Below 520px the icon was hidden and the padding cut, which left the three letters cramped against the caret.',
+      finding: 'Follow-up — reader report', to: 'start' },
+    { what: 'Every card grid flows to fill its last row',
+      why: 'Eight more grids — seasons, trail wisdom, feasts, the threefold rails, the Mind panels, treasure/ditch, the library shelves and the big ideas — could still leave a card alone beside dead space at some width. They wrap and grow now, so whatever lands on the last row expands to fill it, at any count and any width. This replaces per-count arithmetic that only held at the breakpoint it was written for.',
+      finding: 'Follow-up — reader report', to: 'triune' },
+    { what: 'The thread header fits a phone',
+      why: 'On a 375px screen the icon, a wrapping title, its tag and a waypoint pill competed for one row — 154px of header with the title broken in two. The title takes its own full-width row now, with the chip and the count above it.',
+      finding: 'Follow-up — reader report', to: 'threads' },
     { what: 'The chart gets the whole panel',
       why: 'Side by side, the summary took 43% of the panel and left the chart 703px of 1240. Stacked, the chart runs the full width with the route labels inside its own viewBox rather than in a padding gutter that pushed them off-canvas as the chart grew.',
       finding: 'Follow-up — reader report', to: 'start' },

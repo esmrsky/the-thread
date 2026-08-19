@@ -1268,6 +1268,52 @@ function wireVersionPicker(wrap, onChoose) {
   return { close };
 }
 
+/* Colours, typeface and line height are one panel: they are all "how this reads to me",
+   and a lone sun/moon button could only ever answer a third of that. */
+const PREFS = {
+  theme: { key: 'thread-theme', def: 'system' },
+  font: { key: 'thread-font', def: 'serif' },
+  lh: { key: 'thread-lh', def: 'normal' }
+};
+function applyPref(name, value) {
+  const root = document.documentElement;
+  if (name === 'theme') {
+    if (value === 'system') delete root.dataset.theme;
+    else root.dataset.theme = value;
+  } else if (name === 'font') {
+    if (value === 'serif') delete root.dataset.font;
+    else root.dataset.font = value;
+  } else if (name === 'lh') {
+    if (value === 'normal') delete root.dataset.lh;
+    else root.dataset.lh = value;
+  }
+  lsSet(PREFS[name].key, value);
+  document.querySelectorAll('.seg[data-pref="' + name + '"] button').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.v === value)));
+}
+function initPrefs() {
+  Object.keys(PREFS).forEach(name => {
+    let saved = lsGet(PREFS[name].key);
+    if (name === 'theme' && saved !== 'light' && saved !== 'dark' && saved !== 'system') saved = null;
+    applyPref(name, saved || PREFS[name].def);
+  });
+
+  const wrap = document.getElementById('prefs');
+  const btn = document.getElementById('prefs-btn');
+  const menu = document.getElementById('prefs-menu');
+  if (!wrap || !btn || !menu) return;
+  const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+  const open = () => { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); };
+  btn.addEventListener('click', ev => { ev.stopPropagation(); menu.hidden ? open() : close(); });
+  menu.addEventListener('click', ev => {
+    const b = ev.target.closest('.seg button');
+    if (!b) return;
+    applyPref(b.parentElement.dataset.pref, b.dataset.v);
+  });
+  document.addEventListener('click', ev => { if (!menu.hidden && !wrap.contains(ev.target)) close(); });
+  wrap.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !menu.hidden) { ev.preventDefault(); close(); btn.focus(); } });
+}
+
 function initVersionPicker() {
   const wrap = document.getElementById('verpick');
   const btn = document.getElementById('verpick-btn');
@@ -1523,7 +1569,8 @@ async function loadBollsContext(parsed, version, radius) {
     const selected = v.chapter === parsed.chapter && v.verse >= selectedStart && v.verse <= selectedEnd;
     const text = cleanBollsText(v.text);
     const num = v.chapter === parsed.chapter ? String(v.verse) : v.chapter + ':' + v.verse;
-    return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num + '</sup>' + text + '</span>';
+    return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num +
+      '</sup><span class="ctx-t">' + text + '</span></span>';
   }).join(' ') + '</p>';
 }
 
@@ -1581,7 +1628,7 @@ function initTooltip() {
   contextPickerWrap.querySelector('.verpick-menu').innerHTML = versionMenuHtml('Read this passage in');
   contextVersionPicker = wireVersionPicker(contextPickerWrap, code => {
     contextDialogEl.dataset.version = code;
-    refreshVerseContext(false);
+    refreshVerseContext(true);
   });
 
   tooltipEl.addEventListener('mouseenter', () => {
@@ -1731,12 +1778,15 @@ function refreshVerseContext(preserveSelection) {
   const selectedOffsetBefore = selectedBefore ? selectedBefore.offsetTop : 0;
   const scrollBefore = body.scrollTop;
   if (!preserveSelection) body.innerHTML = '<p class="context-loading">Loading surrounding verses…</p>';
+  else { body.style.minHeight = body.offsetHeight + 'px'; body.classList.add('is-refreshing'); }
   moreButton.disabled = true;
   moreButton.textContent = preserveSelection ? 'Loading more…' : 'Even more context';
 
   loadVerseContext(ref, version, radius).then(html => {
     if (requestId !== contextRequestId) return;
+    body.classList.remove('is-refreshing');
     setHTML(body, html);
+    requestAnimationFrame(() => { body.style.minHeight = ''; });
     if (preserveSelection) {
       const selectedAfter = body.querySelector('.is-selected');
       if (selectedAfter) body.scrollTop = scrollBefore + selectedAfter.offsetTop - selectedOffsetBefore;
@@ -1745,6 +1795,8 @@ function refreshVerseContext(preserveSelection) {
     moreButton.textContent = 'Even more context';
   }).catch(() => {
     if (requestId !== contextRequestId) return;
+    body.classList.remove('is-refreshing');
+    body.style.minHeight = '';
     body.innerHTML = '<p>Unable to load the surrounding verses right now.</p>';
     moreButton.disabled = false;
     moreButton.textContent = 'Even more context';
@@ -2053,14 +2105,7 @@ function boot() {
     });
   });
 
-  const root = document.documentElement;
-  const saved = lsGet('thread-theme');
-  if (saved) root.dataset.theme = saved;
-  document.getElementById('theme-toggle').addEventListener('click', () => {
-    const dark = root.dataset.theme === 'dark' || (!root.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    root.dataset.theme = dark ? 'light' : 'dark';
-    lsSet('thread-theme', root.dataset.theme);
-  });
+  initPrefs();
 
   initVersionPicker();
   initBackToTop();
