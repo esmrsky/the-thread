@@ -858,6 +858,64 @@
      "name": "the header does not eat 154px of a 375px screen"
     }
    ]
+  },
+  {
+   "name": "legend-follows-the-route",
+   "width": 375,
+   "steps": [
+    {
+     "assert": "(() => { const s=document.querySelector('.hero-chart .hero-legend'); window.__s0=s.scrollLeft; return s.scrollWidth > s.clientWidth + 4; })()",
+     "name": "the pill strip scrolls sideways on a phone"
+    },
+    {
+     "click": ".hero-thread-trigger[data-thread=garment]"
+    },
+    {
+     "wait": 800
+    },
+    {
+     "assert": "document.querySelector('.hero-chart .hero-legend').scrollLeft > window.__s0 + 50",
+     "name": "touching a route scrolls its pill into the strip"
+    },
+    {
+     "assert": "(() => { const c=document.querySelector('.legend-chip[data-thread=garment]').getBoundingClientRect(); const s=document.querySelector('.hero-chart .hero-legend').getBoundingClientRect(); return c.left >= s.left - 2 && c.right <= s.right + 2; })()",
+     "name": "the pill for that route is fully visible"
+    }
+   ]
+  },
+  {
+   "name": "summary-swaps-without-flashing",
+   "width": 1280,
+   "steps": [
+    {
+     "assert": "getComputedStyle(document.getElementById('thread-preview')).transitionProperty.includes('height')",
+     "name": "the panel eases its height instead of snapping"
+    },
+    {
+     "eval": "(() => { const c=document.getElementById('thread-preview'); window.__heightPinned=false; new MutationObserver(()=>{ if(c.style.height) window.__heightPinned=true; }).observe(c,{attributes:true,attributeFilter:['style']}); })()",
+     "print": false
+    },
+    {
+     "click": ".hero-line-label[data-thread=lamb]"
+    },
+    {
+     "wait": 500
+    },
+    {
+     "click": ".hero-line-label[data-thread=garment]"
+    },
+    {
+     "wait": 500
+    },
+    {
+     "assert": "window.__heightPinned === true",
+     "name": "the frame is held while the words change"
+    },
+    {
+     "assert": "getComputedStyle(document.getElementById('thread-preview').firstElementChild).animationName === 'swap-fade'",
+     "name": "the text fades rather than sliding in"
+    }
+   ]
   }
  ]
 }

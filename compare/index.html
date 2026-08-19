@@ -216,7 +216,7 @@ p { margin: 0; }
   <div class="stats">
     <div class="stat">
       <span class="label">Gate assertions</span>
-      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">70</span> / 70</div>
+      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">76</span> / 76</div>
       <p class="note">Measured with the audit harness against a local server. The two still failing both need
       bolls.life, which this build environment blocks at the proxy.</p>
     </div>
@@ -385,6 +385,12 @@ var LEDGER = [
       finding: 'Finding 9', to: 'library' }
   ]},
   { kind: 'updated', title: 'Updated', items: [
+    { what: 'The pill strip follows the route you touch',
+      why: 'On a phone the thirteen pills scroll sideways, so the name of the route you just touched was usually off-screen. Choosing a route now scrolls its pill into the middle of the strip, the same courtesy the nav strip pays the active section.',
+      finding: 'Follow-up — reader report', to: 'start' },
+    { what: 'The summary changes its words, not its frame',
+      why: 'Every hover replaced the whole card and animated it back in with a shift, so the panel flashed and resized constantly. The frame now stays put: its height eases between threads and only the text inside fades.',
+      finding: 'Follow-up — reader report', to: 'start' },
     { what: 'The verse pop-up fades in place',
       why: 'It slid up six pixels every time it opened, which read as a lurch on a page you are trying to read. It now fades where it is, and only moves when it re-anchors after the text arrives.',
       finding: 'Follow-up — reader report', to: 'pattern' },

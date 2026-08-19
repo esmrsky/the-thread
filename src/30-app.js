@@ -938,7 +938,42 @@ function syncMobileStickyOffsets() {
   }
 }
 
+/* Where the pills scroll sideways (phones), touching a route brings its name into view — the
+   same courtesy the nav strip does for the active section. */
+function revealLegendChip(threadId) {
+  const chip = document.querySelector('.legend-chip[data-thread="' + threadId + '"]');
+  if (!chip) return;
+  const strip = chip.parentElement;
+  if (!strip || strip.scrollWidth <= strip.clientWidth + 4) return;
+  const left = chip.offsetLeft - (strip.clientWidth - chip.offsetWidth) / 2;
+  strip.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+}
+
+/* The frame stays put and only the words change. Replacing the card wholesale made the panel
+   flash and resize on every hover, which is a lot of movement for a reading aid. */
+let previewSwapToken = 0;
+function swapPreviewContent(previewEl, html) {
+  const token = ++previewSwapToken;
+  const start = previewEl.offsetHeight;
+  previewEl.style.height = '';
+  previewEl.innerHTML = html;
+  const end = previewEl.offsetHeight;
+  if (start && end && Math.abs(end - start) > 2) {
+    previewEl.style.height = start + 'px';
+    void previewEl.offsetWidth;
+    previewEl.style.height = end + 'px';
+    setTimeout(() => { if (token === previewSwapToken) previewEl.style.height = ''; }, 280);
+  }
+  const inner = previewEl.firstElementChild;
+  if (inner) {
+    inner.classList.remove('swap-fade');
+    void inner.offsetWidth;
+    inner.classList.add('swap-fade');
+  }
+}
+
 function updateThreadPreview(threadId) {
+  revealLegendChip(threadId);
   if (activePreviewThreadId === threadId) return;
 
   const t = THREADS.find(x => x.id === threadId);
@@ -947,7 +982,7 @@ function updateThreadPreview(threadId) {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
 
-  setHTML(previewEl, buildThreadPreviewContent(t));
+  swapPreviewContent(previewEl, buildThreadPreviewContent(t));
   activePreviewThreadId = threadId;
 }
 
@@ -955,13 +990,12 @@ function resetThreadPreview() {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
   activePreviewThreadId = null;
-  previewEl.innerHTML = 
+  swapPreviewContent(previewEl,
     '  <div class="preview-placeholder">' +
     '    <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
     '    <h3>The Story Map</h3>' +
     '    <p>Choose a route to see its waypoints and where it lands.<span class="hint-hover"> Hover to peek, click to keep it.</span></p>' +
-    '  </div>';
-  flashSwap(previewEl);
+    '  </div>');
 }
 
 function selectPreviewThread(threadId) {
