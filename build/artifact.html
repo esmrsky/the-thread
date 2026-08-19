@@ -1332,6 +1332,18 @@ footer.site-foot {
 }
 footer.site-foot .foot-verse { font-style: italic; max-width: 58ch; margin: 0 auto 10px; }
 footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: block; }
+footer.site-foot .foot-links { margin-top: 10px; }
+footer.site-foot .foot-link {
+  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--thread); text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--thread) 45%, transparent);
+  padding-bottom: 2px;
+}
+footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
+@media (pointer: coarse) {
+  footer.site-foot .foot-link { display: inline-block; min-height: 44px; line-height: 44px; }
+}
 
 /* hero thread interactions */
 .hero-scroll { position: relative; overflow: clip; min-width: 0; }
@@ -2298,6 +2310,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   <p class="foot-verse">“You search the Scriptures because you think that in them you have eternal life; and it is they that bear witness about me — yet you refuse to come to me that you may have life.” <span class="nowrap">— <a class="ref-link" target="_blank" rel="noopener" href="https://www.biblegateway.com/passage/?search=John+5%3A39-40" data-ref="John 5:39-40">John 5:39–40</a></span></p>
   <p>This site is a map, not the territory. The goal was never the map. The goal is Him.</p>
   <span class="label">The Thread · a field manual to the Bible</span>
+  <p class="foot-links"><a class="foot-link" href="compare/">Compare to Old One</a></p>
 </footer>
 
 <noscript><div class="wrap" style="padding:40px 20px"><p>This field manual needs JavaScript to unfold its maps. Please enable it and reload.</p></div></noscript>

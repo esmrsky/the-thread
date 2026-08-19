@@ -1330,6 +1330,18 @@ footer.site-foot {
 }
 footer.site-foot .foot-verse { font-style: italic; max-width: 58ch; margin: 0 auto 10px; }
 footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: block; }
+footer.site-foot .foot-links { margin-top: 10px; }
+footer.site-foot .foot-link {
+  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--thread); text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--thread) 45%, transparent);
+  padding-bottom: 2px;
+}
+footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
+@media (pointer: coarse) {
+  footer.site-foot .foot-link { display: inline-block; min-height: 44px; line-height: 44px; }
+}
 
 /* hero thread interactions */
 .hero-scroll { position: relative; overflow: clip; min-width: 0; }
