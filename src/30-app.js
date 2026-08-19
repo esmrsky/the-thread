@@ -728,7 +728,8 @@ function vTriune() {
 
 function vWalking() {
   const n = NAV[5];
-  const words = TEN_WORDS.map(w => '<span class="legend-chip" style="--c:var(--c-walk)"><span class="dot"></span>' + w + '</span>').join('');
+  /* static labels — they used to borrow .legend-chip, which reads as selectable and isn't */
+  const words = TEN_WORDS.map(w => '<span class="word-chip" style="--c:var(--c-walk)"><span class="dot"></span>' + w + '</span>').join('');
   const cards = WALKING.pillars.map(p =>
     '<div class="card pillar-card" style="--c:var(--c-walk)">' +
     '<div class="case-top"><span class="icon-chip">' + icon(p.icon) + '</span><h3>' + p.name + '</h3></div>' +
@@ -1992,7 +1993,7 @@ function initRail() {
   const rail = document.createElement('div');
   rail.id = 'rail';
   rail.innerHTML = '<div class="rail-track"></div><div class="rail-fill"></div>' +
-    NAV.map(n => '<button class="rail-dot" data-view="' + n.id + '" title="' + n.label + '" aria-label="Jump to ' + n.label + '" style="--c:var(' + n.cvar + ')"></button>').join('');
+    NAV.map(n => '<button class="rail-dot" data-view="' + n.id + '" title="' + n.label + '" aria-label="Jump to ' + n.label + '" style="--c:var(' + n.cvar + ')"><span class="rail-dot-label">' + n.label + '</span></button>').join('');
   document.body.appendChild(rail);
   rail.addEventListener('click', ev => {
     const dot = ev.target.closest('.rail-dot');
@@ -2070,7 +2071,10 @@ function boot() {
       if (el) {
         isScrollingNav = true;
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        history.replaceState(null, null, '#/' + id);
+        /* A deliberate jump is a place you can come back from. This used to replaceState,
+           so Back left the site instead of returning to the section you came from —
+           scrollspy still replaces as you drift, which is right. */
+        if (location.hash !== '#/' + id) history.pushState(null, '', '#/' + id);
         updateActiveNav(id);
         setTimeout(() => { isScrollingNav = false; }, 800);
       }

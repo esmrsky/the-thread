@@ -20,7 +20,7 @@ body { margin: 0; }
   --card-2: #f4f3e8;
   --ink: #2b2620;
   --ink-soft: #675f4e;
-  --ink-faint: #918a75;
+  --ink-faint: #6f6957;
   --line: #d7d3c0;
   --line-soft: #e5e2d2;
   --grat: rgba(43, 38, 32, 0.055);
@@ -80,7 +80,7 @@ body { margin: 0; }
     --card-2: #171b22;
     --ink: #e6e0d1;
     --ink-soft: #a89f8a;
-    --ink-faint: #7c7566;
+    --ink-faint: #948c7a;
     --line: #303642;
     --line-soft: #252b35;
     --grat: rgba(230, 224, 209, 0.045);
@@ -125,7 +125,7 @@ body { margin: 0; }
   --card-2: #171b22;
   --ink: #e6e0d1;
   --ink-soft: #a89f8a;
-  --ink-faint: #7c7566;
+  --ink-faint: #948c7a;
   --line: #303642;
   --line-soft: #252b35;
   --grat: rgba(230, 224, 209, 0.045);
@@ -152,6 +152,7 @@ body { margin: 0; }
   --t-bride: #d97f9c;
   --t-exile: #93a0b1;
   --t-name: #e08a4e;
+  --t-garment: #cf82ba;
   --s-egypt: #8fa0b4;
   --s-desert: #d09c40;
   --s-land: #6fb075;
@@ -184,7 +185,8 @@ p { margin: 0; }
 a { color: inherit; }
 svg { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; padding: 0; }
-p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
+p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: break-word; }
+p, li { text-wrap: pretty; }
 
 ::selection { background: color-mix(in srgb, var(--thread) 25%, transparent); }
 
@@ -331,31 +333,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   }
 }
 
-@media (max-width: 520px) {
-  .topbar-row {
-    gap: 10px 12px;
-    padding: 9px 14px;
-  }
-  .brand {
-    flex: 1 1 auto;
-  }
-  .brand-name {
-    font-size: 1.02rem;
-  }
-  .topbar-actions {
-    gap: 8px;
-  }
-  .verpick-btn { padding: 6px 8px; }
-  .verpick-ic { display: none; }
-  .verpick-menu { min-width: 232px; }
-  .navstrip {
-    padding-top: 8px;
-  }
-  .nav-link {
-    font-size: 0.66rem;
-    padding: 6px 9px;
-  }
-}
+
 .nav-link {
   font-family: var(--font-label);
   font-size: 0.7rem; font-weight: 600;
@@ -374,7 +352,14 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .nav-link.active { color: var(--c); background: color-mix(in srgb, var(--c) 11%, transparent); }
 
 /* ---------- views & section headers ---------- */
-.view { padding: clamp(32px, 4.5vw, 52px) 0 clamp(24px, 3vw, 34px); }
+.view {
+  width: min(1080px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 34px) 0 clamp(18px, 2.4vw, 28px);
+}
+@media (max-width: 560px) {
+  .view { width: min(100% - 28px, 1080px); }
+}
 @media (prefers-reduced-motion: no-preference) {
   .view { animation: view-in 0.35s ease both; }
   @keyframes view-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -445,8 +430,9 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   box-shadow: var(--shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-top-color 0.2s ease;
 }
+/* These cards are not clickable. A lift on hover promised an action that was never there;
+   the shadow alone still acknowledges the pointer. */
 .card:hover {
-  transform: translateY(-2.5px);
   box-shadow: var(--shadow-lift);
 }
 
@@ -615,7 +601,6 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 .insight-card:hover {
-  transform: translateY(-2px);
   box-shadow: var(--shadow-lift);
   border-color: color-mix(in srgb, var(--c) 45%, var(--line));
 }
@@ -898,7 +883,6 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .tab-station-card:hover {
-  transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--zone-c) 35%, var(--line));
   box-shadow: var(--shadow-sm);
 }
@@ -1136,11 +1120,12 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   letter-spacing: 0.06em; color: var(--ink-faint);
 }
 .shelf-item .note-txt { font-size: 0.88rem; line-height: 1.55; color: var(--ink-soft); }
+/* The cue used to be invisible until hover, so a card gave no sign it opened anything. */
 .shelf-go {
   display: inline-flex; align-items: center; gap: 5px; margin-top: 6px;
   font-family: var(--font-label); font-size: 0.6rem; font-weight: 700;
   letter-spacing: 0.13em; text-transform: uppercase; color: var(--c);
-  opacity: 0; transition: opacity 0.18s ease;
+  opacity: 0.72; transition: opacity 0.18s ease;
 }
 .shelf-go svg { width: 12px; height: 12px; }
 .shelf-item:hover .shelf-go, .shelf-item:focus-visible .shelf-go { opacity: 1; }
@@ -1171,6 +1156,33 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .legend-chip.selected { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent); }
 .legend-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
 
+/* The Walk It Out words are labels, not controls. They used to reuse .legend-chip, which
+   carries a hover state and a selected state and so reads as something you can pick. */
+.word-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-label); font-size: 0.64rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 4px 10px; border-radius: var(--r);
+  background: color-mix(in srgb, var(--c) 7%, transparent);
+}
+.word-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+
+/* Touch targets. Fingers need ~44px; a mouse does not, and forcing it everywhere would
+   pull the header apart — so the floor applies where the pointer is actually coarse. */
+@media (pointer: coarse) {
+  .nav-link, .verpick-btn, .theme-toggle, .subtab, .legend-chip, .tooltip-context-button {
+    min-height: 44px;
+  }
+  .nav-link, .verpick-btn, .subtab, .legend-chip { padding-top: 10px; padding-bottom: 10px; }
+  .theme-toggle { min-width: 44px; }
+  /* the rail dot stays a 14px mark; only its hit area grows */
+  .rail-dot::after {
+    content: ''; position: absolute; left: 50%; top: 50%;
+    width: 44px; height: 44px; transform: translate(-50%, -50%);
+  }
+}
+
 .hero-verse { text-align: center; max-width: 56ch; margin: 30px auto 0; font-style: italic; color: var(--ink-soft); font-size: 1.02rem; }
 .hero-verse .vref { font-family: var(--font-label); font-style: normal; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--thread); display: block; margin-top: 8px; }
 
@@ -1198,7 +1210,6 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 .idea-card:hover {
-  transform: translateY(-2px);
   box-shadow: var(--shadow-lift);
   border-color: color-mix(in srgb, var(--c) 45%, var(--line));
 }
@@ -1228,7 +1239,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   padding: 18px 20px; box-shadow: var(--shadow);
   transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
 }
-.bento-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: color-mix(in srgb, var(--c) 40%, var(--line)); }
+.bento-tile:hover { box-shadow: var(--shadow-lift); border-color: color-mix(in srgb, var(--c) 40%, var(--line)); }
 .bento-wide { grid-column: span 3; }
 .bento-reg { grid-column: span 2; }
 .bento-feature {
@@ -1337,6 +1348,15 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 
 /* ---------- scarlet progress rail ---------- */
 #rail { position: fixed; left: 16px; top: 130px; bottom: 56px; width: 14px; z-index: 40; }
+/* The dots were unlabelled — thirteen identical 14px targets with only a title attribute. */
+.rail-dot-label {
+  position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+  font-family: var(--font-label); font-size: 0.58rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
+  color: var(--ink-faint); opacity: 0; transition: opacity 0.15s ease; pointer-events: none;
+}
+.rail-dot:hover .rail-dot-label, .rail-dot:focus-visible .rail-dot-label { opacity: 1; }
+@media (min-width: 1460px) { .rail-dot-label { opacity: 0.75; } }
 .rail-track { position: absolute; left: 6px; top: 0; bottom: 0; border-left: 2px dashed var(--line); }
 .rail-fill {
   position: absolute; left: 6px; top: 0; width: 2px; height: 0%;
@@ -1352,7 +1372,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 }
 .rail-dot.passed { border-color: var(--c); background: color-mix(in srgb, var(--c) 30%, var(--paper)); }
 .rail-dot:hover { transform: translateY(-50%) scale(1.35); border-color: var(--c); }
-@media (max-width: 1280px) { #rail { display: none; } }
+@media (max-width: 1199px) { #rail { display: none; } }
 
 /* ---------- feast arc ---------- */
 .feast-arc-panel { margin-bottom: 22px; padding: 14px 10px 6px; }
@@ -1501,8 +1521,11 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 
 /* Section block and scrolling */
+/* The tint used to be a hard-edged 1080px column down the middle of the page, because the
+   band itself was inside the reading wrapper. The band is now full width and the wrapper
+   moved in to .view, which also takes ~40px off the stacked padding above every section. */
 .section-block {
-  padding: clamp(64px, 8vw, 104px) 0;
+  padding: clamp(40px, 5.5vw, 76px) 0;
   border-bottom: 2px dashed var(--line-soft);
   scroll-margin-top: 128px;
   background: linear-gradient(180deg, color-mix(in srgb, var(--section-c, var(--thread)) 4%, transparent), transparent min(520px, 32vw));
@@ -1698,7 +1721,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 
 @media (min-width: 1100px) {
   .chart-panel.hero-chart {
-    --hero-chart-width: min(1460px, calc(100vw - 32px));
+    --hero-chart-width: min(1240px, calc(100vw - 32px));
     grid-template-columns: minmax(330px, 0.29fr) minmax(0, 1fr);
     width: var(--hero-chart-width);
     max-width: var(--hero-chart-width);
@@ -2152,7 +2175,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 .detour-card .row b svg { width: 14px; height: 14px; flex-shrink: 0; }
 .detour-card .row.pull b { color: var(--c); }
-.detour-card .row.cost b { color: #d9534f; }
+.detour-card .row.cost b { color: var(--c-detour); }
 .detour-card .row.home b { color: var(--s-land); }
 
 /* SVG thread trigger styles */
@@ -2254,15 +2277,20 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   .journey-route-path, .tabernacle-route { animation: none; }
 }
 
-/* halo behind every diagram label so text stays legible over any background */
+/* Halo behind every diagram label. It used to be --card everywhere, which on the white
+   slab labels of the journey diorama drew a light outline on a light fill and left the
+   text barely readable; each diagram now names the surface its labels actually sit on. */
 .journey-scroll text,
 .tabernacle-svg text,
 .hero-scroll text {
   paint-order: stroke;
-  stroke: var(--card);
+  stroke: var(--label-halo, var(--card));
   stroke-width: 2.6px;
   stroke-linejoin: round;
 }
+.journey-scroll { --label-halo: var(--paper); }
+.tabernacle-svg { --label-halo: var(--card-2); }
+.hero-scroll { --label-halo: var(--card); }
 
 /* Tabernacle animated blueprint graphic container */
 .tabernacle-graphic-container {
@@ -2311,6 +2339,34 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   border-color: color-mix(in srgb, var(--zone-c) 50%, var(--line)) !important;
   box-shadow: var(--shadow-md) !important;
 }
+
+/* Narrow-phone overrides live at the end of the sheet on purpose: they used to sit above
+   the .nav-link and .verpick-* rules they override and, at equal specificity, never applied. */
+@media (max-width: 520px) {
+  .topbar-row {
+    gap: 10px 12px;
+    padding: 9px 14px;
+  }
+  .brand {
+    flex: 1 1 auto;
+  }
+  .brand-name {
+    font-size: 1.02rem;
+  }
+  .topbar-actions {
+    gap: 8px;
+  }
+  .verpick-btn { padding: 6px 8px; }
+  .verpick-ic { display: none; }
+  .verpick-menu { min-width: 232px; }
+  .navstrip {
+    padding-top: 8px;
+  }
+  .nav-link {
+    font-size: 0.66rem;
+    padding: 6px 9px;
+  }
+}
 </style>
 </head>
 <body>
@@ -2344,7 +2400,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   </div>
 </header>
 
-<main id="view" class="wrap"></main>
+<main id="view"></main>
 
 <button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" title="Back to top">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 11 6-6 6 6"/><path d="M12 5v14"/></svg>
@@ -3965,7 +4021,8 @@ function vTriune() {
 
 function vWalking() {
   const n = NAV[5];
-  const words = TEN_WORDS.map(w => '<span class="legend-chip" style="--c:var(--c-walk)"><span class="dot"></span>' + w + '</span>').join('');
+  /* static labels — they used to borrow .legend-chip, which reads as selectable and isn't */
+  const words = TEN_WORDS.map(w => '<span class="word-chip" style="--c:var(--c-walk)"><span class="dot"></span>' + w + '</span>').join('');
   const cards = WALKING.pillars.map(p =>
     '<div class="card pillar-card" style="--c:var(--c-walk)">' +
     '<div class="case-top"><span class="icon-chip">' + icon(p.icon) + '</span><h3>' + p.name + '</h3></div>' +
@@ -5229,7 +5286,7 @@ function initRail() {
   const rail = document.createElement('div');
   rail.id = 'rail';
   rail.innerHTML = '<div class="rail-track"></div><div class="rail-fill"></div>' +
-    NAV.map(n => '<button class="rail-dot" data-view="' + n.id + '" title="' + n.label + '" aria-label="Jump to ' + n.label + '" style="--c:var(' + n.cvar + ')"></button>').join('');
+    NAV.map(n => '<button class="rail-dot" data-view="' + n.id + '" title="' + n.label + '" aria-label="Jump to ' + n.label + '" style="--c:var(' + n.cvar + ')"><span class="rail-dot-label">' + n.label + '</span></button>').join('');
   document.body.appendChild(rail);
   rail.addEventListener('click', ev => {
     const dot = ev.target.closest('.rail-dot');
@@ -5307,7 +5364,10 @@ function boot() {
       if (el) {
         isScrollingNav = true;
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        history.replaceState(null, null, '#/' + id);
+        /* A deliberate jump is a place you can come back from. This used to replaceState,
+           so Back left the site instead of returning to the section you came from —
+           scrollspy still replaces as you drift, which is right. */
+        if (location.hash !== '#/' + id) history.pushState(null, '', '#/' + id);
         updateActiveNav(id);
         setTimeout(() => { isScrollingNav = false; }, 800);
       }
