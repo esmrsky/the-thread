@@ -1,0 +1,428 @@
+{
+ "defaults": {
+  "width": 1280,
+  "theme": "light"
+ },
+ "paths": [
+  {
+   "name": "tooltip-pin-and-escape",
+   "steps": [
+    {
+     "click": "#pattern .ref-link"
+    },
+    {
+     "wait": 2500
+    },
+    {
+     "assert": "document.querySelector('.verse-tooltip').classList.contains('open')",
+     "name": "tooltip opens on click"
+    },
+    {
+     "assert": "!/Loading|Unable/.test(document.querySelector('.verse-tooltip .tooltip-text').textContent)",
+     "name": "verse text loaded"
+    },
+    {
+     "key": "Escape"
+    },
+    {
+     "wait": 400
+    },
+    {
+     "assert": "!document.querySelector('.verse-tooltip').classList.contains('open')",
+     "name": "Escape closes pinned tooltip"
+    }
+   ]
+  },
+  {
+   "name": "version-pick-keeps-tooltip",
+   "steps": [
+    {
+     "click": "#pattern .ref-link"
+    },
+    {
+     "wait": 2000
+    },
+    {
+     "click": "#verpick-btn"
+    },
+    {
+     "wait": 300
+    },
+    {
+     "click": "#verpick-menu .verpick-opt[data-v=NLT]"
+    },
+    {
+     "wait": 1800
+    },
+    {
+     "assert": "document.querySelector('.verse-tooltip').classList.contains('open')",
+     "name": "tooltip stays open after version change"
+    },
+    {
+     "assert": "document.querySelector('.verse-tooltip .tooltip-ref').textContent.includes('NLT')",
+     "name": "tooltip re-fetched in the new version"
+    }
+   ]
+  },
+  {
+   "name": "tpt-missing-book-falls-back",
+   "steps": [
+    {
+     "click": "#verpick-btn"
+    },
+    {
+     "wait": 300
+    },
+    {
+     "click": "#verpick-menu .verpick-opt[data-v=TPT]"
+    },
+    {
+     "wait": 300
+    },
+    {
+     "eval": "(() => { const l = [...document.querySelectorAll('.ref-link')].find(a => /^Ex 12/.test(a.dataset.ref)); l.id = 'audit-ex'; return l.dataset.ref; })()"
+    },
+    {
+     "click": "#audit-ex"
+    },
+    {
+     "wait": 3500
+    },
+    {
+     "assert": "!/Unable|Could not|not found/i.test(document.querySelector('.verse-tooltip .tooltip-text').textContent)",
+     "name": "Exodus ref under TPT shows verse text (fallback), not an error"
+    },
+    {
+     "shot": "tpt-exodus"
+    }
+   ]
+  },
+  {
+   "name": "context-dialog-full-book-name",
+   "steps": [
+    {
+     "eval": "(() => { const l = [...document.querySelectorAll('.ref-link')].find(a => /^1 Cor 10:11/.test(a.dataset.ref)); l.id = 'audit-cor'; return l.dataset.ref; })()"
+    },
+    {
+     "click": "#audit-cor"
+    },
+    {
+     "wait": 2000
+    },
+    {
+     "click": ".verse-tooltip .tooltip-context-button"
+    },
+    {
+     "wait": 6000
+    },
+    {
+     "assert": "document.querySelector('.verse-context-dialog').open",
+     "name": "dialog opens"
+    },
+    {
+     "assert": "/Corinthians/.test(document.querySelector('.verse-context-dialog h3').textContent)",
+     "name": "dialog title uses the full book name"
+    },
+    {
+     "assert": "document.querySelectorAll('.verse-context-dialog .context-verse, .verse-context-dialog .context-block').length > 3",
+     "name": "surrounding verses rendered"
+    }
+   ]
+  },
+  {
+   "name": "cleaner-keeps-line-breaks-drops-notes",
+   "steps": [
+    {
+     "assert": "/a\\s+b/.test(cleanBollsText('a<br/>b')) && /a\\s+b/.test(cleanBollsText('a<br>b'))",
+     "name": "<br> becomes whitespace, not nothing"
+    },
+    {
+     "assert": "!/note/.test(cleanBollsText('waters. <sup>note: Heb.</sup> He'))",
+     "name": "<sup> footnote text is dropped, not leaked into the verse"
+    },
+    {
+     "assert": "!/4210/.test(cleanBollsText('Psalm<S>4210</S> of David'))",
+     "name": "Strong's numbers dropped"
+    }
+   ]
+  },
+  {
+   "name": "spelled-out-refs-are-linked",
+   "steps": [
+    {
+     "assert": "(() => { const w = document.createTreeWalker(document.getElementById('view'), NodeFilter.SHOW_TEXT); let n, bad = 0; while ((n = w.nextNode())) { if (/Hosea 11:1|Isaiah 53\\b|Deuteronomy 8:2|Ezekiel 34\\b/.test(n.nodeValue) && !n.parentElement.closest('.ref-link')) bad++; } window.__unlinked = bad; return bad === 0; })()",
+     "name": "spelled-out references (Hosea 11:1, Isaiah 53, Deuteronomy 8:2, Ezekiel 34) are linked like their abbreviated neighbours"
+    }
+   ]
+  },
+  {
+   "name": "legend-chip-deselect",
+   "steps": [
+    {
+     "click": ".legend-chip[data-thread=lamb]"
+    },
+    {
+     "wait": 200
+    },
+    {
+     "assert": "document.querySelector('.legend-chip[data-thread=lamb]').classList.contains('selected')",
+     "name": "first click selects"
+    },
+    {
+     "click": ".legend-chip[data-thread=lamb]"
+    },
+    {
+     "wait": 200
+    },
+    {
+     "assert": "!document.querySelector('.legend-chip[data-thread=lamb]').classList.contains('selected')",
+     "name": "second click deselects"
+    }
+   ]
+  },
+  {
+   "name": "nav-click-creates-history",
+   "steps": [
+    {
+     "eval": "window.__h = history.length",
+     "print": false
+    },
+    {
+     "click": ".nav-link[data-view=codes]"
+    },
+    {
+     "wait": 400
+    },
+    {
+     "assert": "history.length > window.__h",
+     "name": "section navigation pushes a history entry (Back works)"
+    }
+   ]
+  },
+  {
+   "name": "deep-link-lands-on-section",
+   "url": "https://esmrsky.github.io/the-thread/#/codes",
+   "steps": [
+    {
+     "wait": 800
+    },
+    {
+     "assert": "(() => { const t = document.getElementById('codes').getBoundingClientRect().top; return t > -10 && t < 200; })()",
+     "name": "#/codes on load scrolls to The Codes under the header"
+    }
+   ]
+  },
+  {
+   "name": "mobile-hero-preview-visible",
+   "width": 375,
+   "steps": [
+    {
+     "click": ".legend-chip[data-thread=lamb]"
+    },
+    {
+     "wait": 500
+    },
+    {
+     "assert": "(() => { const r = document.getElementById('thread-preview').getBoundingClientRect(); return r.top < innerHeight && r.height < innerHeight; })()",
+     "name": "tapped preview is on screen and shorter than the viewport"
+    },
+    {
+     "shot": "after-tap"
+    }
+   ]
+  },
+  {
+   "name": "hero-panel-not-locked-to-outlier",
+   "steps": [
+    {
+     "assert": "document.getElementById('thread-preview').getBoundingClientRect().height <= 600",
+     "name": "hero preview card \u2264 600px at 1280"
+    },
+    {
+     "assert": "document.querySelector('.hero-chart').getBoundingClientRect().height <= 720",
+     "name": "hero chart panel \u2264 720px at 1280"
+    }
+   ]
+  },
+  {
+   "name": "hero-corner-does-not-overlap-era-label",
+   "steps": [
+    {
+     "assert": "(() => { const c = document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); const eras = [...document.querySelectorAll('.hero-era')]; if (!eras.length) return true; const e = eras[eras.length-1].getBoundingClientRect(); return c.left >= e.right || c.right <= e.left || c.top >= e.bottom || c.bottom <= e.top; })()",
+     "name": "'Rev 22:21' corner clear of the 'REV' era label"
+    }
+   ]
+  },
+  {
+   "name": "dark-toggle-has-garment-token",
+   "steps": [
+    {
+     "click": "#theme-toggle"
+    },
+    {
+     "wait": 200
+    },
+    {
+     "assert": "document.documentElement.dataset.theme === 'dark'",
+     "name": "toggle sets dark"
+    },
+    {
+     "assert": "getComputedStyle(document.documentElement).getPropertyValue('--t-garment').trim().toLowerCase() !== '#9e4b86'",
+     "name": "--t-garment has a dark value under the toggle"
+    }
+   ]
+  },
+  {
+   "name": "mobile-nav-overrides-apply",
+   "width": 375,
+   "steps": [
+    {
+     "assert": "parseFloat(getComputedStyle(document.querySelector('.nav-link')).fontSize) < 11",
+     "name": "\u2264520px .nav-link override is live (font < 11px)"
+    }
+   ]
+  },
+  {
+   "name": "static-chips-not-interactive-class",
+   "steps": [
+    {
+     "assert": "document.querySelectorAll('#walking .legend-chip').length === 0",
+     "name": "Walk It Out words don't reuse the interactive .legend-chip"
+    }
+   ]
+  },
+  {
+   "name": "static-cards-do-not-lift",
+   "steps": [
+    {
+     "assert": "(() => { const bad = []; for (const sh of document.styleSheets) { let rules; try { rules = sh.cssRules; } catch { continue; } for (const r of rules) { if (r.selectorText && /^(\\.card|\\.idea-card|\\.bento-tile|\\.insight-card|\\.tab-station-card):hover$/.test(r.selectorText) && r.style.transform && r.style.transform !== 'none') bad.push(r.selectorText); } } window.__bad = bad; return bad.length === 0; })()",
+     "name": "no hover transform on non-interactive cards"
+    }
+   ]
+  },
+  {
+   "name": "library-cards-show-affordance-at-rest",
+   "steps": [
+    {
+     "assert": "parseFloat(getComputedStyle(document.querySelector('.shelf-go')).opacity) > 0",
+     "name": "library 'open' cue visible without hover"
+    }
+   ]
+  },
+  {
+   "name": "sections-full-bleed",
+   "steps": [
+    {
+     "assert": "Math.abs(document.getElementById('pattern').getBoundingClientRect().width - innerWidth) < 2",
+     "name": "section band spans the viewport"
+    }
+   ]
+  },
+  {
+   "name": "rail-visible-at-1280",
+   "steps": [
+    {
+     "assert": "(() => { const r = document.getElementById('rail'); return r && getComputedStyle(r).display !== 'none'; })()",
+     "name": "progress rail shown at 1280"
+    }
+   ]
+  },
+  {
+   "name": "marquee-trackpad-no-snap",
+   "steps": [
+    {
+     "scroll": "#threads"
+    },
+    {
+     "wait": 1200
+    },
+    {
+     "hover": "#t-lamb .thread-marquee"
+    },
+    {
+     "wait": 200
+    },
+    {
+     "wheel": {
+      "selector": "#t-lamb .thread-marquee",
+      "dx": 240
+     }
+    },
+    {
+     "wait": 400
+    },
+    {
+     "eval": "window.__a = document.querySelector('#t-lamb .thread-marquee').scrollLeft",
+     "print": false
+    },
+    {
+     "hover": "#t-lamb .thread-row-head"
+    },
+    {
+     "wait": 500
+    },
+    {
+     "assert": "Math.abs(document.querySelector('#t-lamb .thread-marquee').scrollLeft - window.__a) < 40",
+     "name": "position holds within 40px after mouse leaves (no snap-back)"
+    }
+   ]
+  },
+  {
+   "name": "marquee-resize-no-reset",
+   "steps": [
+    {
+     "scroll": "#threads"
+    },
+    {
+     "wait": 2500
+    },
+    {
+     "eval": "window.__b = document.querySelector('#t-lamb .thread-marquee').scrollLeft",
+     "print": false
+    },
+    {
+     "assert": "window.__b > 20",
+     "name": "strip has advanced before the test"
+    },
+    {
+     "eval": "window.dispatchEvent(new Event('resize'))",
+     "print": false
+    },
+    {
+     "wait": 500
+    },
+    {
+     "assert": "document.querySelector('#t-lamb .thread-marquee').scrollLeft > window.__b - 5",
+     "name": "resize does not reset the strip to zero"
+    }
+   ]
+  },
+  {
+   "name": "marquee-advances-every-frame",
+   "steps": [
+    {
+     "scroll": "#threads"
+    },
+    {
+     "wait": 1200
+    },
+    {
+     "assert": "new Promise(res => { const mq = document.querySelector('#t-lamb .thread-marquee'); const track = mq.querySelector('.marquee-track'); const pos = () => { const m = new DOMMatrixReadOnly(getComputedStyle(track).transform); return mq.scrollLeft - m.m41; }; const s = []; let n = 0; const step = () => { s.push(pos()); if (++n < 40) requestAnimationFrame(step); else { let zero = 0; for (let i = 1; i < s.length; i++) if (s[i] === s[i-1]) zero++; window.__zero = zero; res(zero < s.length * 0.3); } }; requestAnimationFrame(step); })",
+     "name": "fewer than 30% of frames show zero movement (sub-pixel motion)"
+    }
+   ]
+  },
+  {
+   "name": "no-console-errors-or-404s-on-load",
+   "steps": [
+    {
+     "wait": 1500
+    },
+    {
+     "assert": "true",
+     "name": "see console/requests below"
+    }
+   ]
+  }
+ ]
+}
