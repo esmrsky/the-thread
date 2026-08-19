@@ -18,7 +18,7 @@ JS_FILES="src/20-icons.js src/21-data-threads.js src/22-data-pattern.js src/23-d
 } > build/artifact.html
 
 {
-  printf '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>The Thread — A Field Manual to the Bible</title>\n<meta name="description" content="Maps of the threads, patterns, and codes that tie the whole Bible together — all of it pointing to Jesus.">\n<style>\n'
+  printf '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>The Thread — A Field Manual to the Bible</title>\n<meta name="description" content="Maps of the threads, patterns, and codes that tie the whole Bible together — all of it pointing to Jesus.">\n<link rel="icon" href="data:image/svg+xml,%%3Csvg xmlns=%%27http://www.w3.org/2000/svg%%27 viewBox=%%270 0 24 24%%27%%3E%%3Cpath d=%%27M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8%%27 fill=%%27none%%27 stroke=%%27%%23b3242f%%27 stroke-width=%%272.2%%27 stroke-linecap=%%27round%%27 stroke-dasharray=%%273 2.4%%27/%%3E%%3Cpath d=%%27M18.5 4.5v6M15.8 7h5.4%%27 fill=%%27none%%27 stroke=%%27%%23a1791f%%27 stroke-width=%%272.2%%27 stroke-linecap=%%27round%%27/%%3E%%3C/svg%%3E">\n<style>\n'
   cat src/00-style.css
   printf '</style>\n</head>\n<body>\n'
   cat src/10-shell.html

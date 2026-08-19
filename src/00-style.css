@@ -207,6 +207,8 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   .wrap { width: min(100% - 28px, 1080px); }
 }
 
+.nowrap { white-space: nowrap; }
+
 .label {
   font-family: var(--font-label);
   font-size: 0.7rem;
@@ -370,8 +372,6 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .section-head h2 { font-size: clamp(1.75rem, 4vw, 2.4rem); font-weight: 700; margin-bottom: 12px; }
 .lede { font-size: 1.1rem; color: var(--ink-soft); max-width: 65ch; }
 
-.route-rule { margin: 26px 0; height: 14px; color: var(--thread); opacity: 0.75; }
-.route-rule svg { width: 100%; height: 14px; }
 
 /* ---------- chart panels ---------- */
 .chart-panel {
@@ -420,7 +420,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   border-radius: var(--r-lg);
   padding: clamp(22px, 3.2vw, 32px);
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-top-color 0.2s ease;
+  transition: box-shadow 0.2s ease, border-top-color 0.2s ease;
 }
 /* These cards are not clickable. A lift on hover promised an action that was never there;
    the shadow alone still acknowledges the pointer. */
@@ -460,70 +460,6 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .trailhead .go { font-family: var(--font-label); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--c); margin-top: 8px; display: inline-block; }
 
 /* ---------- thread cards ---------- */
-.thread-card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  min-width: 0;
-}
-.thread-grid {
-  grid-template-columns: minmax(0, 1fr);
-  max-width: 900px;
-  align-items: start;
-}
-.thread-head {
-  width: 100%; display: flex; align-items: center; gap: 14px;
-  padding: 16px 18px; text-align: left;
-  min-width: 0;
-}
-.thread-head > span:not(.icon-chip):not(.chev) {
-  min-width: 0;
-}
-.thread-head:hover { background: var(--card-2); }
-.thread-head h3 { font-size: 1.14rem; }
-.thread-tag { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.45; display: block; }
-.thread-head .chev { margin-left: auto; color: var(--ink-faint); transition: transform 0.2s ease; flex-shrink: 0; }
-.thread-head .chev svg { width: 17px; height: 17px; }
-.thread-card.open .thread-head .chev { transform: rotate(90deg); }
-.thread-body {
-  display: grid;
-  grid-template-rows: 0fr;
-  border-top: 1px dashed transparent;
-  transition: grid-template-rows 0.28s ease, border-color 0.2s ease;
-}
-.thread-body-inner {
-  min-height: 0;
-  overflow: hidden;
-  padding: 0 20px;
-  transition: padding 0.28s ease;
-}
-.thread-card.open .thread-body {
-  grid-template-rows: 1fr;
-  border-top-color: var(--line);
-}
-.thread-card.open .thread-body-inner {
-  padding: 4px 20px 20px;
-}
-
-.trail { list-style: none; margin: 14px 0 0; padding: 0; position: relative; }
-.trail::before {
-  content: ""; position: absolute; left: 5px; top: 8px; bottom: 8px;
-  border-left: 2px dashed color-mix(in srgb, var(--c) 55%, transparent);
-}
-.trail li { position: relative; padding: 0 0 13px 26px; }
-.trail li:last-child { padding-bottom: 0; }
-.trail li::before {
-  content: ""; position: absolute; left: 0; top: 7px;
-  width: 12px; height: 12px; border-radius: 50%;
-  background: var(--card);
-  border: 3px solid var(--c);
-}
-.trail .wp-ref { font-family: var(--font-label); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--c); }
-.trail .wp-note { font-size: 0.94rem; color: var(--ink); }
-.trail li.wp-cross::before { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 30%, var(--card)); }
-
 .lands-on {
   margin-top: 16px; padding: 13px 16px;
   border-left: 3px solid var(--gold);
@@ -1006,16 +942,6 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   font-size: 0.64rem;
 }
 
-.callout {
-  border: 1px dashed color-mix(in srgb, var(--c-mind) 50%, var(--line));
-  background: color-mix(in srgb, var(--c-mind) 6%, transparent);
-  border-radius: var(--r-lg);
-  padding: 18px 22px;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-.callout .label { color: var(--c-mind); display: block; margin-bottom: 8px; }
-
 .tv-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
@@ -1278,6 +1204,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 }
 .thread-row-head { display: flex; align-items: center; gap: 13px; padding: 0 18px 13px; }
 .thread-row-title h3 { font-size: 1.14rem; }
+.thread-tag { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.45; display: block; }
 .thread-count {
   margin-left: auto; flex-shrink: 0;
   font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
@@ -1425,20 +1352,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   .view { padding: 30px 0 20px; }
   .feast-row { grid-template-columns: 1fr; gap: 4px; }
   .case-rows .row { grid-template-columns: 64px 1fr; }
-  .thread-head {
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px;
-  }
-  .thread-card.open .thread-body-inner {
-    padding: 2px 16px 18px;
-  }
-  .trail {
-    margin-top: 12px;
-  }
-  .trail li {
-    padding-left: 22px;
-  }
   .lands-on {
     padding: 12px 14px;
   }
@@ -1506,11 +1419,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .verpick-opt:hover, .verpick-opt.cursor { background: var(--card-2); color: var(--ink); }
 .verpick-opt[aria-selected="true"] { background: color-mix(in srgb, var(--gold) 12%, transparent); }
 .verpick-opt[aria-selected="true"] .code { color: var(--gold); }
-.verpick-note {
-  display: block; padding: 7px 9px 3px; margin-top: 4px;
-  border-top: 1px dashed var(--line-soft);
-  font-size: 0.72rem; line-height: 1.45; color: var(--ink-faint);
-}
 
 /* Section block and scrolling */
 /* The tint used to be a hard-edged 1080px column down the middle of the page, because the
@@ -1578,18 +1486,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-faint);
-}
-.verse-tooltip .tooltip-note {
-  font-family: var(--font-label);
-  font-size: 0.62rem;
-  color: var(--ink-faint);
-  margin-top: 8px;
-  display: block;
-  line-height: 1.35;
-}
-.verse-tooltip .tooltip-note a {
-  text-decoration: underline;
-  color: var(--thread);
 }
 .tooltip-actions { display: flex; margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
 .tooltip-context-button {
@@ -2327,7 +2223,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 
 .tab-station-card.active-hover {
-  transform: translateY(-4px) !important;
+  transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--zone-c) 50%, var(--line)) !important;
   box-shadow: var(--shadow-md) !important;
 }

@@ -209,6 +209,8 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   .wrap { width: min(100% - 28px, 1080px); }
 }
 
+.nowrap { white-space: nowrap; }
+
 .label {
   font-family: var(--font-label);
   font-size: 0.7rem;
@@ -372,8 +374,6 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .section-head h2 { font-size: clamp(1.75rem, 4vw, 2.4rem); font-weight: 700; margin-bottom: 12px; }
 .lede { font-size: 1.1rem; color: var(--ink-soft); max-width: 65ch; }
 
-.route-rule { margin: 26px 0; height: 14px; color: var(--thread); opacity: 0.75; }
-.route-rule svg { width: 100%; height: 14px; }
 
 /* ---------- chart panels ---------- */
 .chart-panel {
@@ -422,7 +422,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   border-radius: var(--r-lg);
   padding: clamp(22px, 3.2vw, 32px);
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-top-color 0.2s ease;
+  transition: box-shadow 0.2s ease, border-top-color 0.2s ease;
 }
 /* These cards are not clickable. A lift on hover promised an action that was never there;
    the shadow alone still acknowledges the pointer. */
@@ -462,70 +462,6 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .trailhead .go { font-family: var(--font-label); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--c); margin-top: 8px; display: inline-block; }
 
 /* ---------- thread cards ---------- */
-.thread-card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  min-width: 0;
-}
-.thread-grid {
-  grid-template-columns: minmax(0, 1fr);
-  max-width: 900px;
-  align-items: start;
-}
-.thread-head {
-  width: 100%; display: flex; align-items: center; gap: 14px;
-  padding: 16px 18px; text-align: left;
-  min-width: 0;
-}
-.thread-head > span:not(.icon-chip):not(.chev) {
-  min-width: 0;
-}
-.thread-head:hover { background: var(--card-2); }
-.thread-head h3 { font-size: 1.14rem; }
-.thread-tag { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.45; display: block; }
-.thread-head .chev { margin-left: auto; color: var(--ink-faint); transition: transform 0.2s ease; flex-shrink: 0; }
-.thread-head .chev svg { width: 17px; height: 17px; }
-.thread-card.open .thread-head .chev { transform: rotate(90deg); }
-.thread-body {
-  display: grid;
-  grid-template-rows: 0fr;
-  border-top: 1px dashed transparent;
-  transition: grid-template-rows 0.28s ease, border-color 0.2s ease;
-}
-.thread-body-inner {
-  min-height: 0;
-  overflow: hidden;
-  padding: 0 20px;
-  transition: padding 0.28s ease;
-}
-.thread-card.open .thread-body {
-  grid-template-rows: 1fr;
-  border-top-color: var(--line);
-}
-.thread-card.open .thread-body-inner {
-  padding: 4px 20px 20px;
-}
-
-.trail { list-style: none; margin: 14px 0 0; padding: 0; position: relative; }
-.trail::before {
-  content: ""; position: absolute; left: 5px; top: 8px; bottom: 8px;
-  border-left: 2px dashed color-mix(in srgb, var(--c) 55%, transparent);
-}
-.trail li { position: relative; padding: 0 0 13px 26px; }
-.trail li:last-child { padding-bottom: 0; }
-.trail li::before {
-  content: ""; position: absolute; left: 0; top: 7px;
-  width: 12px; height: 12px; border-radius: 50%;
-  background: var(--card);
-  border: 3px solid var(--c);
-}
-.trail .wp-ref { font-family: var(--font-label); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--c); }
-.trail .wp-note { font-size: 0.94rem; color: var(--ink); }
-.trail li.wp-cross::before { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 30%, var(--card)); }
-
 .lands-on {
   margin-top: 16px; padding: 13px 16px;
   border-left: 3px solid var(--gold);
@@ -1008,16 +944,6 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   font-size: 0.64rem;
 }
 
-.callout {
-  border: 1px dashed color-mix(in srgb, var(--c-mind) 50%, var(--line));
-  background: color-mix(in srgb, var(--c-mind) 6%, transparent);
-  border-radius: var(--r-lg);
-  padding: 18px 22px;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-.callout .label { color: var(--c-mind); display: block; margin-bottom: 8px; }
-
 .tv-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
@@ -1280,6 +1206,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 }
 .thread-row-head { display: flex; align-items: center; gap: 13px; padding: 0 18px 13px; }
 .thread-row-title h3 { font-size: 1.14rem; }
+.thread-tag { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.45; display: block; }
 .thread-count {
   margin-left: auto; flex-shrink: 0;
   font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
@@ -1427,20 +1354,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   .view { padding: 30px 0 20px; }
   .feast-row { grid-template-columns: 1fr; gap: 4px; }
   .case-rows .row { grid-template-columns: 64px 1fr; }
-  .thread-head {
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px;
-  }
-  .thread-card.open .thread-body-inner {
-    padding: 2px 16px 18px;
-  }
-  .trail {
-    margin-top: 12px;
-  }
-  .trail li {
-    padding-left: 22px;
-  }
   .lands-on {
     padding: 12px 14px;
   }
@@ -1508,11 +1421,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .verpick-opt:hover, .verpick-opt.cursor { background: var(--card-2); color: var(--ink); }
 .verpick-opt[aria-selected="true"] { background: color-mix(in srgb, var(--gold) 12%, transparent); }
 .verpick-opt[aria-selected="true"] .code { color: var(--gold); }
-.verpick-note {
-  display: block; padding: 7px 9px 3px; margin-top: 4px;
-  border-top: 1px dashed var(--line-soft);
-  font-size: 0.72rem; line-height: 1.45; color: var(--ink-faint);
-}
 
 /* Section block and scrolling */
 /* The tint used to be a hard-edged 1080px column down the middle of the page, because the
@@ -1580,18 +1488,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-faint);
-}
-.verse-tooltip .tooltip-note {
-  font-family: var(--font-label);
-  font-size: 0.62rem;
-  color: var(--ink-faint);
-  margin-top: 8px;
-  display: block;
-  line-height: 1.35;
-}
-.verse-tooltip .tooltip-note a {
-  text-decoration: underline;
-  color: var(--thread);
 }
 .tooltip-actions { display: flex; margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
 .tooltip-context-button {
@@ -2329,7 +2225,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 
 .tab-station-card.active-hover {
-  transform: translateY(-4px) !important;
+  transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--zone-c) 50%, var(--line)) !important;
   box-shadow: var(--shadow-md) !important;
 }
@@ -2399,7 +2295,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 </button>
 
 <footer class="site-foot wrap">
-  <p class="foot-verse">“You search the Scriptures because you think that in them you have eternal life; and it is they that bear witness about me — yet you refuse to come to me that you may have life.” <span style="white-space:nowrap">— <a class="ref-link" target="_blank" rel="noopener" href="https://www.biblegateway.com/passage/?search=John+5%3A39-40" data-ref="John 5:39-40">John 5:39–40</a></span></p>
+  <p class="foot-verse">“You search the Scriptures because you think that in them you have eternal life; and it is they that bear witness about me — yet you refuse to come to me that you may have life.” <span class="nowrap">— <a class="ref-link" target="_blank" rel="noopener" href="https://www.biblegateway.com/passage/?search=John+5%3A39-40" data-ref="John 5:39-40">John 5:39–40</a></span></p>
   <p>This site is a map, not the territory. The goal was never the map. The goal is Him.</p>
   <span class="label">The Thread · a field manual to the Bible</span>
 </footer>
@@ -3437,8 +3333,8 @@ const NAV = [
 
 /* ================= hero thread chart ================= */
 function buildHeroChart() {
-  const picks = ['lamb', 'bread', 'water', 'garment', 'light', 'shepherd', 'king', 'temple', 'rest', 'covenant', 'bride', 'exile', 'name'];
-  const ths = picks.map(id => THREADS.find(t => t.id === id));
+  /* the chart's row order is the legend's order — they used to disagree on Garment */
+  const ths = THREADS.slice();
   const X0 = 34, CX = 528, CY = 158, XE = 706;
   const n = ths.length, top = 42, bot = 276;
   let paths = '';
@@ -3644,7 +3540,7 @@ function buildTabernacleSVG() {
 
   // stations (order must match CODES.tabernacle.stations / data-index 0-7)
   const sGate = pt(0.02, 0.5), sAltar = pt(0.15, 0.5), sLaver = pt(0.28, 0.5),
-    sTable = pt(0.52, 0.72), sLamp = pt(0.52, 0.28), sIncense = pt(0.68, 0.5),
+    sTable = pt(0.52, 0.28), sLamp = pt(0.52, 0.72), sIncense = pt(0.68, 0.5),
     sVeil = pt(0.79, 0.5), sArk = pt(0.9, 0.5);
 
   // tent: floor + two cutaway walls (back + west), gold boards
@@ -3696,10 +3592,10 @@ function buildTabernacleSVG() {
     box3(sArk[0], sArk[1], 22, 13, 'var(--gold)') +
     '<path d="M' + (sArk[0] - 8) + ' ' + (sArk[1] - 15) + ' q-5 -7 2 -8 M' + (sArk[0] + 8) + ' ' + (sArk[1] - 15) + ' q5 -7 -2 -8" fill="none" stroke="var(--gold)" stroke-width="1.8"/>';
 
-  // route: outside → gate → altar → laver → into the tent → lamp → table → incense → veil → ark
+  // route: outside → gate → altar → laver → into the tent → table → lamp → incense → veil → ark
   const entry = pt(0.44, 0.5);
   const route = 'M' + (sGate[0] - 46) + ' ' + sGate[1] + ' L' + sGate.join(' ') + ' L' + sAltar.join(' ') + ' L' + sLaver.join(' ') +
-    ' L' + entry.join(' ') + ' L' + sLamp.join(' ') + ' L' + sTable.join(' ') + ' L' + sIncense.join(' ') + ' L' + sVeil.join(' ') + ' L' + sArk.join(' ');
+    ' L' + entry.join(' ') + ' L' + sTable.join(' ') + ' L' + sLamp.join(' ') + ' L' + sIncense.join(' ') + ' L' + sVeil.join(' ') + ' L' + sArk.join(' ');
 
   // numbered pins + staggered name labels in the sky
   const stations = [
@@ -4096,81 +3992,6 @@ function vLibrary() {
 }
 
 /* ================= search ================= */
-let INDEX = [];
-function buildIndex() {
-  INDEX.length = 0;
-  const add = (view, anchor, whereLabel, cvar, title, sub, extra) =>
-    INDEX.push({ view, anchor, where: whereLabel, cvar, title, sub: sub || '', hay: (title + ' ' + (sub || '') + ' ' + (extra || '')).toLowerCase() });
-  THREADS.forEach(t => add('threads', 't-' + t.id, 'Threads', t.cvar, t.name, t.tag, t.way.map(w => w.ref + ' ' + w.note).join(' ') + ' ' + t.landsOn));
-  PATTERN.seasons.forEach(s => add('pattern', '', 'The Pattern', s.cvar, s.name, s.sub, s.rows.map(r => r.v).join(' ')));
-  PATTERN.insights.forEach(i => add('pattern', '', 'The Pattern', '--c-pattern', i.t, '', i.x));
-  PATTERN.cases.forEach((c, ix) => add('pattern', 'case-' + ix, 'Case studies', '--c-pattern', c.name + ' — ' + c.sub, '', c.p1 + ' ' + c.p2 + ' ' + c.p3));
-  CODES.prophecies.forEach(p => add('codes', '', 'Prophecies', '--c-codes', p.what, p.ot + ' → ' + p.nt, ''));
-  CODES.types.forEach(t => add('codes', '', 'Types & shadows', '--c-codes', t.name, t.refs, t.body));
-  CODES.feasts.forEach(f => add('codes', '', 'The feasts', '--c-codes', f.name, f.when, f.body));
-  CODES.loose.forEach(l => add('codes', '', 'Hold loosely', '--c-codes', l.name, '', l.body));
-  TRIUNE.anchors.forEach(a => add('triune', '', 'Threefold Witness', '--c-triune', a.name, a.refs.join(' · '), a.father + ' ' + a.son + ' ' + a.spirit));
-  TRIUNE.patterns.forEach(p => add('triune', '', 'Story echoes', '--c-triune', p.name, p.refs.join(' · '), p.story + ' ' + p.reading));
-  WALKING.pillars.forEach(p => add('walking', '', 'Walk It Out', '--c-walk', p.name, p.truth, p.lie + ' ' + p.body));
-  DETOURS.items.forEach((d, i) => add('detours', 'd-' + i, 'Detours', '--c-detour', d.name, '', d.pull + ' ' + d.cost + ' ' + d.home));
-  MIND.blocks.forEach(b => add('mind', '', 'Mind & Body', '--c-mind', b.name, '', b.body));
-  LIBRARY.shelves.forEach(s => s.items.forEach(i => add('library', '', 'Library', '--c-library', i.title, i.by, i.note)));
-}
-
-function runSearch(q) {
-  q = q.trim().toLowerCase();
-  const box = document.getElementById('search-results');
-  if (q.length < 2) { box.classList.remove('open'); box.innerHTML = ''; return; }
-  const scored = INDEX.map(e => {
-    let s = 0;
-    if (e.title.toLowerCase().includes(q)) s += 10;
-    if (e.sub.toLowerCase().includes(q)) s += 4;
-    if (e.hay.includes(q)) s += 2;
-    return [s, e];
-  }).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 10);
-  if (!scored.length) {
-    box.innerHTML = '<div class="search-empty">Nothing on the map for “' + q.replace(/</g, '&lt;') + '” — try a thread, name, or verse word.</div>';
-    box.classList.add('open'); return;
-  }
-  box.innerHTML = scored.map(([s, e], i) =>
-    '<button class="search-hit" data-i="' + INDEX.indexOf(e) + '" style="--c:var(' + e.cvar + ')">' +
-    '<span class="hit-where">' + e.where + '</span>' +
-    '<div class="hit-title">' + e.title + '</div>' +
-    (e.sub ? '<div class="hit-sub">' + e.sub + '</div>' : '') + '</button>').join('');
-  box.classList.add('open');
-}
-
-function goToHit(e) {
-  const box = document.getElementById('search-results');
-  const input = document.getElementById('search-input');
-  if (box) box.classList.remove('open');
-  if (input) input.value = '';
-  
-  if (e.view === 'threads' && e.anchor) {
-    const cardId = e.anchor;
-    const card = document.getElementById(cardId);
-    if (card) {
-      card.classList.add('open');
-      const headBtn = card.querySelector('[data-toggle]');
-      if (headBtn) headBtn.setAttribute('aria-expanded', 'true');
-    }
-  }
-
-  const targetId = e.anchor || e.view;
-  const el = document.getElementById(targetId);
-  if (el) {
-    isScrollingNav = true;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.classList.add('flash');
-    setTimeout(() => {
-      el.classList.remove('flash');
-      isScrollingNav = false;
-    }, 2200);
-    history.replaceState(null, null, '#/' + e.view);
-    updateActiveNav(e.view);
-  }
-}
-
 /* ================= router & boot ================= */
 const VIEWS = { start: vStart, pattern: vPattern, threads: vThreads, codes: vCodes, triune: vTriune, walking: vWalking, detours: vDetours, mind: vMind, library: vLibrary };
 
@@ -4323,15 +4144,6 @@ function togglePreviewThread(threadId) {
 const HOVER_CAPABLE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 function wireAllSections() {
-  // Wire thread card accordions
-  document.querySelectorAll('[data-toggle]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const card = btn.closest('.thread-card');
-      const open = card.classList.toggle('open');
-      btn.setAttribute('aria-expanded', open);
-    });
-  });
-
   // Wire subtabs (in The Codes section)
   document.querySelectorAll('.subtab').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -5380,23 +5192,6 @@ function boot() {
 
   initRail();
   renderSections();
-
-  buildIndex();
-  const input = document.getElementById('search-input');
-  const box = document.getElementById('search-results');
-  if (input && box) {
-    input.addEventListener('input', () => runSearch(input.value));
-    input.addEventListener('focus', () => runSearch(input.value));
-    document.addEventListener('click', ev => {
-      const hit = ev.target.closest('.search-hit');
-      if (hit) { goToHit(INDEX[+hit.dataset.i]); return; }
-      if (!ev.target.closest('.searchbox')) box.classList.remove('open');
-    });
-    input.addEventListener('keydown', ev => {
-      if (ev.key === 'Escape') { box.classList.remove('open'); input.blur(); }
-      if (ev.key === 'Enter') { const first = box.querySelector('.search-hit'); if (first) goToHit(INDEX[+first.dataset.i]); }
-    });
-  }
 
   // Wire events, then handle the initial route before enabling scrollspy.
   initTooltip();

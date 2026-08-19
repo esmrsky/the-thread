@@ -152,8 +152,8 @@ const NAV = [
 
 /* ================= hero thread chart ================= */
 function buildHeroChart() {
-  const picks = ['lamb', 'bread', 'water', 'garment', 'light', 'shepherd', 'king', 'temple', 'rest', 'covenant', 'bride', 'exile', 'name'];
-  const ths = picks.map(id => THREADS.find(t => t.id === id));
+  /* the chart's row order is the legend's order — they used to disagree on Garment */
+  const ths = THREADS.slice();
   const X0 = 34, CX = 528, CY = 158, XE = 706;
   const n = ths.length, top = 42, bot = 276;
   let paths = '';
@@ -359,7 +359,7 @@ function buildTabernacleSVG() {
 
   // stations (order must match CODES.tabernacle.stations / data-index 0-7)
   const sGate = pt(0.02, 0.5), sAltar = pt(0.15, 0.5), sLaver = pt(0.28, 0.5),
-    sTable = pt(0.52, 0.72), sLamp = pt(0.52, 0.28), sIncense = pt(0.68, 0.5),
+    sTable = pt(0.52, 0.28), sLamp = pt(0.52, 0.72), sIncense = pt(0.68, 0.5),
     sVeil = pt(0.79, 0.5), sArk = pt(0.9, 0.5);
 
   // tent: floor + two cutaway walls (back + west), gold boards
@@ -411,10 +411,10 @@ function buildTabernacleSVG() {
     box3(sArk[0], sArk[1], 22, 13, 'var(--gold)') +
     '<path d="M' + (sArk[0] - 8) + ' ' + (sArk[1] - 15) + ' q-5 -7 2 -8 M' + (sArk[0] + 8) + ' ' + (sArk[1] - 15) + ' q5 -7 -2 -8" fill="none" stroke="var(--gold)" stroke-width="1.8"/>';
 
-  // route: outside → gate → altar → laver → into the tent → lamp → table → incense → veil → ark
+  // route: outside → gate → altar → laver → into the tent → table → lamp → incense → veil → ark
   const entry = pt(0.44, 0.5);
   const route = 'M' + (sGate[0] - 46) + ' ' + sGate[1] + ' L' + sGate.join(' ') + ' L' + sAltar.join(' ') + ' L' + sLaver.join(' ') +
-    ' L' + entry.join(' ') + ' L' + sLamp.join(' ') + ' L' + sTable.join(' ') + ' L' + sIncense.join(' ') + ' L' + sVeil.join(' ') + ' L' + sArk.join(' ');
+    ' L' + entry.join(' ') + ' L' + sTable.join(' ') + ' L' + sLamp.join(' ') + ' L' + sIncense.join(' ') + ' L' + sVeil.join(' ') + ' L' + sArk.join(' ');
 
   // numbered pins + staggered name labels in the sky
   const stations = [
@@ -811,81 +811,6 @@ function vLibrary() {
 }
 
 /* ================= search ================= */
-let INDEX = [];
-function buildIndex() {
-  INDEX.length = 0;
-  const add = (view, anchor, whereLabel, cvar, title, sub, extra) =>
-    INDEX.push({ view, anchor, where: whereLabel, cvar, title, sub: sub || '', hay: (title + ' ' + (sub || '') + ' ' + (extra || '')).toLowerCase() });
-  THREADS.forEach(t => add('threads', 't-' + t.id, 'Threads', t.cvar, t.name, t.tag, t.way.map(w => w.ref + ' ' + w.note).join(' ') + ' ' + t.landsOn));
-  PATTERN.seasons.forEach(s => add('pattern', '', 'The Pattern', s.cvar, s.name, s.sub, s.rows.map(r => r.v).join(' ')));
-  PATTERN.insights.forEach(i => add('pattern', '', 'The Pattern', '--c-pattern', i.t, '', i.x));
-  PATTERN.cases.forEach((c, ix) => add('pattern', 'case-' + ix, 'Case studies', '--c-pattern', c.name + ' — ' + c.sub, '', c.p1 + ' ' + c.p2 + ' ' + c.p3));
-  CODES.prophecies.forEach(p => add('codes', '', 'Prophecies', '--c-codes', p.what, p.ot + ' → ' + p.nt, ''));
-  CODES.types.forEach(t => add('codes', '', 'Types & shadows', '--c-codes', t.name, t.refs, t.body));
-  CODES.feasts.forEach(f => add('codes', '', 'The feasts', '--c-codes', f.name, f.when, f.body));
-  CODES.loose.forEach(l => add('codes', '', 'Hold loosely', '--c-codes', l.name, '', l.body));
-  TRIUNE.anchors.forEach(a => add('triune', '', 'Threefold Witness', '--c-triune', a.name, a.refs.join(' · '), a.father + ' ' + a.son + ' ' + a.spirit));
-  TRIUNE.patterns.forEach(p => add('triune', '', 'Story echoes', '--c-triune', p.name, p.refs.join(' · '), p.story + ' ' + p.reading));
-  WALKING.pillars.forEach(p => add('walking', '', 'Walk It Out', '--c-walk', p.name, p.truth, p.lie + ' ' + p.body));
-  DETOURS.items.forEach((d, i) => add('detours', 'd-' + i, 'Detours', '--c-detour', d.name, '', d.pull + ' ' + d.cost + ' ' + d.home));
-  MIND.blocks.forEach(b => add('mind', '', 'Mind & Body', '--c-mind', b.name, '', b.body));
-  LIBRARY.shelves.forEach(s => s.items.forEach(i => add('library', '', 'Library', '--c-library', i.title, i.by, i.note)));
-}
-
-function runSearch(q) {
-  q = q.trim().toLowerCase();
-  const box = document.getElementById('search-results');
-  if (q.length < 2) { box.classList.remove('open'); box.innerHTML = ''; return; }
-  const scored = INDEX.map(e => {
-    let s = 0;
-    if (e.title.toLowerCase().includes(q)) s += 10;
-    if (e.sub.toLowerCase().includes(q)) s += 4;
-    if (e.hay.includes(q)) s += 2;
-    return [s, e];
-  }).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 10);
-  if (!scored.length) {
-    box.innerHTML = '<div class="search-empty">Nothing on the map for “' + q.replace(/</g, '&lt;') + '” — try a thread, name, or verse word.</div>';
-    box.classList.add('open'); return;
-  }
-  box.innerHTML = scored.map(([s, e], i) =>
-    '<button class="search-hit" data-i="' + INDEX.indexOf(e) + '" style="--c:var(' + e.cvar + ')">' +
-    '<span class="hit-where">' + e.where + '</span>' +
-    '<div class="hit-title">' + e.title + '</div>' +
-    (e.sub ? '<div class="hit-sub">' + e.sub + '</div>' : '') + '</button>').join('');
-  box.classList.add('open');
-}
-
-function goToHit(e) {
-  const box = document.getElementById('search-results');
-  const input = document.getElementById('search-input');
-  if (box) box.classList.remove('open');
-  if (input) input.value = '';
-  
-  if (e.view === 'threads' && e.anchor) {
-    const cardId = e.anchor;
-    const card = document.getElementById(cardId);
-    if (card) {
-      card.classList.add('open');
-      const headBtn = card.querySelector('[data-toggle]');
-      if (headBtn) headBtn.setAttribute('aria-expanded', 'true');
-    }
-  }
-
-  const targetId = e.anchor || e.view;
-  const el = document.getElementById(targetId);
-  if (el) {
-    isScrollingNav = true;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.classList.add('flash');
-    setTimeout(() => {
-      el.classList.remove('flash');
-      isScrollingNav = false;
-    }, 2200);
-    history.replaceState(null, null, '#/' + e.view);
-    updateActiveNav(e.view);
-  }
-}
-
 /* ================= router & boot ================= */
 const VIEWS = { start: vStart, pattern: vPattern, threads: vThreads, codes: vCodes, triune: vTriune, walking: vWalking, detours: vDetours, mind: vMind, library: vLibrary };
 
@@ -1038,15 +963,6 @@ function togglePreviewThread(threadId) {
 const HOVER_CAPABLE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 function wireAllSections() {
-  // Wire thread card accordions
-  document.querySelectorAll('[data-toggle]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const card = btn.closest('.thread-card');
-      const open = card.classList.toggle('open');
-      btn.setAttribute('aria-expanded', open);
-    });
-  });
-
   // Wire subtabs (in The Codes section)
   document.querySelectorAll('.subtab').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2095,23 +2011,6 @@ function boot() {
 
   initRail();
   renderSections();
-
-  buildIndex();
-  const input = document.getElementById('search-input');
-  const box = document.getElementById('search-results');
-  if (input && box) {
-    input.addEventListener('input', () => runSearch(input.value));
-    input.addEventListener('focus', () => runSearch(input.value));
-    document.addEventListener('click', ev => {
-      const hit = ev.target.closest('.search-hit');
-      if (hit) { goToHit(INDEX[+hit.dataset.i]); return; }
-      if (!ev.target.closest('.searchbox')) box.classList.remove('open');
-    });
-    input.addEventListener('keydown', ev => {
-      if (ev.key === 'Escape') { box.classList.remove('open'); input.blur(); }
-      if (ev.key === 'Enter') { const first = box.querySelector('.search-hit'); if (first) goToHit(INDEX[+first.dataset.i]); }
-    });
-  }
 
   // Wire events, then handle the initial route before enabling scrollspy.
   initTooltip();
