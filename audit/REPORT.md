@@ -121,10 +121,15 @@ transform-based rewrite prescribed in fix order B no longer drives — the preco
 false. It now measures `scrollLeft` minus the track's `translateX`, the same combined position its sibling
 `marquee-advances-every-frame` already used. Same meaning, no weaker.
 
+**Shipped.** `fix/audit-pass-1` → PR #1 → squash-merged to `main` as `71b371b`. The Pages build for that commit
+(run `32225560563`) completed with conclusion **success** at 06:57:09Z. On `main`, `index.html` is byte-identical to
+what `./build.sh` reproduces from `src/`, `.nojekyll` is untouched, and `compare/old/index.html` is exactly 39 bytes
+larger than `f0a7683:index.html` — the inserted `robots noindex` meta and nothing else.
+
 **Not verified in this run.**
-- **The live site.** `esmrsky.github.io` is blocked by the same egress policy, and the session's GitHub App has
-  read-only access to this repo, so the branch could not be pushed, no PR was opened, nothing was merged and no
-  Pages build was confirmed. Everything above was measured locally.
+- **The served bytes.** `esmrsky.github.io` is blocked by this environment's egress policy (403 on CONNECT), so
+  the live URL was never fetched and the gate was never re-run against it. The Pages build is confirmed green via
+  the API; what it serves is not observed. Every measurement above is against a local server.
 - **iOS Safari.** Findings 1 and 2 are implemented as prescribed but need a device check — there is no iOS
   simulator here.
 - **WebKit.** `npx playwright install webkit` was attempted and its CDN is blocked, so the optional WebKit lap
