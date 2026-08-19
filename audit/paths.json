@@ -1,1075 +1,1306 @@
 {
- "defaults": {
-  "width": 1280,
-  "theme": "light"
- },
- "paths": [
-  {
-   "name": "tooltip-pin-and-escape",
-   "steps": [
-    {
-     "click": "#pattern .ref-link"
-    },
-    {
-     "wait": 2500
-    },
-    {
-     "assert": "document.querySelector('.verse-tooltip').classList.contains('open')",
-     "name": "tooltip opens on click"
-    },
-    {
-     "assert": "!/Loading|Unable/.test(document.querySelector('.verse-tooltip .tooltip-text').textContent)",
-     "name": "verse text loaded"
-    },
-    {
-     "key": "Escape"
-    },
-    {
-     "wait": 400
-    },
-    {
-     "assert": "!document.querySelector('.verse-tooltip').classList.contains('open')",
-     "name": "Escape closes pinned tooltip"
-    }
-   ]
+  "defaults": {
+    "width": 1280,
+    "theme": "light"
   },
-  {
-   "name": "version-pick-keeps-tooltip",
-   "steps": [
+  "paths": [
     {
-     "click": "#pattern .ref-link"
+      "name": "tooltip-pin-and-escape",
+      "steps": [
+        {
+          "click": "#pattern .ref-link"
+        },
+        {
+          "wait": 2500
+        },
+        {
+          "assert": "document.querySelector('.verse-tooltip').classList.contains('open')",
+          "name": "tooltip opens on click"
+        },
+        {
+          "assert": "!/Loading|Unable/.test(document.querySelector('.verse-tooltip .tooltip-text').textContent)",
+          "name": "verse text loaded"
+        },
+        {
+          "key": "Escape"
+        },
+        {
+          "wait": 400
+        },
+        {
+          "assert": "!document.querySelector('.verse-tooltip').classList.contains('open')",
+          "name": "Escape closes pinned tooltip"
+        }
+      ]
     },
     {
-     "wait": 2000
+      "name": "version-pick-keeps-tooltip",
+      "steps": [
+        {
+          "click": "#pattern .ref-link"
+        },
+        {
+          "wait": 2000
+        },
+        {
+          "click": "#verpick-btn"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "click": "#verpick-menu .verpick-opt[data-v=NLT]"
+        },
+        {
+          "wait": 1800
+        },
+        {
+          "assert": "document.querySelector('.verse-tooltip').classList.contains('open')",
+          "name": "tooltip stays open after version change"
+        },
+        {
+          "assert": "document.querySelector('.verse-tooltip .tooltip-ref').textContent.includes('NLT')",
+          "name": "tooltip re-fetched in the new version"
+        }
+      ]
     },
     {
-     "click": "#verpick-btn"
+      "name": "tpt-missing-book-falls-back",
+      "steps": [
+        {
+          "click": "#verpick-btn"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "click": "#verpick-menu .verpick-opt[data-v=TPT]"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "eval": "(() => { const l = [...document.querySelectorAll('.ref-link')].find(a => /^Ex 12/.test(a.dataset.ref)); l.id = 'audit-ex'; return l.dataset.ref; })()"
+        },
+        {
+          "click": "#audit-ex"
+        },
+        {
+          "wait": 3500
+        },
+        {
+          "assert": "!/Unable|Could not|not found/i.test(document.querySelector('.verse-tooltip .tooltip-text').textContent)",
+          "name": "Exodus ref under TPT shows verse text (fallback), not an error"
+        },
+        {
+          "shot": "tpt-exodus"
+        },
+        {
+          "click": "#verpick-btn"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "click": "#verpick-menu .verpick-opt[data-v=NIV]"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "assert": "document.getElementById('verpick-val').textContent === 'NIV'",
+          "name": "translation restored for the paths that follow"
+        }
+      ]
     },
     {
-     "wait": 300
+      "name": "context-dialog-full-book-name",
+      "steps": [
+        {
+          "eval": "(() => { const l = [...document.querySelectorAll('.ref-link')].find(a => /^1 Cor 10:11/.test(a.dataset.ref)); l.id = 'audit-cor'; return l.dataset.ref; })()"
+        },
+        {
+          "click": "#audit-cor"
+        },
+        {
+          "wait": 2000
+        },
+        {
+          "click": ".verse-tooltip .tooltip-context-button"
+        },
+        {
+          "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse, .verse-context-dialog .context-block').length > 3",
+          "timeout": 32000,
+          "name": "wait for the passage to arrive"
+        },
+        {
+          "assert": "document.querySelector('.verse-context-dialog').open",
+          "name": "dialog opens"
+        },
+        {
+          "assert": "/Corinthians/.test(document.querySelector('.verse-context-dialog h3').textContent)",
+          "name": "dialog title uses the full book name"
+        },
+        {
+          "assert": "document.querySelectorAll('.verse-context-dialog .context-verse, .verse-context-dialog .context-block').length > 3",
+          "name": "surrounding verses rendered"
+        }
+      ]
     },
     {
-     "click": "#verpick-menu .verpick-opt[data-v=NLT]"
+      "name": "cleaner-keeps-line-breaks-drops-notes",
+      "steps": [
+        {
+          "assert": "/a\\s+b/.test(cleanBollsText('a<br/>b')) && /a\\s+b/.test(cleanBollsText('a<br>b'))",
+          "name": "<br> becomes whitespace, not nothing"
+        },
+        {
+          "assert": "!/note/.test(cleanBollsText('waters. <sup>note: Heb.</sup> He'))",
+          "name": "<sup> footnote text is dropped, not leaked into the verse"
+        },
+        {
+          "assert": "!/4210/.test(cleanBollsText('Psalm<S>4210</S> of David'))",
+          "name": "Strong's numbers dropped"
+        }
+      ]
     },
     {
-     "wait": 1800
+      "name": "spelled-out-refs-are-linked",
+      "steps": [
+        {
+          "assert": "(() => { const w = document.createTreeWalker(document.getElementById('view'), NodeFilter.SHOW_TEXT); let n, bad = 0; while ((n = w.nextNode())) { if (/Hosea 11:1|Isaiah 53\\b|Deuteronomy 8:2|Ezekiel 34\\b/.test(n.nodeValue) && !n.parentElement.closest('.ref-link')) bad++; } window.__unlinked = bad; return bad === 0; })()",
+          "name": "spelled-out references (Hosea 11:1, Isaiah 53, Deuteronomy 8:2, Ezekiel 34) are linked like their abbreviated neighbours"
+        }
+      ]
     },
     {
-     "assert": "document.querySelector('.verse-tooltip').classList.contains('open')",
-     "name": "tooltip stays open after version change"
+      "name": "legend-chip-deselect",
+      "steps": [
+        {
+          "click": ".legend-chip[data-thread=lamb]"
+        },
+        {
+          "wait": 200
+        },
+        {
+          "assert": "document.querySelector('.legend-chip[data-thread=lamb]').classList.contains('selected')",
+          "name": "first click selects"
+        },
+        {
+          "click": ".legend-chip[data-thread=lamb]"
+        },
+        {
+          "wait": 200
+        },
+        {
+          "assert": "!document.querySelector('.legend-chip[data-thread=lamb]').classList.contains('selected')",
+          "name": "second click deselects"
+        }
+      ],
+      "width": 1024
     },
     {
-     "assert": "document.querySelector('.verse-tooltip .tooltip-ref').textContent.includes('NLT')",
-     "name": "tooltip re-fetched in the new version"
+      "name": "nav-click-creates-history",
+      "steps": [
+        {
+          "eval": "window.__h = history.length",
+          "print": false
+        },
+        {
+          "click": ".nav-link[data-view=codes]"
+        },
+        {
+          "wait": 400
+        },
+        {
+          "assert": "history.length > window.__h",
+          "name": "section navigation pushes a history entry (Back works)"
+        }
+      ]
+    },
+    {
+      "name": "deep-link-lands-on-section",
+      "url": "https://esmrsky.github.io/the-thread/#/codes",
+      "steps": [
+        {
+          "wait": 800
+        },
+        {
+          "assert": "(() => { const t = document.getElementById('codes').getBoundingClientRect().top; return t > -10 && t < 200; })()",
+          "name": "#/codes on load scrolls to The Codes under the header"
+        }
+      ]
+    },
+    {
+      "name": "mobile-hero-preview-visible",
+      "width": 375,
+      "steps": [
+        {
+          "click": ".legend-chip[data-thread=lamb]"
+        },
+        {
+          "wait": 500
+        },
+        {
+          "assert": "(() => { const r = document.getElementById('thread-preview').getBoundingClientRect(); return r.top < innerHeight && r.height < innerHeight; })()",
+          "name": "tapped preview is on screen and shorter than the viewport"
+        },
+        {
+          "shot": "after-tap"
+        }
+      ]
+    },
+    {
+      "name": "hero-panel-not-locked-to-outlier",
+      "steps": [
+        {
+          "click": ".hero-line-label[data-thread=exile]"
+        },
+        {
+          "wait": 500
+        },
+        {
+          "eval": "window.__short = document.getElementById('thread-preview').getBoundingClientRect().height",
+          "print": false
+        },
+        {
+          "click": ".hero-line-label[data-thread=garment]"
+        },
+        {
+          "wait": 500
+        },
+        {
+          "assert": "document.getElementById('thread-preview').getBoundingClientRect().height !== window.__short",
+          "name": "the summary sizes to its thread instead of locking to the tallest"
+        },
+        {
+          "assert": "document.getElementById('thread-preview').getBoundingClientRect().height < 620",
+          "name": "even the tallest thread's summary stays under 620px"
+        }
+      ]
+    },
+    {
+      "name": "hero-corner-does-not-overlap-era-label",
+      "steps": [
+        {
+          "assert": "(() => { const c = document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); const eras = [...document.querySelectorAll('.hero-era')]; if (!eras.length) return true; const e = eras[eras.length-1].getBoundingClientRect(); return c.left >= e.right || c.right <= e.left || c.top >= e.bottom || c.bottom <= e.top; })()",
+          "name": "'Rev 22:21' corner clear of the 'REV' era label"
+        }
+      ]
+    },
+    {
+      "name": "dark-toggle-has-garment-token",
+      "steps": [
+        {
+          "click": "#prefs-btn"
+        },
+        {
+          "wait": 250
+        },
+        {
+          "click": ".seg[data-pref=theme] button[data-v=dark]"
+        },
+        {
+          "wait": 250
+        },
+        {
+          "assert": "document.documentElement.dataset.theme === 'dark'",
+          "name": "the panel sets dark"
+        },
+        {
+          "assert": "getComputedStyle(document.documentElement).getPropertyValue('--t-garment').trim().toLowerCase() !== '#9e4b86'",
+          "name": "--t-garment has a dark value under the manual toggle"
+        },
+        {
+          "eval": "localStorage.removeItem('thread-theme')",
+          "print": false
+        }
+      ]
+    },
+    {
+      "name": "mobile-nav-overrides-apply",
+      "width": 375,
+      "steps": [
+        {
+          "assert": "parseFloat(getComputedStyle(document.querySelector('.nav-link')).fontSize) < 11",
+          "name": "≤520px .nav-link override is live (font < 11px)"
+        }
+      ]
+    },
+    {
+      "name": "static-chips-not-interactive-class",
+      "steps": [
+        {
+          "assert": "document.querySelectorAll('#walking .legend-chip').length === 0",
+          "name": "Walk It Out words don't reuse the interactive .legend-chip"
+        }
+      ]
+    },
+    {
+      "name": "static-cards-do-not-lift",
+      "steps": [
+        {
+          "assert": "(() => { const bad = []; for (const sh of document.styleSheets) { let rules; try { rules = sh.cssRules; } catch { continue; } for (const r of rules) { if (r.selectorText && /^(\\.card|\\.idea-card|\\.bento-tile|\\.insight-card|\\.tab-station-card):hover$/.test(r.selectorText) && r.style.transform && r.style.transform !== 'none') bad.push(r.selectorText); } } window.__bad = bad; return bad.length === 0; })()",
+          "name": "no hover transform on non-interactive cards"
+        }
+      ]
+    },
+    {
+      "name": "library-cards-show-affordance-at-rest",
+      "steps": [
+        {
+          "assert": "parseFloat(getComputedStyle(document.querySelector('.shelf-go')).opacity) > 0",
+          "name": "library 'open' cue visible without hover"
+        }
+      ]
+    },
+    {
+      "name": "sections-full-bleed",
+      "steps": [
+        {
+          "assert": "Math.abs(document.getElementById('pattern').getBoundingClientRect().width - innerWidth) < 2",
+          "name": "section band spans the viewport"
+        }
+      ]
+    },
+    {
+      "name": "rail-visible-at-1280",
+      "steps": [
+        {
+          "assert": "(() => { const r = document.getElementById('rail'); return r && getComputedStyle(r).display !== 'none'; })()",
+          "name": "progress rail shown at 1280"
+        }
+      ]
+    },
+    {
+      "name": "marquee-trackpad-no-snap",
+      "steps": [
+        {
+          "scroll": "#threads"
+        },
+        {
+          "wait": 1200
+        },
+        {
+          "hover": "#t-lamb .thread-marquee"
+        },
+        {
+          "wait": 200
+        },
+        {
+          "wheel": {
+            "selector": "#t-lamb .thread-marquee",
+            "dx": 240
+          }
+        },
+        {
+          "wait": 400
+        },
+        {
+          "eval": "window.__a = document.querySelector('#t-lamb .thread-marquee').scrollLeft",
+          "print": false
+        },
+        {
+          "hover": "#t-lamb .thread-row-head"
+        },
+        {
+          "wait": 500
+        },
+        {
+          "assert": "Math.abs(document.querySelector('#t-lamb .thread-marquee').scrollLeft - window.__a) < 40",
+          "name": "position holds within 40px after mouse leaves (no snap-back)"
+        }
+      ]
+    },
+    {
+      "name": "marquee-resize-no-reset",
+      "steps": [
+        {
+          "scroll": "#threads"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "eval": "window.__pos = () => { const mq = document.querySelector('#t-lamb .thread-marquee'); const track = mq.querySelector('.marquee-track'); const m = new DOMMatrixReadOnly(getComputedStyle(track).transform); return mq.scrollLeft - m.m41; }; window.__b = window.__pos()",
+          "print": false
+        },
+        {
+          "waitFor": "window.__pos() > 20",
+          "timeout": 15000,
+          "name": "wait until the strip has actually travelled"
+        },
+        {
+          "assert": "window.__b = window.__pos(), window.__b > 20",
+          "name": "strip has advanced before the test"
+        },
+        {
+          "eval": "window.dispatchEvent(new Event('resize'))",
+          "print": false
+        },
+        {
+          "wait": 500
+        },
+        {
+          "assert": "window.__pos() > window.__b - 5",
+          "name": "resize does not reset the strip to zero"
+        }
+      ]
+    },
+    {
+      "name": "marquee-advances-every-frame",
+      "steps": [
+        {
+          "scroll": "#threads"
+        },
+        {
+          "wait": 1200
+        },
+        {
+          "assert": "new Promise(res => { const mq = document.querySelector('#t-lamb .thread-marquee'); const track = mq.querySelector('.marquee-track'); const pos = () => { const m = new DOMMatrixReadOnly(getComputedStyle(track).transform); return mq.scrollLeft - m.m41; }; const s = []; let n = 0; const step = () => { s.push(pos()); if (++n < 40) requestAnimationFrame(step); else { let zero = 0; for (let i = 1; i < s.length; i++) if (s[i] === s[i-1]) zero++; window.__zero = zero; res(zero < s.length * 0.3); } }; requestAnimationFrame(step); })",
+          "name": "fewer than 30% of frames show zero movement (sub-pixel motion)"
+        }
+      ]
+    },
+    {
+      "name": "no-console-errors-or-404s-on-load",
+      "steps": [
+        {
+          "wait": 1500
+        },
+        {
+          "assert": "true",
+          "name": "see console/requests below"
+        }
+      ]
+    },
+    {
+      "name": "hero-labels-replace-pills-on-desktop",
+      "width": 1280,
+      "steps": [
+        {
+          "assert": "getComputedStyle(document.querySelector('.hero-chart .hero-legend')).display === 'none'",
+          "name": "pill legend hidden where route labels are shown"
+        },
+        {
+          "assert": "getComputedStyle(document.querySelector('.hero-line-label')).display === 'block'",
+          "name": "route labels shown"
+        },
+        {
+          "click": ".hero-line-label[data-thread=lamb]"
+        },
+        {
+          "wait": 400
+        },
+        {
+          "assert": "document.querySelector('.hero-line-label[data-thread=lamb]').classList.contains('selected')",
+          "name": "clicking a route label selects that thread"
+        },
+        {
+          "assert": "document.getElementById('thread-preview').textContent.includes('Lamb')",
+          "name": "the summary follows the label click"
+        }
+      ]
+    },
+    {
+      "name": "hero-summary-below-chart-no-inner-scroll",
+      "width": 1280,
+      "steps": [
+        {
+          "click": ".hero-line-label[data-thread=garment]"
+        },
+        {
+          "wait": 500
+        },
+        {
+          "assert": "(() => { const c = document.querySelector('.chart-main').getBoundingClientRect(); const p = document.getElementById('thread-preview').getBoundingClientRect(); return p.top >= c.bottom - 2; })()",
+          "name": "summary sits below the chart, not beside it"
+        },
+        {
+          "assert": "(() => { const p = document.getElementById('thread-preview'); return p.scrollHeight <= p.clientHeight + 2; })()",
+          "name": "summary has no scrollbar of its own"
+        },
+        {
+          "assert": "document.querySelector('.hero-svg').getBoundingClientRect().width > document.querySelector('.hero-chart').getBoundingClientRect().width * 0.75",
+          "name": "chart uses most of the panel width"
+        }
+      ]
+    },
+    {
+      "name": "thread-rows-are-tinted-and-spaced",
+      "width": 1280,
+      "steps": [
+        {
+          "assert": "(() => { const a = getComputedStyle(document.getElementById('t-lamb')).backgroundColor, b = getComputedStyle(document.getElementById('t-water')).backgroundColor; return a !== b; })()",
+          "name": "each thread row carries its own tint"
+        },
+        {
+          "assert": "(() => { const a = document.getElementById('t-lamb').getBoundingClientRect(), b = document.getElementById('t-bread').getBoundingClientRect(); return b.top - a.bottom >= 20; })()",
+          "name": "rows are separated by at least 20px"
+        }
+      ]
+    },
+    {
+      "name": "grids-leave-no-orphan",
+      "width": 1280,
+      "steps": [
+        {
+          "assert": "(() => { const sels=['.grid-2','.grid-3','.season-grid','.insight-grid','.feast-cards','.triune-rails','.mind-panel-grid','.tv-grid','.shelf-items','.big-idea','.bento']; const bad=[]; sels.forEach(sel=>document.querySelectorAll(sel).forEach(g=>{const kids=[...g.children].filter(k=>getComputedStyle(k).display!=='none'); if(kids.length<2) return; const gw=g.getBoundingClientRect().width; const rows={};kids.forEach(k=>{const r=k.getBoundingClientRect(); (rows[Math.round(r.top)] ||= []).push(r);}); const keys=Object.keys(rows).map(Number).sort((a,b)=>a-b);if(keys.length<2) return; const last=rows[keys[keys.length-1]]; const covered=last.reduce((n,r)=>n+r.width,0);if(covered < gw-40) bad.push(sel+' '+Math.round(covered)+'/'+Math.round(gw));})); window.__orphans=bad; return bad.length===0; })()",
+          "name": "every card grid fills its last row (11 grid types)"
+        }
+      ]
+    },
+    {
+      "name": "mind-blocks-are-colour-coded",
+      "width": 1280,
+      "steps": [
+        {
+          "assert": "new Set([...document.querySelectorAll('#mind .mind-card')].map(c => getComputedStyle(c).getPropertyValue('--c').trim())).size > 4",
+          "name": "Mind blocks use more than four distinct hues"
+        },
+        {
+          "assert": "document.querySelectorAll('#mind .mind-panel-ic svg').length >= 8",
+          "name": "every Mind panel carries a label icon"
+        }
+      ]
+    },
+    {
+      "name": "version-menu-sits-above-the-verse-popup",
+      "width": 1280,
+      "steps": [
+        {
+          "click": "#pattern .ref-link"
+        },
+        {
+          "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
+          "timeout": 8000
+        },
+        {
+          "click": "#verpick-btn"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "assert": "parseInt(getComputedStyle(document.querySelector('#verpick-menu')).zIndex, 10) > parseInt(getComputedStyle(document.querySelector('.verse-tooltip')).zIndex, 10)",
+          "name": "the translation menu layers above the pinned pop-up"
+        }
+      ]
+    },
+    {
+      "name": "one-scrollbar-treatment",
+      "width": 1280,
+      "steps": [
+        {
+          "assert": "['.table-scroll', '.context-dialog-body', '.verpick-menu'].every(s => { const e = document.querySelector(s); return !e || getComputedStyle(e).scrollbarWidth === 'thin'; })",
+          "name": "scrollers share the thin styled scrollbar"
+        }
+      ]
+    },
+    {
+      "name": "context-reaches-into-the-previous-chapter",
+      "width": 1280,
+      "steps": [
+        {
+          "eval": "try { localStorage.removeItem('thread-version'); } catch (e) {}",
+          "print": false
+        },
+        {
+          "reload": true
+        },
+        {
+          "eval": "(() => { const l = [...document.querySelectorAll('.ref-link')].find(a => /^Rom 8:1$/.test(a.dataset.ref)); l.id = 'audit-rom'; return l.dataset.ref; })()"
+        },
+        {
+          "click": "#audit-rom"
+        },
+        {
+          "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
+          "timeout": 8000
+        },
+        {
+          "click": ".verse-tooltip .tooltip-context-button"
+        },
+        {
+          "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
+          "timeout": 32000
+        },
+        {
+          "click": ".context-more-button"
+        },
+        {
+          "waitFor": "[...document.querySelectorAll('.context-verse-number')].some(n => n.textContent.includes(':'))",
+          "timeout": 32000,
+          "name": "wait for the widened passage"
+        },
+        {
+          "assert": "[...document.querySelectorAll('.context-verse-number')].some(n => /^7:/.test(n.textContent))",
+          "name": "asking for more context reaches back into the previous chapter"
+        }
+      ]
+    },
+    {
+      "name": "grids-leave-no-orphan-narrow",
+      "width": 643,
+      "steps": [
+        {
+          "assert": "(() => { const sels=['.grid-2','.grid-3','.season-grid','.insight-grid','.feast-cards','.triune-rails','.mind-panel-grid','.tv-grid','.shelf-items','.big-idea','.bento']; const bad=[]; sels.forEach(sel=>document.querySelectorAll(sel).forEach(g=>{const kids=[...g.children].filter(k=>getComputedStyle(k).display!=='none'); if(kids.length<2) return; const gw=g.getBoundingClientRect().width; const rows={};kids.forEach(k=>{const r=k.getBoundingClientRect(); (rows[Math.round(r.top)] ||= []).push(r);}); const keys=Object.keys(rows).map(Number).sort((a,b)=>a-b);if(keys.length<2) return; const last=rows[keys[keys.length-1]]; const covered=last.reduce((n,r)=>n+r.width,0);if(covered < gw-40) bad.push(sel+' '+Math.round(covered)+'/'+Math.round(gw));})); window.__orphans=bad; return bad.length===0; })()",
+          "name": "no orphan card at 643px either"
+        }
+      ]
+    },
+    {
+      "name": "grids-leave-no-orphan-mobile",
+      "width": 375,
+      "steps": [
+        {
+          "assert": "(() => { const sels=['.grid-2','.grid-3','.season-grid','.insight-grid','.feast-cards','.triune-rails','.mind-panel-grid','.tv-grid','.shelf-items','.big-idea','.bento']; const bad=[]; sels.forEach(sel=>document.querySelectorAll(sel).forEach(g=>{const kids=[...g.children].filter(k=>getComputedStyle(k).display!=='none'); if(kids.length<2) return; const gw=g.getBoundingClientRect().width; const rows={};kids.forEach(k=>{const r=k.getBoundingClientRect(); (rows[Math.round(r.top)] ||= []).push(r);}); const keys=Object.keys(rows).map(Number).sort((a,b)=>a-b);if(keys.length<2) return; const last=rows[keys[keys.length-1]]; const covered=last.reduce((n,r)=>n+r.width,0);if(covered < gw-40) bad.push(sel+' '+Math.round(covered)+'/'+Math.round(gw));})); window.__orphans=bad; return bad.length===0; })()",
+          "name": "no orphan card at 375px either"
+        }
+      ]
+    },
+    {
+      "name": "verse-popup-fades-without-sliding",
+      "width": 1280,
+      "steps": [
+        {
+          "assert": "!getComputedStyle(document.querySelector('.verse-tooltip')).transitionProperty.includes('transform')",
+          "name": "the pop-up fades in place, it does not slide up"
+        }
+      ]
+    },
+    {
+      "name": "context-dialog-arrives-smoothly",
+      "width": 1280,
+      "steps": [
+        {
+          "eval": "(() => { const l=[...document.querySelectorAll('.ref-link')].find(a=>/^1 Cor 10:11/.test(a.dataset.ref)); l.id='audit-c'; })()",
+          "print": false
+        },
+        {
+          "click": "#audit-c"
+        },
+        {
+          "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
+          "timeout": 8000
+        },
+        {
+          "click": ".verse-tooltip .tooltip-context-button"
+        },
+        {
+          "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
+          "timeout": 32000
+        },
+        {
+          "assert": "getComputedStyle(document.querySelector('.verse-context-dialog')).animationName !== 'none'",
+          "name": "the lightbox animates in rather than appearing"
+        },
+        {
+          "assert": "getComputedStyle(document.querySelector('.context-verse.is-selected .ctx-t')).textDecorationLine === 'underline'",
+          "name": "the underline is on the verse text"
+        },
+        {
+          "assert": "getComputedStyle(document.querySelector('.context-verse.is-selected .context-verse-number')).textDecorationLine === 'none'",
+          "name": "the verse number is outside the underline, so there is no gap before the first word"
+        }
+      ]
+    },
+    {
+      "name": "translation-swap-does-not-blank-the-box",
+      "width": 1280,
+      "steps": [
+        {
+          "eval": "(() => { const l=[...document.querySelectorAll('.ref-link')].find(a=>/^1 Cor 10:11/.test(a.dataset.ref)); l.id='audit-c2'; })()",
+          "print": false
+        },
+        {
+          "click": "#audit-c2"
+        },
+        {
+          "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
+          "timeout": 8000
+        },
+        {
+          "click": ".verse-tooltip .tooltip-context-button"
+        },
+        {
+          "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
+          "timeout": 32000
+        },
+        {
+          "wait": 450
+        },
+        {
+          "eval": "(() => { const b=document.querySelector('.context-dialog-body'); window.__h0=b.getBoundingClientRect().height; window.__blanked=false; window.__sawRefreshing=false; window.__lockedHeight=false; new MutationObserver(()=>{ if(/Loading surrounding/.test(b.textContent)||b.textContent.trim()==='') window.__blanked=true; }).observe(b,{childList:true,subtree:true,characterData:true}); new MutationObserver(()=>{ if(b.classList.contains('is-refreshing')) window.__sawRefreshing=true; if(b.style.minHeight) window.__lockedHeight=true; }).observe(b,{attributes:true,attributeFilter:['class','style']}); return window.__h0; })()",
+          "print": false
+        },
+        {
+          "click": ".verse-context-dialog .verpick-btn"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "click": ".verse-context-dialog .verpick-opt[data-v=NLT]"
+        },
+        {
+          "waitFor": "document.querySelector('.verse-context-dialog .verpick-val').textContent === 'NLT' && document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
+          "timeout": 32000
+        },
+        {
+          "assert": "window.__blanked === false",
+          "name": "the passage is never emptied while the new translation loads"
+        },
+        {
+          "assert": "window.__sawRefreshing === true",
+          "name": "the old passage stays on screen and dims while the new one loads"
+        },
+        {
+          "assert": "window.__sawRefreshing === true && window.__lockedHeight === true",
+          "name": "the old passage stays on screen and dims, with its height held, while the new one loads"
+        },
+        {
+          "assert": "Math.abs(document.querySelector('.context-dialog-body').getBoundingClientRect().height - window.__h0) < 6",
+          "name": "the box does not collapse and re-expand"
+        }
+      ]
+    },
+    {
+      "name": "mobile-translation-picker-not-cramped",
+      "width": 375,
+      "steps": [
+        {
+          "assert": "getComputedStyle(document.querySelector('.verpick-ic')).display !== 'none'",
+          "name": "the picker keeps its icon on a phone"
+        },
+        {
+          "assert": "parseFloat(getComputedStyle(document.querySelector('.verpick-btn')).paddingLeft) >= 9",
+          "name": "the picker has breathing room"
+        }
+      ]
+    },
+    {
+      "name": "reading-settings-panel",
+      "width": 1280,
+      "steps": [
+        {
+          "eval": "localStorage.clear()",
+          "print": false
+        },
+        {
+          "reload": true
+        },
+        {
+          "wait": 2500
+        },
+        {
+          "click": "#prefs-btn"
+        },
+        {
+          "wait": 400
+        },
+        {
+          "assert": "!document.getElementById('prefs-menu').hidden",
+          "name": "the settings panel opens"
+        },
+        {
+          "assert": "[...document.querySelectorAll('#prefs-menu [data-pref]')].map(s => s.dataset.pref).join(',') === 'theme,type,lh,fs'",
+          "name": "colours, typeface, line height and text size are all offered"
+        },
+        {
+          "assert": "document.querySelectorAll('.typegrid button[data-v]').length === 6",
+          "name": "six typeface pairings on offer"
+        },
+        {
+          "eval": "window.__f0 = getComputedStyle(document.body).fontFamily",
+          "print": false
+        },
+        {
+          "eval": "document.querySelector('.typegrid button[data-v=figtree]').click()",
+          "print": false
+        },
+        {
+          "wait": 1200
+        },
+        {
+          "assert": "getComputedStyle(document.body).fontFamily !== window.__f0 && getComputedStyle(document.body).fontFamily.replace(/\"/g,'').indexOf('Figtree') === 0",
+          "name": "choosing a sans pairing changes the reading face"
+        },
+        {
+          "assert": "document.fonts.check('400 1rem Figtree')",
+          "name": "and its web face really loaded"
+        },
+        {
+          "eval": "document.querySelector('.typegrid button[data-v=source-sans]').click()",
+          "print": false
+        },
+        {
+          "wait": 1200
+        },
+        {
+          "assert": "getComputedStyle(document.body).fontFamily.replace(/\"/g,'').indexOf('Source Sans 3') === 0 && getComputedStyle(document.querySelector('h1')).fontFamily.replace(/\"/g,'').indexOf('Literata') === 0",
+          "name": "a crossed pairing sets headings and body apart"
+        },
+        {
+          "eval": "window.__lh0 = parseFloat(getComputedStyle(document.body).lineHeight)",
+          "print": false
+        },
+        {
+          "eval": "document.querySelector('.seg[data-pref=lh] button[data-v=roomy]').click()",
+          "print": false
+        },
+        {
+          "wait": 1000
+        },
+        {
+          "assert": "parseFloat(getComputedStyle(document.body).lineHeight) > window.__lh0",
+          "name": "line height responds"
+        },
+        {
+          "assert": "Math.abs(parseFloat(getComputedStyle(document.body).lineHeight) / parseFloat(getComputedStyle(document.body).fontSize) - 2.12) < 0.02",
+          "name": "roomy really is 2.12, not a nudge"
+        },
+        {
+          "eval": "document.querySelector('.seg[data-pref=lh] button[data-v=snug]').click()",
+          "print": false
+        },
+        {
+          "wait": 1000
+        },
+        {
+          "assert": "Math.abs(parseFloat(getComputedStyle(document.body).lineHeight) / parseFloat(getComputedStyle(document.body).fontSize) - 1.5) < 0.02",
+          "name": "and snug really is 1.50"
+        },
+        {
+          "assert": "(() => { const c = getComputedStyle(document.querySelector('.idea-card p')); return parseFloat(c.lineHeight) / parseFloat(c.fontSize) < 1.4; })()",
+          "name": "card copy tracks the dial, not just body prose"
+        },
+        {
+          "eval": "window.__r0 = parseFloat(getComputedStyle(document.documentElement).fontSize)",
+          "print": false
+        },
+        {
+          "eval": "document.querySelector('[data-pref=fs] button[data-step=\"1\"]').click()",
+          "print": false
+        },
+        {
+          "wait": 900
+        },
+        {
+          "assert": "parseFloat(getComputedStyle(document.documentElement).fontSize) > window.__r0 && document.getElementById('fs-val').textContent === '108%'",
+          "name": "text size steps up"
+        },
+        {
+          "assert": "Math.abs(parseFloat(getComputedStyle(document.querySelector('.nav-link')).fontSize) - 11.2) < 0.2",
+          "name": "but the toolbar is left alone"
+        },
+        {
+          "eval": "document.querySelector('.seg[data-pref=theme] button[data-v=dark]').click()",
+          "print": false
+        },
+        {
+          "wait": 400
+        },
+        {
+          "assert": "document.documentElement.dataset.theme === 'dark'",
+          "name": "colours switch from the same panel"
+        },
+        {
+          "assert": "localStorage.getItem('thread-type') === 'source-sans' && localStorage.getItem('thread-lh') === 'snug' && localStorage.getItem('thread-fs') === '3'",
+          "name": "the choices are remembered"
+        },
+        {
+          "eval": "localStorage.clear()",
+          "print": false
+        }
+      ]
+    },
+    {
+      "name": "typeface-swap-keeps-the-reader-in-place",
+      "width": 1280,
+      "steps": [
+        {
+          "eval": "localStorage.clear()",
+          "print": false
+        },
+        {
+          "reload": true
+        },
+        {
+          "wait": 2500
+        },
+        {
+          "eval": "document.getElementById('prefs-btn').click()",
+          "print": false
+        },
+        {
+          "wait": 400
+        },
+        {
+          "scroll": 1600
+        },
+        {
+          "wait": 500
+        },
+        {
+          "eval": "window.__el = document.elementFromPoint(640,140); window.__t0 = window.__el.getBoundingClientRect().top; window.__h0 = document.body.scrollHeight; 1",
+          "print": false
+        },
+        {
+          "eval": "document.querySelector('.typegrid button[data-v=figtree]').click()",
+          "print": false
+        },
+        {
+          "wait": 1300
+        },
+        {
+          "eval": "[Math.round(window.__el.getBoundingClientRect().top - window.__t0), document.body.scrollHeight - window.__h0]",
+          "name": "[anchor drift px, document height delta px]"
+        },
+        {
+          "assert": "document.body.scrollHeight !== window.__h0",
+          "name": "the swap really did re-lay the page"
+        },
+        {
+          "assert": "Math.abs(window.__el.getBoundingClientRect().top - window.__t0) < 10",
+          "name": "and the line under the reader's eye did not move"
+        },
+        {
+          "eval": "localStorage.clear()",
+          "print": false
+        }
+      ]
+    },
+    {
+      "name": "reading-settings-fade-is-smooth",
+      "width": 1280,
+      "steps": [
+        {
+          "eval": "localStorage.clear()",
+          "print": false
+        },
+        {
+          "reload": true
+        },
+        {
+          "wait": 2500
+        },
+        {
+          "eval": "document.getElementById('prefs-btn').click(); window.__o=[]; window.__t0=performance.now(); (function f(){ window.__o.push(+parseFloat(getComputedStyle(document.getElementById('view')).opacity).toFixed(2)); if(performance.now()-window.__t0<900) requestAnimationFrame(f); })(); 1",
+          "print": false
+        },
+        {
+          "eval": "document.querySelector('.seg[data-pref=lh] button[data-v=roomy]').click()",
+          "print": false
+        },
+        {
+          "wait": 1400
+        },
+        {
+          "eval": "[window.__o.length, Math.min(...window.__o), new Set(window.__o).size]",
+          "name": "[frames, min opacity, distinct steps]"
+        },
+        {
+          "assert": "Math.min(...window.__o) <= 0.12",
+          "name": "the column dips far enough to hide the reflow"
+        },
+        {
+          "assert": "new Set(window.__o).size >= 6",
+          "name": "and gets there as a fade, not a blink (a blink would sample 2 values; a busy box still samples 6+)"
+        },
+        {
+          "assert": "parseFloat(getComputedStyle(document.getElementById('view')).opacity) === 1",
+          "name": "then comes all the way back"
+        },
+        {
+          "assert": "!getComputedStyle(document.documentElement).transition.includes('--')",
+          "name": "no layout property is being interpolated"
+        },
+        {
+          "eval": "localStorage.clear()",
+          "print": false
+        }
+      ]
+    },
+    {
+      "name": "one-route-at-a-time",
+      "width": 375,
+      "steps": [
+        {
+          "eval": "localStorage.clear()",
+          "print": false
+        },
+        {
+          "reload": true
+        },
+        {
+          "wait": 2500
+        },
+        {
+          "assert": "!document.querySelector('.hero-chart.route-focus')",
+          "name": "at rest every route is up"
+        },
+        {
+          "eval": "document.querySelector('.hero-chart .legend-chip[data-thread]').click()",
+          "print": false
+        },
+        {
+          "wait": 800
+        },
+        {
+          "assert": "!!document.querySelector('.hero-chart.route-focus')",
+          "name": "holding one route focuses the chart"
+        },
+        {
+          "assert": "Math.abs(parseFloat(getComputedStyle(document.querySelector('.hero-thread.selected')).strokeWidth) - 5.4) < 0.2",
+          "name": "the held route widens to 5.4 on a phone"
+        },
+        {
+          "assert": "parseFloat(getComputedStyle([...document.querySelectorAll('.hero-thread')].find(p => !p.classList.contains('selected'))).opacity) < 0.15",
+          "name": "the other twelve fall back to 0.1"
+        },
+        {
+          "eval": "document.querySelector('.hero-chart .legend-chip[data-thread]').click()",
+          "print": false
+        },
+        {
+          "wait": 800
+        },
+        {
+          "assert": "!document.querySelector('.hero-chart.route-focus')",
+          "name": "letting go brings them all back"
+        },
+        {
+          "eval": "localStorage.clear()",
+          "print": false
+        }
+      ]
+    },
+    {
+      "name": "thread-header-fits-a-phone",
+      "width": 375,
+      "steps": [
+        {
+          "assert": "(() => { const h = document.querySelector('#t-lamb .thread-row-title h3'); const lh = parseFloat(getComputedStyle(h).lineHeight); return h.getBoundingClientRect().height < lh * 1.6; })()",
+          "name": "the thread title is not broken across two lines"
+        },
+        {
+          "assert": "document.querySelector('#t-lamb .thread-row-head').getBoundingClientRect().height < 145",
+          "name": "the header does not eat 154px of a 375px screen"
+        }
+      ]
+    },
+    {
+      "name": "legend-follows-the-route",
+      "width": 375,
+      "steps": [
+        {
+          "assert": "(() => { const s=document.querySelector('.hero-chart .hero-legend'); window.__s0=s.scrollLeft; return s.scrollWidth > s.clientWidth + 4; })()",
+          "name": "the pill strip scrolls sideways on a phone"
+        },
+        {
+          "clickPoint": "(() => { const p=document.querySelector('.hero-thread-trigger[data-thread=garment]'); const pt=p.getPointAtLength(p.getTotalLength()*0.12); const q=new DOMPoint(pt.x, pt.y).matrixTransform(p.getScreenCTM()); return {x:q.x, y:q.y}; })()",
+          "name": "touch the Garment route"
+        },
+        {
+          "wait": 800
+        },
+        {
+          "assert": "document.querySelector('.hero-chart .hero-legend').scrollLeft > window.__s0 + 50",
+          "name": "touching a route scrolls its pill into the strip"
+        },
+        {
+          "assert": "(() => { const c=document.querySelector('.legend-chip[data-thread=garment]').getBoundingClientRect(); const s=document.querySelector('.hero-chart .hero-legend').getBoundingClientRect(); return c.left >= s.left - 2 && c.right <= s.right + 2; })()",
+          "name": "the pill for that route is fully visible"
+        }
+      ]
+    },
+    {
+      "name": "summary-swaps-without-flashing",
+      "width": 1280,
+      "steps": [
+        {
+          "assert": "getComputedStyle(document.getElementById('thread-preview')).transitionProperty.includes('height')",
+          "name": "the panel eases its height instead of snapping"
+        },
+        {
+          "eval": "(() => { const c=document.getElementById('thread-preview'); window.__heightPinned=false; new MutationObserver(()=>{ if(c.style.height) window.__heightPinned=true; }).observe(c,{attributes:true,attributeFilter:['style']}); })()",
+          "print": false
+        },
+        {
+          "click": ".hero-line-label[data-thread=lamb]"
+        },
+        {
+          "wait": 500
+        },
+        {
+          "click": ".hero-line-label[data-thread=garment]"
+        },
+        {
+          "wait": 500
+        },
+        {
+          "assert": "window.__heightPinned === true",
+          "name": "the frame is held while the words change"
+        },
+        {
+          "assert": "getComputedStyle(document.getElementById('thread-preview').firstElementChild).animationName === 'swap-fade'",
+          "name": "the text fades rather than sliding in"
+        }
+      ]
+    },
+    {
+      "name": "story-ends-read-as-books",
+      "width": 1280,
+      "steps": [
+        {
+          "assert": "document.querySelector('.hero-scroll .chart-corner.tl').textContent.trim() === 'Genesis' && document.querySelector('.hero-scroll .chart-corner.br').textContent.trim() === 'Revelation'",
+          "name": "the chart's ends are named as books"
+        },
+        {
+          "assert": "document.querySelector('.hero-scroll .chart-corner.tl .ref-link').dataset.ref === 'Gen 1:1' && document.querySelector('.hero-scroll .chart-corner.br .ref-link').dataset.ref === 'Rev 22:21'",
+          "name": "each still carries its verse for the hover pop-up"
+        },
+        {
+          "assert": "(() => { const c=document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); const eras=[...document.querySelectorAll('.hero-svg-h .hero-era')].map(e=>e.getBoundingClientRect()); return eras.every(e => c.left >= e.right || c.right <= e.left || c.top >= e.bottom || c.bottom <= e.top); })()",
+          "name": "the end label clears every era label"
+        },
+        {
+          "assert": "(() => { const a=document.querySelector('.hero-scroll .chart-corner.tl').getBoundingClientRect(), b=document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); const svg=document.querySelector('.hero-svg').getBoundingClientRect(); return Math.abs(a.top-b.top) < 3 && a.left < b.left && a.bottom <= svg.top + 2; })()",
+          "name": "both ends sit level along the top, above the drawing, in opposite corners"
+        }
+      ]
+    },
+    {
+      "name": "diagrams-stay-legible-on-a-phone",
+      "width": 375,
+      "steps": [
+        {
+          "eval": "document.querySelector('.subtab[data-tab=tabernacle]').click()",
+          "print": false
+        },
+        {
+          "wait": 300
+        },
+        {
+          "assert": "(() => { const px=(sel,vb)=>{const e=document.querySelector(sel);const sc=e.getBoundingClientRect().width/vb;const z=[...e.querySelectorAll('text')].map(t=>parseFloat(t.getAttribute('font-size')||'0')).filter(Boolean);return Math.min(...z)*sc;}; window.__px=[px('.journey-scroll svg',900), px('.tabernacle-svg',900)]; return window.__px.every(v => v >= 6.5); })()",
+          "name": "the smallest diagram label is at least 6.5px (was 2.3px)"
+        },
+        {
+          "assert": "['.journey-scroll','.tabernacle-graphic-container'].every(s => { const e=document.querySelector(s); return e.scrollWidth > e.clientWidth + 4; })",
+          "name": "diagrams pan sideways instead of shrinking away"
+        },
+        {
+          "assert": "[...document.querySelectorAll('.diagram-hint')].every(h => getComputedStyle(h).display !== 'none')",
+          "name": "each panning diagram says so"
+        },
+        {
+          "assert": "document.documentElement.scrollWidth <= innerWidth + 1",
+          "name": "and the page itself still does not scroll sideways"
+        }
+      ]
+    },
+    {
+      "name": "diagrams-untouched-on-desktop",
+      "width": 1280,
+      "steps": [
+        {
+          "assert": "!(() => { const e=document.querySelector('.journey-scroll'); return e.scrollWidth > e.clientWidth + 4; })()",
+          "name": "the journey does not pan on desktop"
+        },
+        {
+          "assert": "[...document.querySelectorAll('.diagram-hint')].every(h => getComputedStyle(h).display === 'none')",
+          "name": "and the swipe hint stays out of the way"
+        }
+      ]
+    },
+    {
+      "name": "phone-chart-is-cropped-not-shrunk",
+      "width": 375,
+      "steps": [
+        {
+          "assert": "document.querySelector('.hero-svg').getAttribute('viewBox') === '26 0 566 316'",
+          "name": "the phone gets a narrower crop of the same chart"
+        },
+        {
+          "assert": "[...document.querySelectorAll('.hero-svg .hero-era')].every(e => getComputedStyle(e).display === 'none')",
+          "name": "the era ruler, which runs past the crop, is hidden"
+        },
+        {
+          "assert": "document.querySelectorAll('.hero-svg .hero-thread').length === 13",
+          "name": "all thirteen routes are still drawn"
+        },
+        {
+          "assert": "(() => { const r=document.querySelector('.hero-svg').getBoundingClientRect(); return r.width / r.height < 1.9; })()",
+          "name": "cropping makes it taller for the width it has"
+        }
+      ]
+    },
+    {
+      "name": "summary-keeps-its-headings",
+      "width": 1280,
+      "steps": [
+        {
+          "click": ".hero-line-label[data-thread=lamb]"
+        },
+        {
+          "wait": 500
+        },
+        {
+          "eval": "(() => { const h=document.querySelector('#thread-preview .preview-body h4'); window.__h4=h; window.__reRendered=false; new MutationObserver(()=>{ window.__reRendered=true; }).observe(h,{childList:true,characterData:true,subtree:true}); return h.textContent; })()",
+          "print": false
+        },
+        {
+          "click": ".hero-line-label[data-thread=garment]"
+        },
+        {
+          "wait": 600
+        },
+        {
+          "assert": "window.__reRendered === false",
+          "name": "the 'Journey milestones' heading is not re-rendered between threads"
+        },
+        {
+          "assert": "document.querySelector('#thread-preview .preview-body h4') === window.__h4",
+          "name": "it is the same element, so it cannot flash"
+        },
+        {
+          "assert": "getComputedStyle(document.querySelector('#thread-preview .preview-tag')).animationName === 'swap-fade'",
+          "name": "the parts that do change still fade"
+        }
+      ]
+    },
+    {
+      "name": "verse-popup-does-not-move",
+      "width": 1280,
+      "steps": [
+        {
+          "assert": "!getComputedStyle(document.querySelector('.verse-tooltip')).transitionProperty.includes('top')",
+          "name": "nothing about the pop-up's position is animated"
+        },
+        {
+          "eval": "(() => { const l=[...document.querySelectorAll('.ref-link')].find(a=>/^Rom 8:1$/.test(a.dataset.ref)); l.id='audit-pop'; })()",
+          "print": false
+        },
+        {
+          "click": "#audit-pop"
+        },
+        {
+          "wait": 120
+        },
+        {
+          "eval": "(() => { const t=document.querySelector('.verse-tooltip'); const r=t.getBoundingClientRect(); window.__anchor = t.style.transform === 'none' ? Math.round(r.top) : Math.round(r.bottom); window.__mode = t.style.transform; return window.__mode; })()",
+          "print": false
+        },
+        {
+          "waitFor": "!document.querySelector('.verse-tooltip .tooltip-text').classList.contains('is-loading')",
+          "timeout": 15000
+        },
+        {
+          "assert": "(() => { const t=document.querySelector('.verse-tooltip'); const r=t.getBoundingClientRect(); const now = window.__mode === 'none' ? Math.round(r.top) : Math.round(r.bottom); return Math.abs(now - window.__anchor) <= 2; })()",
+          "name": "the anchored edge does not move when the verse arrives"
+        }
+      ]
     }
-   ]
-  },
-  {
-   "name": "tpt-missing-book-falls-back",
-   "steps": [
-    {
-     "click": "#verpick-btn"
-    },
-    {
-     "wait": 300
-    },
-    {
-     "click": "#verpick-menu .verpick-opt[data-v=TPT]"
-    },
-    {
-     "wait": 300
-    },
-    {
-     "eval": "(() => { const l = [...document.querySelectorAll('.ref-link')].find(a => /^Ex 12/.test(a.dataset.ref)); l.id = 'audit-ex'; return l.dataset.ref; })()"
-    },
-    {
-     "click": "#audit-ex"
-    },
-    {
-     "wait": 3500
-    },
-    {
-     "assert": "!/Unable|Could not|not found/i.test(document.querySelector('.verse-tooltip .tooltip-text').textContent)",
-     "name": "Exodus ref under TPT shows verse text (fallback), not an error"
-    },
-    {
-     "shot": "tpt-exodus"
-    },
-    {
-     "click": "#verpick-btn"
-    },
-    {
-     "wait": 300
-    },
-    {
-     "click": "#verpick-menu .verpick-opt[data-v=NIV]"
-    },
-    {
-     "wait": 300
-    },
-    {
-     "assert": "document.getElementById('verpick-val').textContent === 'NIV'",
-     "name": "translation restored for the paths that follow"
-    }
-   ]
-  },
-  {
-   "name": "context-dialog-full-book-name",
-   "steps": [
-    {
-     "eval": "(() => { const l = [...document.querySelectorAll('.ref-link')].find(a => /^1 Cor 10:11/.test(a.dataset.ref)); l.id = 'audit-cor'; return l.dataset.ref; })()"
-    },
-    {
-     "click": "#audit-cor"
-    },
-    {
-     "wait": 2000
-    },
-    {
-     "click": ".verse-tooltip .tooltip-context-button"
-    },
-    {
-     "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse, .verse-context-dialog .context-block').length > 3",
-     "timeout": 32000,
-     "name": "wait for the passage to arrive"
-    },
-    {
-     "assert": "document.querySelector('.verse-context-dialog').open",
-     "name": "dialog opens"
-    },
-    {
-     "assert": "/Corinthians/.test(document.querySelector('.verse-context-dialog h3').textContent)",
-     "name": "dialog title uses the full book name"
-    },
-    {
-     "assert": "document.querySelectorAll('.verse-context-dialog .context-verse, .verse-context-dialog .context-block').length > 3",
-     "name": "surrounding verses rendered"
-    }
-   ]
-  },
-  {
-   "name": "cleaner-keeps-line-breaks-drops-notes",
-   "steps": [
-    {
-     "assert": "/a\\s+b/.test(cleanBollsText('a<br/>b')) && /a\\s+b/.test(cleanBollsText('a<br>b'))",
-     "name": "<br> becomes whitespace, not nothing"
-    },
-    {
-     "assert": "!/note/.test(cleanBollsText('waters. <sup>note: Heb.</sup> He'))",
-     "name": "<sup> footnote text is dropped, not leaked into the verse"
-    },
-    {
-     "assert": "!/4210/.test(cleanBollsText('Psalm<S>4210</S> of David'))",
-     "name": "Strong's numbers dropped"
-    }
-   ]
-  },
-  {
-   "name": "spelled-out-refs-are-linked",
-   "steps": [
-    {
-     "assert": "(() => { const w = document.createTreeWalker(document.getElementById('view'), NodeFilter.SHOW_TEXT); let n, bad = 0; while ((n = w.nextNode())) { if (/Hosea 11:1|Isaiah 53\\b|Deuteronomy 8:2|Ezekiel 34\\b/.test(n.nodeValue) && !n.parentElement.closest('.ref-link')) bad++; } window.__unlinked = bad; return bad === 0; })()",
-     "name": "spelled-out references (Hosea 11:1, Isaiah 53, Deuteronomy 8:2, Ezekiel 34) are linked like their abbreviated neighbours"
-    }
-   ]
-  },
-  {
-   "name": "legend-chip-deselect",
-   "steps": [
-    {
-     "click": ".legend-chip[data-thread=lamb]"
-    },
-    {
-     "wait": 200
-    },
-    {
-     "assert": "document.querySelector('.legend-chip[data-thread=lamb]').classList.contains('selected')",
-     "name": "first click selects"
-    },
-    {
-     "click": ".legend-chip[data-thread=lamb]"
-    },
-    {
-     "wait": 200
-    },
-    {
-     "assert": "!document.querySelector('.legend-chip[data-thread=lamb]').classList.contains('selected')",
-     "name": "second click deselects"
-    }
-   ],
-   "width": 1024
-  },
-  {
-   "name": "nav-click-creates-history",
-   "steps": [
-    {
-     "eval": "window.__h = history.length",
-     "print": false
-    },
-    {
-     "click": ".nav-link[data-view=codes]"
-    },
-    {
-     "wait": 400
-    },
-    {
-     "assert": "history.length > window.__h",
-     "name": "section navigation pushes a history entry (Back works)"
-    }
-   ]
-  },
-  {
-   "name": "deep-link-lands-on-section",
-   "url": "https://esmrsky.github.io/the-thread/#/codes",
-   "steps": [
-    {
-     "wait": 800
-    },
-    {
-     "assert": "(() => { const t = document.getElementById('codes').getBoundingClientRect().top; return t > -10 && t < 200; })()",
-     "name": "#/codes on load scrolls to The Codes under the header"
-    }
-   ]
-  },
-  {
-   "name": "mobile-hero-preview-visible",
-   "width": 375,
-   "steps": [
-    {
-     "click": ".legend-chip[data-thread=lamb]"
-    },
-    {
-     "wait": 500
-    },
-    {
-     "assert": "(() => { const r = document.getElementById('thread-preview').getBoundingClientRect(); return r.top < innerHeight && r.height < innerHeight; })()",
-     "name": "tapped preview is on screen and shorter than the viewport"
-    },
-    {
-     "shot": "after-tap"
-    }
-   ]
-  },
-  {
-   "name": "hero-panel-not-locked-to-outlier",
-   "steps": [
-    {
-     "click": ".hero-line-label[data-thread=exile]"
-    },
-    {
-     "wait": 500
-    },
-    {
-     "eval": "window.__short = document.getElementById('thread-preview').getBoundingClientRect().height",
-     "print": false
-    },
-    {
-     "click": ".hero-line-label[data-thread=garment]"
-    },
-    {
-     "wait": 500
-    },
-    {
-     "assert": "document.getElementById('thread-preview').getBoundingClientRect().height !== window.__short",
-     "name": "the summary sizes to its thread instead of locking to the tallest"
-    },
-    {
-     "assert": "document.getElementById('thread-preview').getBoundingClientRect().height < 620",
-     "name": "even the tallest thread's summary stays under 620px"
-    }
-   ]
-  },
-  {
-   "name": "hero-corner-does-not-overlap-era-label",
-   "steps": [
-    {
-     "assert": "(() => { const c = document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); const eras = [...document.querySelectorAll('.hero-era')]; if (!eras.length) return true; const e = eras[eras.length-1].getBoundingClientRect(); return c.left >= e.right || c.right <= e.left || c.top >= e.bottom || c.bottom <= e.top; })()",
-     "name": "'Rev 22:21' corner clear of the 'REV' era label"
-    }
-   ]
-  },
-  {
-   "name": "dark-toggle-has-garment-token",
-   "steps": [
-    {
-     "click": "#prefs-btn"
-    },
-    {
-     "wait": 250
-    },
-    {
-     "click": ".seg[data-pref=theme] button[data-v=dark]"
-    },
-    {
-     "wait": 250
-    },
-    {
-     "assert": "document.documentElement.dataset.theme === 'dark'",
-     "name": "the panel sets dark"
-    },
-    {
-     "assert": "getComputedStyle(document.documentElement).getPropertyValue('--t-garment').trim().toLowerCase() !== '#9e4b86'",
-     "name": "--t-garment has a dark value under the manual toggle"
-    },
-    {
-     "eval": "localStorage.removeItem('thread-theme')",
-     "print": false
-    }
-   ]
-  },
-  {
-   "name": "mobile-nav-overrides-apply",
-   "width": 375,
-   "steps": [
-    {
-     "assert": "parseFloat(getComputedStyle(document.querySelector('.nav-link')).fontSize) < 11",
-     "name": "\u2264520px .nav-link override is live (font < 11px)"
-    }
-   ]
-  },
-  {
-   "name": "static-chips-not-interactive-class",
-   "steps": [
-    {
-     "assert": "document.querySelectorAll('#walking .legend-chip').length === 0",
-     "name": "Walk It Out words don't reuse the interactive .legend-chip"
-    }
-   ]
-  },
-  {
-   "name": "static-cards-do-not-lift",
-   "steps": [
-    {
-     "assert": "(() => { const bad = []; for (const sh of document.styleSheets) { let rules; try { rules = sh.cssRules; } catch { continue; } for (const r of rules) { if (r.selectorText && /^(\\.card|\\.idea-card|\\.bento-tile|\\.insight-card|\\.tab-station-card):hover$/.test(r.selectorText) && r.style.transform && r.style.transform !== 'none') bad.push(r.selectorText); } } window.__bad = bad; return bad.length === 0; })()",
-     "name": "no hover transform on non-interactive cards"
-    }
-   ]
-  },
-  {
-   "name": "library-cards-show-affordance-at-rest",
-   "steps": [
-    {
-     "assert": "parseFloat(getComputedStyle(document.querySelector('.shelf-go')).opacity) > 0",
-     "name": "library 'open' cue visible without hover"
-    }
-   ]
-  },
-  {
-   "name": "sections-full-bleed",
-   "steps": [
-    {
-     "assert": "Math.abs(document.getElementById('pattern').getBoundingClientRect().width - innerWidth) < 2",
-     "name": "section band spans the viewport"
-    }
-   ]
-  },
-  {
-   "name": "rail-visible-at-1280",
-   "steps": [
-    {
-     "assert": "(() => { const r = document.getElementById('rail'); return r && getComputedStyle(r).display !== 'none'; })()",
-     "name": "progress rail shown at 1280"
-    }
-   ]
-  },
-  {
-   "name": "marquee-trackpad-no-snap",
-   "steps": [
-    {
-     "scroll": "#threads"
-    },
-    {
-     "wait": 1200
-    },
-    {
-     "hover": "#t-lamb .thread-marquee"
-    },
-    {
-     "wait": 200
-    },
-    {
-     "wheel": {
-      "selector": "#t-lamb .thread-marquee",
-      "dx": 240
-     }
-    },
-    {
-     "wait": 400
-    },
-    {
-     "eval": "window.__a = document.querySelector('#t-lamb .thread-marquee').scrollLeft",
-     "print": false
-    },
-    {
-     "hover": "#t-lamb .thread-row-head"
-    },
-    {
-     "wait": 500
-    },
-    {
-     "assert": "Math.abs(document.querySelector('#t-lamb .thread-marquee').scrollLeft - window.__a) < 40",
-     "name": "position holds within 40px after mouse leaves (no snap-back)"
-    }
-   ]
-  },
-  {
-   "name": "marquee-resize-no-reset",
-   "steps": [
-    {
-     "scroll": "#threads"
-    },
-    {
-     "wait": 300
-    },
-    {
-     "eval": "window.__pos = () => { const mq = document.querySelector('#t-lamb .thread-marquee'); const track = mq.querySelector('.marquee-track'); const m = new DOMMatrixReadOnly(getComputedStyle(track).transform); return mq.scrollLeft - m.m41; }; window.__b = window.__pos()",
-     "print": false
-    },
-    {
-     "waitFor": "window.__pos() > 20",
-     "timeout": 15000,
-     "name": "wait until the strip has actually travelled"
-    },
-    {
-     "assert": "window.__b = window.__pos(), window.__b > 20",
-     "name": "strip has advanced before the test"
-    },
-    {
-     "eval": "window.dispatchEvent(new Event('resize'))",
-     "print": false
-    },
-    {
-     "wait": 500
-    },
-    {
-     "assert": "window.__pos() > window.__b - 5",
-     "name": "resize does not reset the strip to zero"
-    }
-   ]
-  },
-  {
-   "name": "marquee-advances-every-frame",
-   "steps": [
-    {
-     "scroll": "#threads"
-    },
-    {
-     "wait": 1200
-    },
-    {
-     "assert": "new Promise(res => { const mq = document.querySelector('#t-lamb .thread-marquee'); const track = mq.querySelector('.marquee-track'); const pos = () => { const m = new DOMMatrixReadOnly(getComputedStyle(track).transform); return mq.scrollLeft - m.m41; }; const s = []; let n = 0; const step = () => { s.push(pos()); if (++n < 40) requestAnimationFrame(step); else { let zero = 0; for (let i = 1; i < s.length; i++) if (s[i] === s[i-1]) zero++; window.__zero = zero; res(zero < s.length * 0.3); } }; requestAnimationFrame(step); })",
-     "name": "fewer than 30% of frames show zero movement (sub-pixel motion)"
-    }
-   ]
-  },
-  {
-   "name": "no-console-errors-or-404s-on-load",
-   "steps": [
-    {
-     "wait": 1500
-    },
-    {
-     "assert": "true",
-     "name": "see console/requests below"
-    }
-   ]
-  },
-  {
-   "name": "hero-labels-replace-pills-on-desktop",
-   "width": 1280,
-   "steps": [
-    {
-     "assert": "getComputedStyle(document.querySelector('.hero-chart .hero-legend')).display === 'none'",
-     "name": "pill legend hidden where route labels are shown"
-    },
-    {
-     "assert": "getComputedStyle(document.querySelector('.hero-line-label')).display === 'block'",
-     "name": "route labels shown"
-    },
-    {
-     "click": ".hero-line-label[data-thread=lamb]"
-    },
-    {
-     "wait": 400
-    },
-    {
-     "assert": "document.querySelector('.hero-line-label[data-thread=lamb]').classList.contains('selected')",
-     "name": "clicking a route label selects that thread"
-    },
-    {
-     "assert": "document.getElementById('thread-preview').textContent.includes('Lamb')",
-     "name": "the summary follows the label click"
-    }
-   ]
-  },
-  {
-   "name": "hero-summary-below-chart-no-inner-scroll",
-   "width": 1280,
-   "steps": [
-    {
-     "click": ".hero-line-label[data-thread=garment]"
-    },
-    {
-     "wait": 500
-    },
-    {
-     "assert": "(() => { const c = document.querySelector('.chart-main').getBoundingClientRect(); const p = document.getElementById('thread-preview').getBoundingClientRect(); return p.top >= c.bottom - 2; })()",
-     "name": "summary sits below the chart, not beside it"
-    },
-    {
-     "assert": "(() => { const p = document.getElementById('thread-preview'); return p.scrollHeight <= p.clientHeight + 2; })()",
-     "name": "summary has no scrollbar of its own"
-    },
-    {
-     "assert": "document.querySelector('.hero-svg').getBoundingClientRect().width > document.querySelector('.hero-chart').getBoundingClientRect().width * 0.75",
-     "name": "chart uses most of the panel width"
-    }
-   ]
-  },
-  {
-   "name": "thread-rows-are-tinted-and-spaced",
-   "width": 1280,
-   "steps": [
-    {
-     "assert": "(() => { const a = getComputedStyle(document.getElementById('t-lamb')).backgroundColor, b = getComputedStyle(document.getElementById('t-water')).backgroundColor; return a !== b; })()",
-     "name": "each thread row carries its own tint"
-    },
-    {
-     "assert": "(() => { const a = document.getElementById('t-lamb').getBoundingClientRect(), b = document.getElementById('t-bread').getBoundingClientRect(); return b.top - a.bottom >= 20; })()",
-     "name": "rows are separated by at least 20px"
-    }
-   ]
-  },
-  {
-   "name": "grids-leave-no-orphan",
-   "width": 1280,
-   "steps": [
-    {
-     "assert": "(() => { const sels=['.grid-2','.grid-3','.season-grid','.insight-grid','.feast-cards','.triune-rails','.mind-panel-grid','.tv-grid','.shelf-items','.big-idea','.bento']; const bad=[]; sels.forEach(sel=>document.querySelectorAll(sel).forEach(g=>{const kids=[...g.children].filter(k=>getComputedStyle(k).display!=='none'); if(kids.length<2) return; const gw=g.getBoundingClientRect().width; const rows={};kids.forEach(k=>{const r=k.getBoundingClientRect(); (rows[Math.round(r.top)] ||= []).push(r);}); const keys=Object.keys(rows).map(Number).sort((a,b)=>a-b);if(keys.length<2) return; const last=rows[keys[keys.length-1]]; const covered=last.reduce((n,r)=>n+r.width,0);if(covered < gw-40) bad.push(sel+' '+Math.round(covered)+'/'+Math.round(gw));})); window.__orphans=bad; return bad.length===0; })()",
-     "name": "every card grid fills its last row (11 grid types)"
-    }
-   ]
-  },
-  {
-   "name": "mind-blocks-are-colour-coded",
-   "width": 1280,
-   "steps": [
-    {
-     "assert": "new Set([...document.querySelectorAll('#mind .mind-card')].map(c => getComputedStyle(c).getPropertyValue('--c').trim())).size > 4",
-     "name": "Mind blocks use more than four distinct hues"
-    },
-    {
-     "assert": "document.querySelectorAll('#mind .mind-panel-ic svg').length >= 8",
-     "name": "every Mind panel carries a label icon"
-    }
-   ]
-  },
-  {
-   "name": "version-menu-sits-above-the-verse-popup",
-   "width": 1280,
-   "steps": [
-    {
-     "click": "#pattern .ref-link"
-    },
-    {
-     "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
-     "timeout": 8000
-    },
-    {
-     "click": "#verpick-btn"
-    },
-    {
-     "wait": 300
-    },
-    {
-     "assert": "parseInt(getComputedStyle(document.querySelector('#verpick-menu')).zIndex, 10) > parseInt(getComputedStyle(document.querySelector('.verse-tooltip')).zIndex, 10)",
-     "name": "the translation menu layers above the pinned pop-up"
-    }
-   ]
-  },
-  {
-   "name": "one-scrollbar-treatment",
-   "width": 1280,
-   "steps": [
-    {
-     "assert": "['.table-scroll', '.context-dialog-body', '.verpick-menu'].every(s => { const e = document.querySelector(s); return !e || getComputedStyle(e).scrollbarWidth === 'thin'; })",
-     "name": "scrollers share the thin styled scrollbar"
-    }
-   ]
-  },
-  {
-   "name": "context-reaches-into-the-previous-chapter",
-   "width": 1280,
-   "steps": [
-    {
-     "eval": "try { localStorage.removeItem('thread-version'); } catch (e) {}",
-     "print": false
-    },
-    {
-     "reload": true
-    },
-    {
-     "eval": "(() => { const l = [...document.querySelectorAll('.ref-link')].find(a => /^Rom 8:1$/.test(a.dataset.ref)); l.id = 'audit-rom'; return l.dataset.ref; })()"
-    },
-    {
-     "click": "#audit-rom"
-    },
-    {
-     "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
-     "timeout": 8000
-    },
-    {
-     "click": ".verse-tooltip .tooltip-context-button"
-    },
-    {
-     "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
-     "timeout": 32000
-    },
-    {
-     "click": ".context-more-button"
-    },
-    {
-     "waitFor": "[...document.querySelectorAll('.context-verse-number')].some(n => n.textContent.includes(':'))",
-     "timeout": 32000,
-     "name": "wait for the widened passage"
-    },
-    {
-     "assert": "[...document.querySelectorAll('.context-verse-number')].some(n => /^7:/.test(n.textContent))",
-     "name": "asking for more context reaches back into the previous chapter"
-    }
-   ]
-  },
-  {
-   "name": "grids-leave-no-orphan-narrow",
-   "width": 643,
-   "steps": [
-    {
-     "assert": "(() => { const sels=['.grid-2','.grid-3','.season-grid','.insight-grid','.feast-cards','.triune-rails','.mind-panel-grid','.tv-grid','.shelf-items','.big-idea','.bento']; const bad=[]; sels.forEach(sel=>document.querySelectorAll(sel).forEach(g=>{const kids=[...g.children].filter(k=>getComputedStyle(k).display!=='none'); if(kids.length<2) return; const gw=g.getBoundingClientRect().width; const rows={};kids.forEach(k=>{const r=k.getBoundingClientRect(); (rows[Math.round(r.top)] ||= []).push(r);}); const keys=Object.keys(rows).map(Number).sort((a,b)=>a-b);if(keys.length<2) return; const last=rows[keys[keys.length-1]]; const covered=last.reduce((n,r)=>n+r.width,0);if(covered < gw-40) bad.push(sel+' '+Math.round(covered)+'/'+Math.round(gw));})); window.__orphans=bad; return bad.length===0; })()",
-     "name": "no orphan card at 643px either"
-    }
-   ]
-  },
-  {
-   "name": "grids-leave-no-orphan-mobile",
-   "width": 375,
-   "steps": [
-    {
-     "assert": "(() => { const sels=['.grid-2','.grid-3','.season-grid','.insight-grid','.feast-cards','.triune-rails','.mind-panel-grid','.tv-grid','.shelf-items','.big-idea','.bento']; const bad=[]; sels.forEach(sel=>document.querySelectorAll(sel).forEach(g=>{const kids=[...g.children].filter(k=>getComputedStyle(k).display!=='none'); if(kids.length<2) return; const gw=g.getBoundingClientRect().width; const rows={};kids.forEach(k=>{const r=k.getBoundingClientRect(); (rows[Math.round(r.top)] ||= []).push(r);}); const keys=Object.keys(rows).map(Number).sort((a,b)=>a-b);if(keys.length<2) return; const last=rows[keys[keys.length-1]]; const covered=last.reduce((n,r)=>n+r.width,0);if(covered < gw-40) bad.push(sel+' '+Math.round(covered)+'/'+Math.round(gw));})); window.__orphans=bad; return bad.length===0; })()",
-     "name": "no orphan card at 375px either"
-    }
-   ]
-  },
-  {
-   "name": "verse-popup-fades-without-sliding",
-   "width": 1280,
-   "steps": [
-    {
-     "assert": "!getComputedStyle(document.querySelector('.verse-tooltip')).transitionProperty.includes('transform')",
-     "name": "the pop-up fades in place, it does not slide up"
-    }
-   ]
-  },
-  {
-   "name": "context-dialog-arrives-smoothly",
-   "width": 1280,
-   "steps": [
-    {
-     "eval": "(() => { const l=[...document.querySelectorAll('.ref-link')].find(a=>/^1 Cor 10:11/.test(a.dataset.ref)); l.id='audit-c'; })()",
-     "print": false
-    },
-    {
-     "click": "#audit-c"
-    },
-    {
-     "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
-     "timeout": 8000
-    },
-    {
-     "click": ".verse-tooltip .tooltip-context-button"
-    },
-    {
-     "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
-     "timeout": 32000
-    },
-    {
-     "assert": "getComputedStyle(document.querySelector('.verse-context-dialog')).animationName !== 'none'",
-     "name": "the lightbox animates in rather than appearing"
-    },
-    {
-     "assert": "getComputedStyle(document.querySelector('.context-verse.is-selected .ctx-t')).textDecorationLine === 'underline'",
-     "name": "the underline is on the verse text"
-    },
-    {
-     "assert": "getComputedStyle(document.querySelector('.context-verse.is-selected .context-verse-number')).textDecorationLine === 'none'",
-     "name": "the verse number is outside the underline, so there is no gap before the first word"
-    }
-   ]
-  },
-  {
-   "name": "translation-swap-does-not-blank-the-box",
-   "width": 1280,
-   "steps": [
-    {
-     "eval": "(() => { const l=[...document.querySelectorAll('.ref-link')].find(a=>/^1 Cor 10:11/.test(a.dataset.ref)); l.id='audit-c2'; })()",
-     "print": false
-    },
-    {
-     "click": "#audit-c2"
-    },
-    {
-     "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
-     "timeout": 8000
-    },
-    {
-     "click": ".verse-tooltip .tooltip-context-button"
-    },
-    {
-     "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
-     "timeout": 32000
-    },
-    {
-     "wait": 450
-    },
-    {
-     "eval": "(() => { const b=document.querySelector('.context-dialog-body'); window.__h0=b.getBoundingClientRect().height; window.__blanked=false; window.__sawRefreshing=false; window.__lockedHeight=false; new MutationObserver(()=>{ if(/Loading surrounding/.test(b.textContent)||b.textContent.trim()==='') window.__blanked=true; }).observe(b,{childList:true,subtree:true,characterData:true}); new MutationObserver(()=>{ if(b.classList.contains('is-refreshing')) window.__sawRefreshing=true; if(b.style.minHeight) window.__lockedHeight=true; }).observe(b,{attributes:true,attributeFilter:['class','style']}); return window.__h0; })()",
-     "print": false
-    },
-    {
-     "click": ".verse-context-dialog .verpick-btn"
-    },
-    {
-     "wait": 300
-    },
-    {
-     "click": ".verse-context-dialog .verpick-opt[data-v=NLT]"
-    },
-    {
-     "waitFor": "document.querySelector('.verse-context-dialog .verpick-val').textContent === 'NLT' && document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
-     "timeout": 32000
-    },
-    {
-     "assert": "window.__blanked === false",
-     "name": "the passage is never emptied while the new translation loads"
-    },
-    {
-     "assert": "window.__sawRefreshing === true",
-     "name": "the old passage stays on screen and dims while the new one loads"
-    },
-    {
-     "assert": "window.__sawRefreshing === true && window.__lockedHeight === true",
-     "name": "the old passage stays on screen and dims, with its height held, while the new one loads"
-    },
-    {
-     "assert": "Math.abs(document.querySelector('.context-dialog-body').getBoundingClientRect().height - window.__h0) < 6",
-     "name": "the box does not collapse and re-expand"
-    }
-   ]
-  },
-  {
-   "name": "mobile-translation-picker-not-cramped",
-   "width": 375,
-   "steps": [
-    {
-     "assert": "getComputedStyle(document.querySelector('.verpick-ic')).display !== 'none'",
-     "name": "the picker keeps its icon on a phone"
-    },
-    {
-     "assert": "parseFloat(getComputedStyle(document.querySelector('.verpick-btn')).paddingLeft) >= 9",
-     "name": "the picker has breathing room"
-    }
-   ]
-  },
-  {
-   "name": "reading-settings-panel",
-   "width": 1280,
-   "steps": [
-    {
-     "click": "#prefs-btn"
-    },
-    {
-     "wait": 250
-    },
-    {
-     "assert": "!document.getElementById('prefs-menu').hidden",
-     "name": "the settings panel opens"
-    },
-    {
-     "assert": "[...document.querySelectorAll('.seg')].map(s => s.dataset.pref).join(',') === 'theme,font,lh'",
-     "name": "colours, typeface and line height are all offered"
-    },
-    {
-     "eval": "window.__f0 = getComputedStyle(document.body).fontFamily",
-     "print": false
-    },
-    {
-     "click": ".seg[data-pref=font] button[data-v=sans]"
-    },
-    {
-     "wait": 250
-    },
-    {
-     "assert": "getComputedStyle(document.body).fontFamily !== window.__f0 && /Avenir|system-ui|Helvetica/.test(getComputedStyle(document.body).fontFamily)",
-     "name": "choosing sans changes the reading face"
-    },
-    {
-     "eval": "window.__lh0 = parseFloat(getComputedStyle(document.body).lineHeight)",
-     "print": false
-    },
-    {
-     "click": ".seg[data-pref=lh] button[data-v=roomy]"
-    },
-    {
-     "wait": 250
-    },
-    {
-     "assert": "parseFloat(getComputedStyle(document.body).lineHeight) > window.__lh0",
-     "name": "line height responds"
-    },
-    {
-     "click": ".seg[data-pref=theme] button[data-v=dark]"
-    },
-    {
-     "wait": 250
-    },
-    {
-     "assert": "document.documentElement.dataset.theme === 'dark'",
-     "name": "colours switch from the same panel"
-    },
-    {
-     "assert": "localStorage.getItem('thread-font') === 'sans' && localStorage.getItem('thread-lh') === 'roomy'",
-     "name": "the choices are remembered"
-    },
-    {
-     "eval": "['thread-theme','thread-font','thread-lh'].forEach(k => localStorage.removeItem(k))",
-     "print": false
-    }
-   ]
-  },
-  {
-   "name": "thread-header-fits-a-phone",
-   "width": 375,
-   "steps": [
-    {
-     "assert": "(() => { const h = document.querySelector('#t-lamb .thread-row-title h3'); const lh = parseFloat(getComputedStyle(h).lineHeight); return h.getBoundingClientRect().height < lh * 1.6; })()",
-     "name": "the thread title is not broken across two lines"
-    },
-    {
-     "assert": "document.querySelector('#t-lamb .thread-row-head').getBoundingClientRect().height < 145",
-     "name": "the header does not eat 154px of a 375px screen"
-    }
-   ]
-  },
-  {
-   "name": "legend-follows-the-route",
-   "width": 375,
-   "steps": [
-    {
-     "assert": "(() => { const s=document.querySelector('.hero-chart .hero-legend'); window.__s0=s.scrollLeft; return s.scrollWidth > s.clientWidth + 4; })()",
-     "name": "the pill strip scrolls sideways on a phone"
-    },
-    {
-     "clickPoint": "(() => { const p=document.querySelector('.hero-thread-trigger[data-thread=garment]'); const pt=p.getPointAtLength(p.getTotalLength()*0.12); const q=new DOMPoint(pt.x, pt.y).matrixTransform(p.getScreenCTM()); return {x:q.x, y:q.y}; })()",
-     "name": "touch the Garment route"
-    },
-    {
-     "wait": 800
-    },
-    {
-     "assert": "document.querySelector('.hero-chart .hero-legend').scrollLeft > window.__s0 + 50",
-     "name": "touching a route scrolls its pill into the strip"
-    },
-    {
-     "assert": "(() => { const c=document.querySelector('.legend-chip[data-thread=garment]').getBoundingClientRect(); const s=document.querySelector('.hero-chart .hero-legend').getBoundingClientRect(); return c.left >= s.left - 2 && c.right <= s.right + 2; })()",
-     "name": "the pill for that route is fully visible"
-    }
-   ]
-  },
-  {
-   "name": "summary-swaps-without-flashing",
-   "width": 1280,
-   "steps": [
-    {
-     "assert": "getComputedStyle(document.getElementById('thread-preview')).transitionProperty.includes('height')",
-     "name": "the panel eases its height instead of snapping"
-    },
-    {
-     "eval": "(() => { const c=document.getElementById('thread-preview'); window.__heightPinned=false; new MutationObserver(()=>{ if(c.style.height) window.__heightPinned=true; }).observe(c,{attributes:true,attributeFilter:['style']}); })()",
-     "print": false
-    },
-    {
-     "click": ".hero-line-label[data-thread=lamb]"
-    },
-    {
-     "wait": 500
-    },
-    {
-     "click": ".hero-line-label[data-thread=garment]"
-    },
-    {
-     "wait": 500
-    },
-    {
-     "assert": "window.__heightPinned === true",
-     "name": "the frame is held while the words change"
-    },
-    {
-     "assert": "getComputedStyle(document.getElementById('thread-preview').firstElementChild).animationName === 'swap-fade'",
-     "name": "the text fades rather than sliding in"
-    }
-   ]
-  },
-  {
-   "name": "story-ends-read-as-books",
-   "width": 1280,
-   "steps": [
-    {
-     "assert": "document.querySelector('.hero-scroll .chart-corner.tl').textContent.trim() === 'Genesis' && document.querySelector('.hero-scroll .chart-corner.br').textContent.trim() === 'Revelation'",
-     "name": "the chart's ends are named as books"
-    },
-    {
-     "assert": "document.querySelector('.hero-scroll .chart-corner.tl .ref-link').dataset.ref === 'Gen 1:1' && document.querySelector('.hero-scroll .chart-corner.br .ref-link').dataset.ref === 'Rev 22:21'",
-     "name": "each still carries its verse for the hover pop-up"
-    },
-    {
-     "assert": "(() => { const c=document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); const eras=[...document.querySelectorAll('.hero-svg-h .hero-era')].map(e=>e.getBoundingClientRect()); return eras.every(e => c.left >= e.right || c.right <= e.left || c.top >= e.bottom || c.bottom <= e.top); })()",
-     "name": "the end label clears every era label"
-    },
-    {
-     "assert": "(() => { const a=document.querySelector('.hero-scroll .chart-corner.tl').getBoundingClientRect(), b=document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); const svg=document.querySelector('.hero-svg').getBoundingClientRect(); return Math.abs(a.top-b.top) < 3 && a.left < b.left && a.bottom <= svg.top + 2; })()",
-     "name": "both ends sit level along the top, above the drawing, in opposite corners"
-    }
-   ]
-  },
-  {
-   "name": "diagrams-stay-legible-on-a-phone",
-   "width": 375,
-   "steps": [
-    {
-     "eval": "document.querySelector('.subtab[data-tab=tabernacle]').click()",
-     "print": false
-    },
-    {
-     "wait": 300
-    },
-    {
-     "assert": "(() => { const px=(sel,vb)=>{const e=document.querySelector(sel);const sc=e.getBoundingClientRect().width/vb;const z=[...e.querySelectorAll('text')].map(t=>parseFloat(t.getAttribute('font-size')||'0')).filter(Boolean);return Math.min(...z)*sc;}; window.__px=[px('.journey-scroll svg',900), px('.tabernacle-svg',900)]; return window.__px.every(v => v >= 6.5); })()",
-     "name": "the smallest diagram label is at least 6.5px (was 2.3px)"
-    },
-    {
-     "assert": "['.journey-scroll','.tabernacle-graphic-container'].every(s => { const e=document.querySelector(s); return e.scrollWidth > e.clientWidth + 4; })",
-     "name": "diagrams pan sideways instead of shrinking away"
-    },
-    {
-     "assert": "[...document.querySelectorAll('.diagram-hint')].every(h => getComputedStyle(h).display !== 'none')",
-     "name": "each panning diagram says so"
-    },
-    {
-     "assert": "document.documentElement.scrollWidth <= innerWidth + 1",
-     "name": "and the page itself still does not scroll sideways"
-    }
-   ]
-  },
-  {
-   "name": "diagrams-untouched-on-desktop",
-   "width": 1280,
-   "steps": [
-    {
-     "assert": "!(() => { const e=document.querySelector('.journey-scroll'); return e.scrollWidth > e.clientWidth + 4; })()",
-     "name": "the journey does not pan on desktop"
-    },
-    {
-     "assert": "[...document.querySelectorAll('.diagram-hint')].every(h => getComputedStyle(h).display === 'none')",
-     "name": "and the swipe hint stays out of the way"
-    }
-   ]
-  },
-  {
-   "name": "phone-chart-is-cropped-not-shrunk",
-   "width": 375,
-   "steps": [
-    {
-     "assert": "document.querySelector('.hero-svg').getAttribute('viewBox') === '26 0 566 316'",
-     "name": "the phone gets a narrower crop of the same chart"
-    },
-    {
-     "assert": "[...document.querySelectorAll('.hero-svg .hero-era')].every(e => getComputedStyle(e).display === 'none')",
-     "name": "the era ruler, which runs past the crop, is hidden"
-    },
-    {
-     "assert": "document.querySelectorAll('.hero-svg .hero-thread').length === 13",
-     "name": "all thirteen routes are still drawn"
-    },
-    {
-     "assert": "(() => { const r=document.querySelector('.hero-svg').getBoundingClientRect(); return r.width / r.height < 1.9; })()",
-     "name": "cropping makes it taller for the width it has"
-    }
-   ]
-  },
-  {
-   "name": "summary-keeps-its-headings",
-   "width": 1280,
-   "steps": [
-    {
-     "click": ".hero-line-label[data-thread=lamb]"
-    },
-    {
-     "wait": 500
-    },
-    {
-     "eval": "(() => { const h=document.querySelector('#thread-preview .preview-body h4'); window.__h4=h; window.__reRendered=false; new MutationObserver(()=>{ window.__reRendered=true; }).observe(h,{childList:true,characterData:true,subtree:true}); return h.textContent; })()",
-     "print": false
-    },
-    {
-     "click": ".hero-line-label[data-thread=garment]"
-    },
-    {
-     "wait": 600
-    },
-    {
-     "assert": "window.__reRendered === false",
-     "name": "the 'Journey milestones' heading is not re-rendered between threads"
-    },
-    {
-     "assert": "document.querySelector('#thread-preview .preview-body h4') === window.__h4",
-     "name": "it is the same element, so it cannot flash"
-    },
-    {
-     "assert": "getComputedStyle(document.querySelector('#thread-preview .preview-tag')).animationName === 'swap-fade'",
-     "name": "the parts that do change still fade"
-    }
-   ]
-  },
-  {
-   "name": "verse-popup-does-not-move",
-   "width": 1280,
-   "steps": [
-    {
-     "assert": "!getComputedStyle(document.querySelector('.verse-tooltip')).transitionProperty.includes('top')",
-     "name": "nothing about the pop-up's position is animated"
-    },
-    {
-     "eval": "(() => { const l=[...document.querySelectorAll('.ref-link')].find(a=>/^Rom 8:1$/.test(a.dataset.ref)); l.id='audit-pop'; })()",
-     "print": false
-    },
-    {
-     "click": "#audit-pop"
-    },
-    {
-     "wait": 120
-    },
-    {
-     "eval": "(() => { const t=document.querySelector('.verse-tooltip'); const r=t.getBoundingClientRect(); window.__anchor = t.style.transform === 'none' ? Math.round(r.top) : Math.round(r.bottom); window.__mode = t.style.transform; return window.__mode; })()",
-     "print": false
-    },
-    {
-     "waitFor": "!document.querySelector('.verse-tooltip .tooltip-text').classList.contains('is-loading')",
-     "timeout": 15000
-    },
-    {
-     "assert": "(() => { const t=document.querySelector('.verse-tooltip'); const r=t.getBoundingClientRect(); const now = window.__mode === 'none' ? Math.round(r.top) : Math.round(r.bottom); return Math.abs(now - window.__anchor) <= 2; })()",
-     "name": "the anchored edge does not move when the verse arrives"
-    }
-   ]
-  }
- ]
+  ]
 }

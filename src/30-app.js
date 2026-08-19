@@ -896,11 +896,22 @@ function updateActiveNav(id) {
   }
 }
 
+/* Whenever exactly one route is live — hovered, focused or held — the chart drops the other
+   twelve right back so that one line is unmistakable. Thirteen colours at near-equal weight
+   was a width-matching exercise, and on a phone it was barely a difference at all. Nothing
+   live means everything comes back up. */
+function syncRouteFocus() {
+  document.querySelectorAll('.hero-chart').forEach(chart => {
+    chart.classList.toggle('route-focus', !!chart.querySelector('.hero-thread.hot, .hero-thread.selected'));
+  });
+}
+
 let previewResetTimer = null;
 function queuePreviewReset() {
   if (previewResetTimer) clearTimeout(previewResetTimer);
   previewResetTimer = setTimeout(() => {
     document.querySelectorAll('.legend-chip.hot, .hero-thread.hot').forEach(el => el.classList.remove('hot'));
+    syncRouteFocus();
     if (selectedPreviewThreadId) updateThreadPreview(selectedPreviewThreadId);
     else resetThreadPreview();
   }, 100);
@@ -1062,6 +1073,7 @@ function selectPreviewThread(threadId) {
   document.querySelectorAll('.hero-thread, .hero-line-label').forEach(el => {
     el.classList.toggle('selected', el.dataset.thread === threadId);
   });
+  syncRouteFocus();
   updateThreadPreview(threadId);
 }
 
@@ -1071,7 +1083,8 @@ function clearPreviewSelection() {
     chip.classList.remove('selected');
     chip.setAttribute('aria-pressed', 'false');
   });
-  document.querySelectorAll('.hero-thread').forEach(path => path.classList.remove('selected'));
+  document.querySelectorAll('.hero-thread, .hero-line-label').forEach(el => el.classList.remove('selected'));
+  syncRouteFocus();
   resetThreadPreview();
 }
 
@@ -1104,12 +1117,14 @@ function wireAllSections() {
       cancelPreviewReset();
       chip.classList.add('hot');
       pathEls().forEach(p => p.classList.add('hot'));
+      syncRouteFocus();
       updateThreadPreview(threadId);
     };
 
     const clearPreviewHotState = () => {
       chip.classList.remove('hot');
       pathEls().forEach(p => p.classList.remove('hot'));
+      syncRouteFocus();
       queuePreviewReset();
     };
 
@@ -1121,7 +1136,14 @@ function wireAllSections() {
       chip.addEventListener('mouseenter', showPreview);
       chip.addEventListener('mouseleave', clearPreviewHotState);
     }
-    chip.addEventListener('focus', showPreview);
+    /* A tap focuses the chip as well as clicking it, and a focus that stayed hot meant
+       tapping a held route a second time cleared the selection while the route stayed lit —
+       the release looked like nothing happened. Keyboard focus still previews. */
+    chip.addEventListener('focus', () => {
+      let keyboard = true;
+      try { keyboard = chip.matches(':focus-visible'); } catch (e) { /* older engine: keep the preview */ }
+      if (keyboard) showPreview();
+    });
     chip.addEventListener('blur', clearPreviewHotState);
 
     chip.addEventListener('click', () => togglePreviewThread(threadId));
@@ -1138,6 +1160,7 @@ function wireAllSections() {
       paths.forEach(p => p.classList.add('hot'));
       const c = chipEl();
       if (c) c.classList.add('hot');
+      syncRouteFocus();
       updateThreadPreview(threadId);
     };
 
@@ -1145,6 +1168,7 @@ function wireAllSections() {
       paths.forEach(p => p.classList.remove('hot'));
       const c = chipEl();
       if (c) c.classList.remove('hot');
+      syncRouteFocus();
       queuePreviewReset();
     };
 
@@ -1352,47 +1376,223 @@ function wireVersionPicker(wrap, onChoose) {
   return { close };
 }
 
-/* Colours, typeface and line height are one panel: they are all "how this reads to me",
-   and a lone sun/moon button could only ever answer a third of that. */
+/* Colours, typeface, line height and text size are one panel: they are all "how this reads
+   to me", and a lone sun/moon button could only ever answer a quarter of that. */
 const PREFS = {
   theme: { key: 'thread-theme', def: 'system' },
-  font: { key: 'thread-font', def: 'serif' },
-  lh: { key: 'thread-lh', def: 'normal' }
+  type: { key: 'thread-type', def: 'literata' },
+  lh: { key: 'thread-lh', def: 'normal' },
+  fs: { key: 'thread-fs', def: '2' }
 };
-function applyPref(name, value) {
-  const root = document.documentElement;
-  if (name === 'theme') {
-    if (value === 'system') delete root.dataset.theme;
-    else root.dataset.theme = value;
-  } else if (name === 'font') {
-    if (value === 'serif') delete root.dataset.font;
-    else root.dataset.font = value;
-  } else if (name === 'lh') {
-    if (value === 'normal') delete root.dataset.lh;
-    else root.dataset.lh = value;
+
+/* A typeface theme is a pairing of two faces, and two of the six cross serif and sans on
+   purpose. Listed here is only what each one needs *loaded*: the picker's own previews sit
+   inside a hidden menu, so no face is fetched until the panel is opened or a theme chosen. */
+const TYPE_THEMES = {
+  literata: ['Literata'],
+  'source-serif': ['Source Serif 4', 'Figtree'],
+  garamond: ['EB Garamond', 'Figtree'],
+  figtree: ['Figtree'],
+  'source-sans': ['Source Sans 3', 'Literata'],
+  atkinson: ['Atkinson Hyperlegible Next']
+};
+const FS_STEPS = [0.86, 0.93, 1, 1.08, 1.16, 1.26, 1.36];
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let currentFsIndex = 2;
+
+/* ---------- keeping the reader's place ----------
+   Every setting in this panel re-lays the whole column, so the sentence being read slides
+   out from under the eye and the page appears to jump. Pin whatever block sits just under
+   the top of the viewport and hold it there for as long as the change takes to settle. */
+function topAnchorEl() {
+  if (window.scrollY < 4) return null; /* already at the top — staying there *is* the anchor */
+  const bar = document.querySelector('.topbar');
+  const y = Math.round((bar ? bar.getBoundingClientRect().bottom : 0) + 8);
+  const fracs = [0.5, 0.28, 0.72];
+  for (let i = 0; i < fracs.length; i++) {
+    const el = document.elementFromPoint(Math.round(window.innerWidth * fracs[i]), y);
+    if (!el || !el.closest) continue;
+    const scope = el.closest('#view, .site-foot');
+    if (scope && el !== scope) return el; /* a real block, not the container or a gap */
   }
-  lsSet(PREFS[name].key, value);
-  document.querySelectorAll('.seg[data-pref="' + name + '"] button').forEach(b =>
+  /* the three probes all landed in padding: fall back to the first block still on screen */
+  const kids = document.querySelectorAll('#view .view > *, .site-foot > *');
+  for (let i = 0; i < kids.length; i++) {
+    if (kids[i].getBoundingClientRect().bottom > y) return kids[i];
+  }
+  return null;
+}
+function holdScroll(ms, mutate) {
+  const el = topAnchorEl();
+  const top0 = el ? el.getBoundingClientRect().top : 0;
+  mutate();
+  if (!el) return;
+  const correct = () => {
+    const drift = el.getBoundingClientRect().top - top0;
+    if (Math.abs(drift) > 0.5) window.scrollBy(0, drift);
+  };
+  correct(); /* whatever the change did instantly */
+  if (ms <= 0 || REDUCED_MOTION) return;
+  const until = performance.now() + ms;
+  const tick = () => { /* ...and again each frame while the dials interpolate */
+    correct();
+    if (performance.now() < until) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+function markPrefButtons(name, value) {
+  document.querySelectorAll('[data-pref="' + name + '"] button[data-v]').forEach(b =>
     b.setAttribute('aria-pressed', String(b.dataset.v === value)));
 }
-function initPrefs() {
-  Object.keys(PREFS).forEach(name => {
-    let saved = lsGet(PREFS[name].key);
-    if (name === 'theme' && saved !== 'light' && saved !== 'dark' && saved !== 'system') saved = null;
-    applyPref(name, saved || PREFS[name].def);
+
+function loadFaces(families) {
+  if (!families || !document.fonts || !document.fonts.load) return Promise.resolve();
+  const specs = [];
+  families.forEach(f => {
+    specs.push('400 1rem "' + f + '"', '700 1rem "' + f + '"', 'italic 400 1rem "' + f + '"');
   });
+  return Promise.all(specs.map(spec => document.fonts.load(spec).catch(() => {})));
+}
+
+/* ---------- one way to change a reading setting ----------
+   All four of them re-lay the page, and layout is the one thing this page cannot animate:
+   interpolating line-height or root font-size costs a full reflow per frame, which measured
+   at ~25fps with 170ms gaps. So nothing animates layout. The column fades down, the change
+   lands in a single reflow while it is nearly invisible, and it fades back up with the
+   reader's line pinned. `prepare` is for work that must finish first — loading a typeface. */
+let swapSeq = 0;
+function applyWithFade(mutate, prepare) {
+  const settle = () => holdScroll(90, mutate);
+  if (REDUCED_MOTION) {
+    if (prepare) prepare().then(settle); else settle();
+    return;
+  }
+  const seq = ++swapSeq;
+  const panes = [document.getElementById('view'), document.querySelector('.site-foot')].filter(Boolean);
+  panes.forEach(pane => pane.classList.add('reading-swap'));
+  /* Wait for the fade to actually reach the floor rather than guessing at a duration —
+     a slow frame used to land the reflow at ~0.3 opacity, where it was still visible. */
+  const atFloor = new Promise(resolve => {
+    const pane = panes[0];
+    if (!pane) { setTimeout(resolve, 180); return; }
+    let settled = false;
+    const fire = ev => {
+      if (settled || (ev && ev.propertyName !== 'opacity')) return;
+      settled = true;
+      pane.removeEventListener('transitionend', fire);
+      resolve();
+    };
+    pane.addEventListener('transitionend', fire);
+    setTimeout(fire, 420); /* the transition can be pre-empted or never start */
+  });
+  Promise.all([prepare ? prepare() : Promise.resolve(), atFloor]).then(() => {
+    if (seq !== swapSeq) return; /* a faster clicker already asked for something else */
+    settle();
+    /* one frame to paint the new layout while it is still dim, then reveal it finished */
+    requestAnimationFrame(() => { if (seq === swapSeq) panes.forEach(pane => pane.classList.remove('reading-swap')); });
+  });
+}
+
+/* Waiting on the faces is the difference between one change and two: applied first, the
+   real face arrives a beat later and re-lays the page a second time, under the reader. */
+function setTypeTheme(name, instant) {
+  const value = TYPE_THEMES[name] ? name : PREFS.type.def;
+  markPrefButtons('type', value);
+  lsSet(PREFS.type.key, value);
+  const apply = () => {
+    if (value === PREFS.type.def) delete document.documentElement.dataset.type;
+    else document.documentElement.dataset.type = value;
+  };
+  if (instant) { holdScroll(0, apply); loadFaces(TYPE_THEMES[value]); return; }
+  applyWithFade(apply, () => loadFaces(TYPE_THEMES[value]));
+}
+
+function setLineHeight(value, instant) {
+  const v = (value === 'snug' || value === 'roomy') ? value : 'normal';
+  markPrefButtons('lh', v);
+  lsSet(PREFS.lh.key, v);
+  const apply = () => {
+    if (v === 'normal') delete document.documentElement.dataset.lh;
+    else document.documentElement.dataset.lh = v;
+  };
+  if (instant) { holdScroll(0, apply); return; }
+  applyWithFade(apply);
+}
+
+function setTextSize(index, instant) {
+  const i = Math.max(0, Math.min(FS_STEPS.length - 1, isNaN(index) ? 2 : index));
+  currentFsIndex = i;
+  lsSet(PREFS.fs.key, String(i));
+  /* the readout and the end stops answer the click itself, not the fade */
+  const val = document.getElementById('fs-val');
+  if (val) val.textContent = Math.round(FS_STEPS[i] * 100) + '%';
+  document.querySelectorAll('[data-pref="fs"] button[data-step]').forEach(b => {
+    const dir = +b.dataset.step;
+    b.disabled = (dir < 0 && i === 0) || (dir > 0 && i === FS_STEPS.length - 1);
+  });
+  const apply = () => document.documentElement.style.setProperty('--fs', String(FS_STEPS[i]));
+  if (instant) { holdScroll(0, apply); return; }
+  applyWithFade(apply);
+}
+
+function applyPref(name, value, instant) {
+  if (name === 'theme') {
+    const root = document.documentElement;
+    if (value === 'system') delete root.dataset.theme;
+    else root.dataset.theme = value;
+    lsSet(PREFS.theme.key, value);
+    markPrefButtons('theme', value);
+  } else if (name === 'type') {
+    setTypeTheme(value, instant);
+  } else if (name === 'lh') {
+    setLineHeight(value, instant);
+  } else if (name === 'fs') {
+    setTextSize(parseInt(value, 10), instant);
+  }
+}
+
+function initPrefs() {
+  let theme = lsGet(PREFS.theme.key);
+  if (theme !== 'light' && theme !== 'dark' && theme !== 'system') theme = PREFS.theme.def;
+  let type = lsGet(PREFS.type.key);
+  if (!TYPE_THEMES[type]) {
+    /* the panel used to be a two-way serif/sans switch; carry that choice forward */
+    type = lsGet('thread-font') === 'sans' ? 'figtree' : PREFS.type.def;
+  }
+  const fsSaved = parseInt(lsGet(PREFS.fs.key), 10);
+  applyPref('theme', theme, true);
+  applyPref('type', type, true);
+  applyPref('lh', lsGet(PREFS.lh.key) || PREFS.lh.def, true);
+  applyPref('fs', String(fsSaved >= 0 && fsSaved < FS_STEPS.length ? fsSaved : PREFS.fs.def), true);
 
   const wrap = document.getElementById('prefs');
   const btn = document.getElementById('prefs-btn');
   const menu = document.getElementById('prefs-menu');
   if (!wrap || !btn || !menu) return;
   const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
-  const open = () => { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); };
+  /* The six previews are each set in their own two faces. A hidden menu renders nothing,
+     so this first open is the moment they are worth fetching — and by the time one is
+     picked its faces are already there. */
+  let previewsWarmed = false;
+  const open = () => {
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    if (previewsWarmed) return;
+    previewsWarmed = true;
+    const all = [];
+    Object.keys(TYPE_THEMES).forEach(k => TYPE_THEMES[k].forEach(f => {
+      if (all.indexOf(f) < 0) all.push(f);
+    }));
+    loadFaces(all);
+  };
   btn.addEventListener('click', ev => { ev.stopPropagation(); menu.hidden ? open() : close(); });
   menu.addEventListener('click', ev => {
-    const b = ev.target.closest('.seg button');
+    const step = ev.target.closest('[data-pref="fs"] button[data-step]');
+    if (step) { setTextSize(currentFsIndex + (+step.dataset.step)); return; }
+    const b = ev.target.closest('[data-pref] button[data-v]');
     if (!b) return;
-    applyPref(b.parentElement.dataset.pref, b.dataset.v);
+    applyPref(b.closest('[data-pref]').dataset.pref, b.dataset.v);
   });
   document.addEventListener('click', ev => { if (!menu.hidden && !wrap.contains(ev.target)) close(); });
   wrap.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !menu.hidden) { ev.preventDefault(); close(); btn.focus(); } });

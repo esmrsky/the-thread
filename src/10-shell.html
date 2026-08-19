@@ -33,15 +33,25 @@
             <button type="button" data-v="dark">Dark</button>
           </div>
           <span class="prefs-head">Typeface</span>
-          <div class="seg" data-pref="font">
-            <button type="button" data-v="serif" style="font-family:var(--font-serif)">Serif</button>
-            <button type="button" data-v="sans" style="font-family:var(--font-sans)">Sans</button>
+          <div class="typegrid" data-pref="type">
+            <button type="button" data-v="literata" aria-pressed="false"><b>Literata</b><i>Serif headings and text</i></button>
+            <button type="button" data-v="source-serif" aria-pressed="false"><b>Source Serif</b><i>Sans headings, serif text</i></button>
+            <button type="button" data-v="garamond" aria-pressed="false"><b>Garamond</b><i>Classic book serif</i></button>
+            <button type="button" data-v="figtree" aria-pressed="false"><b>Figtree</b><i>Sans headings and text</i></button>
+            <button type="button" data-v="source-sans" aria-pressed="false"><b>Source Sans</b><i>Serif headings, sans text</i></button>
+            <button type="button" data-v="atkinson" aria-pressed="false"><b>Atkinson</b><i>Drawn for legibility</i></button>
           </div>
           <span class="prefs-head">Line height</span>
           <div class="seg" data-pref="lh">
             <button type="button" data-v="snug">Snug</button>
             <button type="button" data-v="normal">Normal</button>
             <button type="button" data-v="roomy">Roomy</button>
+          </div>
+          <span class="prefs-head">Text size</span>
+          <div class="stepper" data-pref="fs">
+            <button type="button" data-step="-1" aria-label="Smaller text">&#8722;</button>
+            <span class="stepper-val" id="fs-val" role="status" aria-live="polite">100%</span>
+            <button type="button" data-step="1" aria-label="Larger text">+</button>
           </div>
           <span class="prefs-note">Kept on this device.</span>
         </div>

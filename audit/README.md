@@ -6,7 +6,7 @@ site; they are committed here so an unattended run has the punch list and the ga
 | File | What it is |
 |---|---|
 | `REPORT.md` | The ranked punch list with root causes (`src/…:line`), a "Not tested" section, and fix order A–E. **Start here.** |
-| `paths.json` | The regression suite: 23 interaction paths / 34 assertions. Failing assertions *are* the punch list — several encode the desired end state (hero height, full-bleed sections, no hover-lift on static cards), so they fail until that pass lands. |
+| `paths.json` | The regression suite: 50 interaction paths / 118 assertions, all passing as of 2026-08-19. Failing assertions *are* the punch list; add a path when you land behaviour worth keeping. |
 | `harness.mjs` | Headless-Chrome driver over CDP. No npm dependencies; needs Node ≥ 22 and a Chrome/Chromium binary. |
 | `inventory.md` | Every interactive element, state axis, data path and animation loop — what the "Not tested" list is written against. |
 | `datasweep.mjs` | Fetches referenced chapters from bolls.life and runs this site's own `cleanBollsText` over them, counting damaged verses per translation. |
@@ -20,7 +20,7 @@ node audit/harness.mjs eval  https://esmrsky.github.io/the-thread/ --width 375 -
 ```
 
 If no Chrome is on the box: `npx --yes @puppeteer/browsers install chrome@stable`, then pass `--chrome <path>`
-(or set `CHROME_BIN`). Baseline at the time of writing: **10 / 34 assertions passing**.
+(or set `CHROME_BIN`). Baseline at the time of writing: **118 / 118 assertions passing**.
 
 Edit `src/`, never `index.html` — run `./build.sh` to rebuild. Append `?cb=<random>` when checking CSS on the
 live URL, or you measure a cached stylesheet.

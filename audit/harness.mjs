@@ -146,7 +146,7 @@ if (cmd === 'paths') {
             else if ('scroll' in step) { if (typeof step.scroll === 'number') await p.ev(`window.scrollTo(0, ${step.scroll})`); else await p.ev(`document.querySelector(${JSON.stringify(step.scroll)}).scrollIntoView({block:'start'})`); }
             else if ('drag' in step) await p.drag(step.drag);
             else if ('wheel' in step) await p.wheel(step.wheel);
-            else if ('eval' in step) { const v = await p.ev(step.eval); if (step.print !== false) res.notes.push((step.name || 'eval') + ' → ' + JSON.stringify(v).slice(0, 400)); }
+            else if ('eval' in step) { const v = await p.ev(step.eval); if (step.print !== false) res.notes.push((step.name || 'eval') + ' → ' + String(JSON.stringify(v)).slice(0, 400)); }
             else if ('assert' in step) { const v = await p.ev(step.assert); res.asserts.push({ name: step.name || step.assert.slice(0, 80), passed: !!v, value: JSON.stringify(v).slice(0, 200) }); }
             else if ('clickPoint' in step) {
               // A curved SVG path's bounding-box centre is usually empty space; this clicks a point
