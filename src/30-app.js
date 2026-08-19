@@ -957,50 +957,15 @@ function buildThreadPreviewContent(t) {
 
 let activePreviewThreadId = null;
 let selectedPreviewThreadId = null;
-let previewMeasureTimer = null;
 
-function measureThreadPreviewHeight() {
-  const previewEl = document.getElementById('thread-preview');
-  if (!previewEl) return;
-
-  const rect = previewEl.getBoundingClientRect();
-  if (!rect.width) return;
-
-  let lockedHeight = 0;
-  THREADS.forEach(t => {
-    const clone = previewEl.cloneNode(false);
-    clone.removeAttribute('id');
-    clone.style.position = 'absolute';
-    clone.style.visibility = 'hidden';
-    clone.style.pointerEvents = 'none';
-    clone.style.left = '-9999px';
-    clone.style.top = '0';
-    clone.style.width = rect.width + 'px';
-    clone.style.height = 'auto';
-    clone.style.minHeight = '0';
-    clone.innerHTML = buildThreadPreviewContent(t);
-    document.body.appendChild(clone);
-    lockedHeight = Math.max(lockedHeight, Math.ceil(clone.scrollHeight));
-    clone.remove();
-  });
-
-  previewEl.style.setProperty('--thread-preview-lock-height', Math.max(lockedHeight, 420) + 'px');
-  syncMobileStickyOffsets();
-}
-
+/* The panel used to be measured against all thirteen previews and locked to the tallest,
+   which made it 982px on desktop and 914px on a phone — an empty box taller than the
+   viewport under a sticky chart. CSS now fixes the height and the card scrolls inside it,
+   so there is nothing left to measure. */
 function syncMobileStickyOffsets() {
   const heroChart = document.querySelector('.hero-chart');
-  const chartMain = heroChart && heroChart.querySelector('.chart-main');
-  const topbar = document.querySelector('.topbar');
-  if (!heroChart || !chartMain || !topbar) return;
-  heroChart.style.setProperty('--mobile-sticky-top', Math.ceil(topbar.getBoundingClientRect().height) + 'px');
-  const heroSvg = heroChart.querySelector('.hero-svg');
+  const heroSvg = heroChart && heroChart.querySelector('.hero-svg');
   if (heroSvg) heroSvg.setAttribute('viewBox', window.innerWidth <= 720 ? '28 0 664 316' : '0 0 720 316');
-}
-
-function scheduleThreadPreviewMeasure() {
-  if (previewMeasureTimer) clearTimeout(previewMeasureTimer);
-  previewMeasureTimer = setTimeout(measureThreadPreviewHeight, 80);
 }
 
 function updateThreadPreview(threadId) {
@@ -1052,6 +1017,25 @@ function selectPreviewThread(threadId) {
   updateThreadPreview(threadId);
 }
 
+function clearPreviewSelection() {
+  selectedPreviewThreadId = null;
+  document.querySelectorAll('.legend-chip').forEach(chip => {
+    chip.classList.remove('selected');
+    chip.setAttribute('aria-pressed', 'false');
+  });
+  document.querySelectorAll('.hero-thread').forEach(path => path.classList.remove('selected'));
+  resetThreadPreview();
+}
+
+/* A selected chip had no way back — clicking it again is the obvious undo. */
+function togglePreviewThread(threadId) {
+  if (selectedPreviewThreadId === threadId) clearPreviewSelection();
+  else selectPreviewThread(threadId);
+}
+
+/* A real pointing device, as opposed to a touchscreen synthesising mouse events. */
+const HOVER_CAPABLE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
 function wireAllSections() {
   // Wire thread card accordions
   document.querySelectorAll('[data-toggle]').forEach(btn => {
@@ -1094,15 +1078,18 @@ function wireAllSections() {
       queuePreviewReset();
     };
 
-    chip.addEventListener('mouseenter', showPreview);
-    chip.addEventListener('pointerenter', showPreview);
+    /* iOS swallows the click when a pointerenter handler mutates the DOM, and showPreview
+       does — so a tap only made the chip hot, and the next tap anywhere fired the chip's
+       pointerleave and wiped the preview back to the placeholder. Two taps to select one
+       chip. Hover is for pointing devices; touch selects on the tap itself. */
+    if (HOVER_CAPABLE) {
+      chip.addEventListener('mouseenter', showPreview);
+      chip.addEventListener('mouseleave', clearPreviewHotState);
+    }
     chip.addEventListener('focus', showPreview);
-
-    chip.addEventListener('mouseleave', clearPreviewHotState);
-    chip.addEventListener('pointerleave', clearPreviewHotState);
     chip.addEventListener('blur', clearPreviewHotState);
 
-    chip.addEventListener('click', () => selectPreviewThread(threadId));
+    chip.addEventListener('click', () => togglePreviewThread(threadId));
   });
 
   // Wire hero thread paths hover and click (using thicker trigger overlay)
@@ -1126,13 +1113,12 @@ function wireAllSections() {
       queuePreviewReset();
     };
 
-    trigger.addEventListener('mouseenter', showPreview);
-    trigger.addEventListener('pointerenter', showPreview);
+    if (HOVER_CAPABLE) {
+      trigger.addEventListener('mouseenter', showPreview);
+      trigger.addEventListener('mouseleave', clearPreviewHotState);
+    }
 
-    trigger.addEventListener('mouseleave', clearPreviewHotState);
-    trigger.addEventListener('pointerleave', clearPreviewHotState);
-
-    trigger.addEventListener('click', () => selectPreviewThread(threadId));
+    trigger.addEventListener('click', () => togglePreviewThread(threadId));
   });
 
   const previewEl = document.getElementById('thread-preview');
@@ -1818,7 +1804,6 @@ function renderSections() {
     if (fn) html += '<section id="' + n.id + '" class="section-block" style="--section-c:var(' + n.cvar + ')">' + fn() + '</section>';
   });
   container.innerHTML = html;
-  measureThreadPreviewHeight();
   syncMobileStickyOffsets();
   wireAllSections();
   initMarquees();
@@ -2128,8 +2113,7 @@ function boot() {
   initTooltip();
 
   window.addEventListener('hashchange', route);
-  window.addEventListener('resize', scheduleThreadPreviewMeasure);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleThreadPreviewMeasure);
+  window.addEventListener('resize', syncMobileStickyOffsets);
   if (location.hash) {
     route({ instant: true });
     setupScrollspy();
