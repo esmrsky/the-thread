@@ -195,34 +195,6 @@ const NAV = [
 ];
 
 /* ================= hero thread chart ================= */
-/* On a phone the landscape chart had to shrink to about 345px wide, which put its labels at
-   roughly 3px and squeezed thirteen routes into a third of the height they need. Portrait gives
-   the fan the long axis of the screen instead. Both are rendered; CSS shows one. */
-function buildHeroChartVertical() {
-  const ths = THREADS.slice();
-  const n = ths.length, X_L = 26, X_R = 334, Y0 = 76, CX = 180, CY = 470, YE = 600;
-  let paths = '';
-  ths.forEach((t, i) => {
-    const x0 = X_L + (X_R - X_L) * (i / (n - 1));
-    const midX = x0 + (CX - x0) * 0.42 + (i % 2 ? 8 : -8);
-    const d = 'M' + x0 + ' ' + Y0 +
-      ' C ' + x0 + ' 200, ' + midX + ' 250, ' + midX + ' 330' +
-      ' S ' + CX + ' 452, ' + CX + ' ' + CY;
-    paths += '<path class="hero-thread" data-thread="' + t.id + '" style="--i:' + i + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.4" stroke-linecap="round"></path>';
-    paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="18" stroke-linecap="round"></path>';
-  });
-  return '<svg class="hero-svg hero-svg-v" viewBox="0 0 360 640" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
-    paths +
-    '<path class="hero-spur hero-spur-glow" d="M' + CX + ' ' + CY + ' V' + YE + '" stroke="var(--gold)" stroke-width="11" stroke-linecap="round" opacity="0.14"/>' +
-    '<path class="hero-spur" d="M' + CX + ' ' + CY + ' V' + YE + '" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round" opacity="0.9"/>' +
-    '<circle class="hero-node-halo" cx="' + CX + '" cy="' + CY + '" r="6" fill="none" stroke="var(--gold)" stroke-width="1.8"/>' +
-    '<circle class="hero-node" cx="' + CX + '" cy="' + CY + '" r="6" fill="var(--gold)"/>' +
-    '<path class="hero-cross" d="M' + CX + ' 430 v-26 M' + (CX - 9) + ' 413 h18" stroke="var(--gold)" stroke-width="3.2" stroke-linecap="round"/>' +
-    '<line class="hero-drop" x1="' + CX + '" y1="436" x2="' + CX + '" y2="' + (CY - 9) + '" stroke="var(--gold)" stroke-width="1.6" stroke-dasharray="2 3" opacity="0.8"/>' +
-    '<text class="hero-jesus-v" x="' + (CX + 16) + '" y="' + (CY + 34) + '" text-anchor="start" font-size="13" letter-spacing="3" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
-    '</svg>';
-}
-
 function buildHeroChart() {
   /* the chart's row order is the legend's order — they used to disagree on Garment */
   const ths = THREADS.slice();
@@ -630,7 +602,7 @@ function vStart() {
     '    <div class="hero-scroll">' +
     '      <span class="chart-corner tl">' + namedRefLink('Gen 1:1', 'Genesis') + '</span>' +
     '      <span class="chart-corner br">' + namedRefLink('Rev 22:21', 'Revelation') + '</span>' +
-    buildHeroChart() + buildHeroChartVertical() + '</div>' +
+    buildHeroChart() + '</div>' +
     '    <div class="hero-legend">' + legend + '</div>' +
     '  </div>' +
     '</div>' +
@@ -814,8 +786,8 @@ function vWalking() {
   const cards = WALKING.pillars.map(p =>
     '<div class="card pillar-card" style="--c:var(--c-walk)">' +
     '<div class="case-top"><span class="icon-chip">' + icon(p.icon) + '</span><h3>' + p.name + '</h3></div>' +
-    '<p class="lie">' + icon('ban') + '<span><b>Old Software:</b> ' + p.lie + '</span></p>' +
-    '<p class="truth">' + icon('bolt') + '<span><b>New Identity:</b> ' + p.truth + '</span></p>' +
+    '<div class="row lie"><b>' + icon('ban') + 'Old software</b><span>' + p.lie + '</span></div>' +
+    '<div class="row truth"><b>' + icon('bolt') + 'New identity</b><span>' + p.truth + '</span></div>' +
     '<p class="pillar-body">' + linkRefs(p.body) + '</p>' +
     '<div class="practice"><span class="label">' + icon('tool') + 'Try this</span>' + linkRefs(p.practice) + '</div>' +
     refRow(p.refs) + '</div>').join('');
@@ -942,9 +914,7 @@ function buildThreadPreviewHeader(t) {
 }
 
 function buildThreadPreviewContent(t) {
-  const shortWay = t.way.slice(0, 3).map(w =>
-    '<li><b>' + refLink(w.ref) + ':</b> ' + linkRefs(w.note) + '</li>'
-  ).join('');
+  const shortWay = previewMilestones(t);
 
   return (
     '<div class="preview-content" style="--c: var(' + t.cvar + ')">' +
@@ -975,8 +945,12 @@ function syncMobileStickyOffsets() {
   if (!heroChart) return;
   // The route labels are drawn to the left of x=0, so above 1100 the viewBox opens a gutter for
   // them. Padding the container instead put them off-canvas as soon as the chart got wider.
-  const heroSvgH = heroChart.querySelector('.hero-svg-h');
-  if (heroSvgH) heroSvgH.setAttribute('viewBox', window.innerWidth < 1100 ? '0 0 720 316' : '-150 0 870 316');
+  const heroSvg = heroChart.querySelector('.hero-svg');
+  if (!heroSvg) return;
+  // Narrower crop on a phone: the same chart, taller for the width it gets, with the gold line
+  // stopping just past the convergence instead of running out to an edge nobody can see.
+  const w = window.innerWidth;
+  heroSvg.setAttribute('viewBox', w <= 720 ? '26 0 566 316' : w < 1100 ? '0 0 720 316' : '-150 0 870 316');
 }
 
 /* Where the pills scroll sideways (phones), touching a route brings its name into view — the
@@ -1013,6 +987,21 @@ function swapPreviewContent(previewEl, html) {
   }
 }
 
+function previewMilestones(t) {
+  return t.way.slice(0, 3).map(w => '<li><b>' + refLink(w.ref) + ':</b> ' + linkRefs(w.note) + '</li>').join('');
+}
+
+/* "Journey milestones" and "Where it lands" are the same words for every thread, so re-rendering
+   and re-animating them on each hover was thirteen labels flickering for no reason. They stay;
+   only the parts that actually differ fade. */
+function patchPart(el, html) {
+  if (!el) return;
+  el.innerHTML = html;
+  el.classList.remove('swap-fade');
+  void el.offsetWidth;
+  el.classList.add('swap-fade');
+}
+
 function updateThreadPreview(threadId) {
   revealLegendChip(threadId);
   if (activePreviewThreadId === threadId) return;
@@ -1023,7 +1012,31 @@ function updateThreadPreview(threadId) {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
 
-  swapPreviewContent(previewEl, buildThreadPreviewContent(t));
+  const content = previewEl.querySelector('.preview-content');
+  if (!content) {
+    swapPreviewContent(previewEl, buildThreadPreviewContent(t));
+    activePreviewThreadId = threadId;
+    return;
+  }
+
+  const token = ++previewSwapToken;
+  const start = previewEl.offsetHeight;
+  content.style.setProperty('--c', 'var(' + t.cvar + ')');
+  patchPart(content.querySelector('.preview-header'), buildThreadPreviewHeader(t));
+  patchPart(content.querySelector('.preview-tag'), t.tag);
+  patchPart(content.querySelector('.preview-body ul'), previewMilestones(t));
+  patchPart(content.querySelector('.preview-lands p'), linkRefs(t.landsOn));
+  const more = content.querySelector('.preview-more');
+  if (more) { more.setAttribute('href', '#t-' + t.id); more.dataset.threadMore = t.id; }
+
+  previewEl.style.height = '';
+  const end = previewEl.offsetHeight;
+  if (start && end && Math.abs(end - start) > 2) {
+    previewEl.style.height = start + 'px';
+    void previewEl.offsetWidth;
+    previewEl.style.height = end + 'px';
+    setTimeout(() => { if (token === previewSwapToken) previewEl.style.height = ''; }, 280);
+  }
   activePreviewThreadId = threadId;
 }
 
@@ -1772,7 +1785,47 @@ function initTooltip() {
 function refreshPinnedTooltip() {
   if (!tooltipPinned || !tooltipLink || !tooltipRef) return;
   if (!tooltipLink.isConnected) return;
-  showTooltip(tooltipLink, tooltipRef, true);
+  // Rebuilding the pop-up dropped it back to a one-line "loading" box and then grew it again.
+  // The verse stays on screen, dimmed, until its replacement is ready.
+  fillTooltip(tooltipRef, getVersion(), ++tooltipRequestId);
+}
+
+function positionTooltip(link) {
+  const rect = link.getBoundingClientRect();
+  const scrollY = window.scrollY || window.pageYOffset;
+  const scrollX = window.scrollX || window.pageXOffset;
+  const width = Math.min(340, window.innerWidth - 28);
+  // Anchoring to the link's own edges means the box can grow when the verse arrives without
+  // moving: below, it grows downward; above, translateY(-100%) makes it grow upward. The old
+  // code guessed a height, placed it, then re-placed it — which is the movement you could see.
+  const roomBelow = window.innerHeight - rect.bottom;
+  const below = roomBelow > 190 || roomBelow > rect.top;
+  if (below) {
+    tooltipEl.style.top = (scrollY + rect.bottom + 8) + 'px';
+    tooltipEl.style.transform = 'none';
+  } else {
+    tooltipEl.style.top = (scrollY + rect.top - 8) + 'px';
+    tooltipEl.style.transform = 'translateY(-100%)';
+  }
+  tooltipEl.style.left = Math.max(scrollX + 14, Math.min(scrollX + rect.left, scrollX + window.innerWidth - width - 14)) + 'px';
+}
+
+function fillTooltip(ref, version, requestId) {
+  const box = tooltipEl.querySelector('.tooltip-text');
+  if (box) box.classList.add('is-loading');
+  const label = tooltipEl.querySelector('.tooltip-ref');
+  if (label) label.textContent = ref + ' (' + version + ')';
+  const button = tooltipEl.querySelector('.tooltip-context-button');
+  if (button) { button.dataset.ref = ref; button.dataset.version = version; }
+  return loadVerseText(ref, version).then(text => {
+    if (requestId !== tooltipRequestId) return;
+    const b = tooltipEl.querySelector('.tooltip-text');
+    if (b) { b.classList.remove('is-loading'); setHTML(b, text); }
+  }).catch(() => {
+    if (requestId !== tooltipRequestId) return;
+    const b = tooltipEl.querySelector('.tooltip-text');
+    if (b) { b.classList.remove('is-loading'); b.innerHTML = '<span style="color:var(--thread)">Unable to load verse.</span>'; }
+  });
 }
 
 function showTooltip(link, ref, pinned) {
@@ -1782,49 +1835,15 @@ function showTooltip(link, ref, pinned) {
   tooltipRef = ref;
   const requestId = ++tooltipRequestId;
   const version = getVersion();
-  
-  const rect = link.getBoundingClientRect();
-  const scrollY = window.scrollY || window.pageYOffset;
-  const scrollX = window.scrollX || window.pageXOffset;
-  
-  // Initial positioning (loading state)
-  const tooltipHeight = 130;
-  if (rect.top - tooltipHeight > 20) {
-    tooltipEl.style.top = (scrollY + rect.top - tooltipHeight - 8) + 'px';
-  } else {
-    tooltipEl.style.top = (scrollY + rect.bottom + 8) + 'px';
-  }
-  const tooltipWidth = Math.min(340, window.innerWidth - 28);
-  const initialLeft = Math.max(scrollX + 14, Math.min(scrollX + rect.left, scrollX + window.innerWidth - tooltipWidth - 14));
-  tooltipEl.style.left = initialLeft + 'px';
 
+  positionTooltip(link);
   tooltipEl.innerHTML =
     '<span class="tooltip-ref">' + escapeScriptureText(ref) + ' (' + version + ')</span>' +
-    '<div class="tooltip-text">Loading verse...</div>' +
+    '<div class="tooltip-text is-loading">Reading…</div>' +
     '<div class="tooltip-actions"><button class="tooltip-context-button" type="button" data-ref="' + escapeScriptureText(ref) + '" data-version="' + version + '">See in context</button></div>';
   tooltipEl.classList.toggle('is-pinned', tooltipPinned);
   tooltipEl.classList.add('open');
-
-  loadVerseText(ref, version).then(text => {
-    if (requestId !== tooltipRequestId) return;
-    const txtBox = tooltipEl.querySelector('.tooltip-text');
-    if (txtBox) setHTML(txtBox, text);
-    
-    // Reposition based on actual height
-    const actualHeight = tooltipEl.offsetHeight;
-    if (rect.top - actualHeight > 20) {
-      tooltipEl.style.top = (scrollY + rect.top - actualHeight - 8) + 'px';
-    } else {
-      tooltipEl.style.top = (scrollY + rect.bottom + 8) + 'px';
-    }
-    
-    const finalLeft = Math.min(scrollX + window.innerWidth - tooltipEl.offsetWidth - 14, Math.max(scrollX + 14, scrollX + rect.left));
-    tooltipEl.style.left = finalLeft + 'px';
-  }).catch(err => {
-    if (requestId !== tooltipRequestId) return;
-    const txtBox = tooltipEl.querySelector('.tooltip-text');
-    if (txtBox) txtBox.innerHTML = '<span style="color:var(--thread)">Unable to load verse.</span>';
-  });
+  fillTooltip(ref, version, requestId);
 }
 
 function hideTooltip(force) {

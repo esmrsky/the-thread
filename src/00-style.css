@@ -300,6 +300,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   min-width: 0;
   justify-self: start;
 }
+.brand-cross { stroke: var(--gold); }
 .brand svg {
   width: 26px;
   height: 26px;
@@ -472,13 +473,22 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 @media (min-width: 900px) {
   .grid-3 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .grid-3 > * { grid-column: span 2; }
-  .grid-3 > :last-child:nth-child(3n + 1) { grid-column: span 6; }
+  /* One card left over reads better as a 2 x 2 with the row above it than as one wide slab. */
+  .grid-3 > :nth-last-child(4):nth-child(3n + 1),
+  .grid-3 > :nth-last-child(4):nth-child(3n + 1) ~ * { grid-column: span 3; }
+  .grid-3 > :last-child:nth-child(3n + 1):nth-child(-n + 3) { grid-column: span 6; }
   .grid-3 > :nth-last-child(2):nth-child(3n + 1),
   .grid-3 > :nth-last-child(2):nth-child(3n + 1) + * { grid-column: span 3; }
 }
 /* a card that widened this way lays its innards out along the row rather than stretching one column */
+/* Wide cards read across; narrow ones stack. A fixed three columns broke words down the middle
+   ("unglamo rous") the moment the card was only half the row. */
 .grid-3 > :last-child:nth-child(3n + 1) .case-rows,
-.grid-2 > :last-child:nth-child(odd) .case-rows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-3 > :nth-last-child(4):nth-child(3n + 1) .case-rows,
+.grid-3 > :nth-last-child(4):nth-child(3n + 1) ~ * .case-rows,
+.grid-2 > :last-child:nth-child(odd) .case-rows {
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+}
 
 .card {
   background: color-mix(in srgb, var(--c, var(--card)) 4%, var(--card));
@@ -602,12 +612,23 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .insight-ic { color: var(--c); opacity: 0.55; }
 .insight-ic svg { width: 22px; height: 22px; }
 .insight-marker {
+  position: relative;
   flex-shrink: 0; width: 28px; height: 28px;
   display: grid; place-items: center;
-  border-radius: 50%;
-  border: 2px dashed color-mix(in srgb, var(--c) 60%, transparent);
   color: var(--c);
   font-family: var(--font-label); font-size: 0.72rem; font-weight: 700;
+}
+/* The ring turns, the numeral stays put — so it reads as a compass bezel, not a spinning label. */
+.insight-marker::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px dashed color-mix(in srgb, var(--c) 60%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .insight-marker::before { animation: bezel-turn 34s linear infinite; }
+  @keyframes bezel-turn { to { transform: rotate(360deg); } }
 }
 .insight-card > b { display: block; font-size: 1.04rem; margin-bottom: 6px; }
 .insight-card .ins-txt { font-size: 0.93rem; color: var(--ink-soft); line-height: 1.6; }
@@ -1566,7 +1587,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   line-height: 1.55;
   color: var(--ink);
   opacity: 0;
-  transition: opacity 0.16s ease, top 0.18s ease, left 0.18s ease;
+  transition: opacity 0.16s ease;
 }
 .verse-tooltip.is-pinned { pointer-events: auto; }
 .verse-tooltip.open {
@@ -1588,7 +1609,11 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   /* the cleaner turns <br> into a real newline, so poetry lines and inline headings
      keep their break instead of gluing to the next word */
   white-space: pre-line;
+  min-height: 3.1em;
+  transition: opacity 0.15s ease;
 }
+/* Waiting for a verse dims the words rather than collapsing the box to a short one. */
+.verse-tooltip .tooltip-text.is-loading { opacity: 0.45; }
 .verse-fallback-note {
   display: block;
   margin-top: 6px;
@@ -1942,15 +1967,20 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 /* Full width, the placeholder was a wide empty box; laid out along the row it reads as a hint. */
 @media (min-width: 900px) {
   .thread-preview-card .preview-placeholder {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 32ch);
     align-items: center;
+    align-content: center;
     justify-content: center;
-    gap: 16px;
+    column-gap: 14px;
+    row-gap: 2px;
+    margin: auto;
     text-align: left;
     padding: 8px 20px;
   }
-  .thread-preview-card .preview-placeholder-icon { margin: 0; width: 32px; height: 32px; flex-shrink: 0; }
-  .thread-preview-card .preview-placeholder h3 { margin-bottom: 0; white-space: nowrap; }
+  .thread-preview-card .preview-placeholder-icon { grid-row: span 2; margin: 0; width: 34px; height: 34px; }
+  .thread-preview-card .preview-placeholder h3 { margin-bottom: 0; align-self: end; }
+  .thread-preview-card .preview-placeholder p { align-self: start; }
 }
 .thread-preview-card .preview-placeholder-icon {
   width: 48px;
@@ -2093,10 +2123,23 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .pillar-card .case-top .icon-chip {
   margin-bottom: 4px;
 }
-.pillar-card .lie, .pillar-card .truth { display: flex; align-items: flex-start; gap: 10px; }
-.pillar-card .lie > svg, .pillar-card .truth > svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 2px; }
-.pillar-card .lie > svg { color: var(--c-detour); }
-.pillar-card .truth > svg { color: var(--s-land); }
+/* This pair used to be two sentences with an inline bold lead-in, which is not how any other
+   contrast on the site is set. It now follows the Detour rows: a small uppercase label in the
+   row's own colour, the sentence underneath. */
+.pillar-card .lie, .pillar-card .truth { display: flex; flex-direction: column; }
+.pillar-card .lie b, .pillar-card .truth b {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.pillar-card .lie b svg, .pillar-card .truth b svg { width: 14px; height: 14px; flex-shrink: 0; }
+.pillar-card .lie b { color: var(--c-detour); }
+.pillar-card .truth b { color: var(--s-land); }
+.pillar-card .truth span { color: var(--ink); }
 .pillar-card .lie {
   background: color-mix(in srgb, var(--c-detour) 6%, var(--card));
   border: 1.2px solid color-mix(in srgb, var(--c-detour) 22%, var(--line));
@@ -2432,8 +2475,6 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 /* ---------- the two ends of the story ----------
    They read as book names and carry the verse on hover. Both charts live in the DOM and CSS
    picks one, so these rules must outrank `.hero-scroll svg` and sit after it. */
-.hero-scroll .hero-svg-v { display: none; }
-.hero-scroll .hero-svg-h { display: block; }
 .chart-corner .ref-link {
   font-family: var(--font-label);
   font-size: 0.72rem;
@@ -2441,22 +2482,17 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
-/* These are labels now, not coordinates floating over the drawing, so they get their own strip
-   above and below it. The inherited 10px/14px padding made the box 40px tall, which reached back
-   up into the era row even when the text itself cleared it. */
-.hero-scroll { padding-top: 22px; padding-bottom: 26px; }
-.hero-scroll .chart-corner { padding: 0; }
+/* Both ends of the story read along the top edge, flush with the panel's own corners. Below the
+   drawing the right-hand one crowded the era ruler; up here they frame it. The inherited
+   10px/14px padding is dropped so each sits exactly in its corner rather than inset from it. */
+.hero-scroll { padding-top: 20px; }
+.hero-scroll .chart-corner { padding: 0; line-height: 1; }
 .hero-scroll .chart-corner.tl { top: 0; bottom: auto; left: 0; right: auto; }
-.hero-scroll .chart-corner.br { top: auto; bottom: 0; right: 0; left: auto; }
+.hero-scroll .chart-corner.br { top: 0; bottom: auto; right: 0; left: auto; }
 
 @media (max-width: 720px) {
-  /* Portrait: the fan runs down the screen the way the page scrolls, and the two ends of the
-     story sit centred above and below it rather than in opposite corners. */
-  .hero-scroll .hero-svg-h { display: none; }
-  .hero-scroll .hero-svg-v { display: block; }
-  .hero-scroll { padding-top: 24px; padding-bottom: 26px; }
-  .hero-scroll .chart-corner.tl { top: 0; left: 50%; right: auto; transform: translateX(-50%); padding: 0 6px; }
-  .hero-scroll .chart-corner.br { bottom: 0; left: 50%; right: auto; transform: translateX(-50%); padding: 0 6px; }
+  /* The era ruler runs past the crop, so it goes; the two book names carry the ends instead. */
+  .hero-svg .hero-era { display: none; }
 }
 
 

@@ -302,6 +302,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   min-width: 0;
   justify-self: start;
 }
+.brand-cross { stroke: var(--gold); }
 .brand svg {
   width: 26px;
   height: 26px;
@@ -474,13 +475,22 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 @media (min-width: 900px) {
   .grid-3 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .grid-3 > * { grid-column: span 2; }
-  .grid-3 > :last-child:nth-child(3n + 1) { grid-column: span 6; }
+  /* One card left over reads better as a 2 x 2 with the row above it than as one wide slab. */
+  .grid-3 > :nth-last-child(4):nth-child(3n + 1),
+  .grid-3 > :nth-last-child(4):nth-child(3n + 1) ~ * { grid-column: span 3; }
+  .grid-3 > :last-child:nth-child(3n + 1):nth-child(-n + 3) { grid-column: span 6; }
   .grid-3 > :nth-last-child(2):nth-child(3n + 1),
   .grid-3 > :nth-last-child(2):nth-child(3n + 1) + * { grid-column: span 3; }
 }
 /* a card that widened this way lays its innards out along the row rather than stretching one column */
+/* Wide cards read across; narrow ones stack. A fixed three columns broke words down the middle
+   ("unglamo rous") the moment the card was only half the row. */
 .grid-3 > :last-child:nth-child(3n + 1) .case-rows,
-.grid-2 > :last-child:nth-child(odd) .case-rows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-3 > :nth-last-child(4):nth-child(3n + 1) .case-rows,
+.grid-3 > :nth-last-child(4):nth-child(3n + 1) ~ * .case-rows,
+.grid-2 > :last-child:nth-child(odd) .case-rows {
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+}
 
 .card {
   background: color-mix(in srgb, var(--c, var(--card)) 4%, var(--card));
@@ -604,12 +614,23 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .insight-ic { color: var(--c); opacity: 0.55; }
 .insight-ic svg { width: 22px; height: 22px; }
 .insight-marker {
+  position: relative;
   flex-shrink: 0; width: 28px; height: 28px;
   display: grid; place-items: center;
-  border-radius: 50%;
-  border: 2px dashed color-mix(in srgb, var(--c) 60%, transparent);
   color: var(--c);
   font-family: var(--font-label); font-size: 0.72rem; font-weight: 700;
+}
+/* The ring turns, the numeral stays put — so it reads as a compass bezel, not a spinning label. */
+.insight-marker::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px dashed color-mix(in srgb, var(--c) 60%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .insight-marker::before { animation: bezel-turn 34s linear infinite; }
+  @keyframes bezel-turn { to { transform: rotate(360deg); } }
 }
 .insight-card > b { display: block; font-size: 1.04rem; margin-bottom: 6px; }
 .insight-card .ins-txt { font-size: 0.93rem; color: var(--ink-soft); line-height: 1.6; }
@@ -1568,7 +1589,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   line-height: 1.55;
   color: var(--ink);
   opacity: 0;
-  transition: opacity 0.16s ease, top 0.18s ease, left 0.18s ease;
+  transition: opacity 0.16s ease;
 }
 .verse-tooltip.is-pinned { pointer-events: auto; }
 .verse-tooltip.open {
@@ -1590,7 +1611,11 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   /* the cleaner turns <br> into a real newline, so poetry lines and inline headings
      keep their break instead of gluing to the next word */
   white-space: pre-line;
+  min-height: 3.1em;
+  transition: opacity 0.15s ease;
 }
+/* Waiting for a verse dims the words rather than collapsing the box to a short one. */
+.verse-tooltip .tooltip-text.is-loading { opacity: 0.45; }
 .verse-fallback-note {
   display: block;
   margin-top: 6px;
@@ -1944,15 +1969,20 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 /* Full width, the placeholder was a wide empty box; laid out along the row it reads as a hint. */
 @media (min-width: 900px) {
   .thread-preview-card .preview-placeholder {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 32ch);
     align-items: center;
+    align-content: center;
     justify-content: center;
-    gap: 16px;
+    column-gap: 14px;
+    row-gap: 2px;
+    margin: auto;
     text-align: left;
     padding: 8px 20px;
   }
-  .thread-preview-card .preview-placeholder-icon { margin: 0; width: 32px; height: 32px; flex-shrink: 0; }
-  .thread-preview-card .preview-placeholder h3 { margin-bottom: 0; white-space: nowrap; }
+  .thread-preview-card .preview-placeholder-icon { grid-row: span 2; margin: 0; width: 34px; height: 34px; }
+  .thread-preview-card .preview-placeholder h3 { margin-bottom: 0; align-self: end; }
+  .thread-preview-card .preview-placeholder p { align-self: start; }
 }
 .thread-preview-card .preview-placeholder-icon {
   width: 48px;
@@ -2095,10 +2125,23 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .pillar-card .case-top .icon-chip {
   margin-bottom: 4px;
 }
-.pillar-card .lie, .pillar-card .truth { display: flex; align-items: flex-start; gap: 10px; }
-.pillar-card .lie > svg, .pillar-card .truth > svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 2px; }
-.pillar-card .lie > svg { color: var(--c-detour); }
-.pillar-card .truth > svg { color: var(--s-land); }
+/* This pair used to be two sentences with an inline bold lead-in, which is not how any other
+   contrast on the site is set. It now follows the Detour rows: a small uppercase label in the
+   row's own colour, the sentence underneath. */
+.pillar-card .lie, .pillar-card .truth { display: flex; flex-direction: column; }
+.pillar-card .lie b, .pillar-card .truth b {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.pillar-card .lie b svg, .pillar-card .truth b svg { width: 14px; height: 14px; flex-shrink: 0; }
+.pillar-card .lie b { color: var(--c-detour); }
+.pillar-card .truth b { color: var(--s-land); }
+.pillar-card .truth span { color: var(--ink); }
 .pillar-card .lie {
   background: color-mix(in srgb, var(--c-detour) 6%, var(--card));
   border: 1.2px solid color-mix(in srgb, var(--c-detour) 22%, var(--line));
@@ -2434,8 +2477,6 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 /* ---------- the two ends of the story ----------
    They read as book names and carry the verse on hover. Both charts live in the DOM and CSS
    picks one, so these rules must outrank `.hero-scroll svg` and sit after it. */
-.hero-scroll .hero-svg-v { display: none; }
-.hero-scroll .hero-svg-h { display: block; }
 .chart-corner .ref-link {
   font-family: var(--font-label);
   font-size: 0.72rem;
@@ -2443,22 +2484,17 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
-/* These are labels now, not coordinates floating over the drawing, so they get their own strip
-   above and below it. The inherited 10px/14px padding made the box 40px tall, which reached back
-   up into the era row even when the text itself cleared it. */
-.hero-scroll { padding-top: 22px; padding-bottom: 26px; }
-.hero-scroll .chart-corner { padding: 0; }
+/* Both ends of the story read along the top edge, flush with the panel's own corners. Below the
+   drawing the right-hand one crowded the era ruler; up here they frame it. The inherited
+   10px/14px padding is dropped so each sits exactly in its corner rather than inset from it. */
+.hero-scroll { padding-top: 20px; }
+.hero-scroll .chart-corner { padding: 0; line-height: 1; }
 .hero-scroll .chart-corner.tl { top: 0; bottom: auto; left: 0; right: auto; }
-.hero-scroll .chart-corner.br { top: auto; bottom: 0; right: 0; left: auto; }
+.hero-scroll .chart-corner.br { top: 0; bottom: auto; right: 0; left: auto; }
 
 @media (max-width: 720px) {
-  /* Portrait: the fan runs down the screen the way the page scrolls, and the two ends of the
-     story sit centred above and below it rather than in opposite corners. */
-  .hero-scroll .hero-svg-h { display: none; }
-  .hero-scroll .hero-svg-v { display: block; }
-  .hero-scroll { padding-top: 24px; padding-bottom: 26px; }
-  .hero-scroll .chart-corner.tl { top: 0; left: 50%; right: auto; transform: translateX(-50%); padding: 0 6px; }
-  .hero-scroll .chart-corner.br { bottom: 0; left: 50%; right: auto; transform: translateX(-50%); padding: 0 6px; }
+  /* The era ruler runs past the crop, so it goes; the two book names carry the ends instead. */
+  .hero-svg .hero-era { display: none; }
 }
 
 
@@ -2508,7 +2544,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
     <a class="brand" href="#/">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
         <path class="brand-thread" d="M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8" stroke-dasharray="3 2.4"/>
-        <path d="M18.5 4.5v6M15.8 7h5.4"/>
+        <path class="brand-cross" d="M18.6 2.6v10.6M15.5 6.1h6.2"/>
       </svg>
       <span class="brand-name">The Thread</span>
       <span class="brand-sub">A field manual to the Bible</span>
@@ -3644,34 +3680,6 @@ const NAV = [
 ];
 
 /* ================= hero thread chart ================= */
-/* On a phone the landscape chart had to shrink to about 345px wide, which put its labels at
-   roughly 3px and squeezed thirteen routes into a third of the height they need. Portrait gives
-   the fan the long axis of the screen instead. Both are rendered; CSS shows one. */
-function buildHeroChartVertical() {
-  const ths = THREADS.slice();
-  const n = ths.length, X_L = 26, X_R = 334, Y0 = 76, CX = 180, CY = 470, YE = 600;
-  let paths = '';
-  ths.forEach((t, i) => {
-    const x0 = X_L + (X_R - X_L) * (i / (n - 1));
-    const midX = x0 + (CX - x0) * 0.42 + (i % 2 ? 8 : -8);
-    const d = 'M' + x0 + ' ' + Y0 +
-      ' C ' + x0 + ' 200, ' + midX + ' 250, ' + midX + ' 330' +
-      ' S ' + CX + ' 452, ' + CX + ' ' + CY;
-    paths += '<path class="hero-thread" data-thread="' + t.id + '" style="--i:' + i + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.4" stroke-linecap="round"></path>';
-    paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="18" stroke-linecap="round"></path>';
-  });
-  return '<svg class="hero-svg hero-svg-v" viewBox="0 0 360 640" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
-    paths +
-    '<path class="hero-spur hero-spur-glow" d="M' + CX + ' ' + CY + ' V' + YE + '" stroke="var(--gold)" stroke-width="11" stroke-linecap="round" opacity="0.14"/>' +
-    '<path class="hero-spur" d="M' + CX + ' ' + CY + ' V' + YE + '" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round" opacity="0.9"/>' +
-    '<circle class="hero-node-halo" cx="' + CX + '" cy="' + CY + '" r="6" fill="none" stroke="var(--gold)" stroke-width="1.8"/>' +
-    '<circle class="hero-node" cx="' + CX + '" cy="' + CY + '" r="6" fill="var(--gold)"/>' +
-    '<path class="hero-cross" d="M' + CX + ' 430 v-26 M' + (CX - 9) + ' 413 h18" stroke="var(--gold)" stroke-width="3.2" stroke-linecap="round"/>' +
-    '<line class="hero-drop" x1="' + CX + '" y1="436" x2="' + CX + '" y2="' + (CY - 9) + '" stroke="var(--gold)" stroke-width="1.6" stroke-dasharray="2 3" opacity="0.8"/>' +
-    '<text class="hero-jesus-v" x="' + (CX + 16) + '" y="' + (CY + 34) + '" text-anchor="start" font-size="13" letter-spacing="3" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
-    '</svg>';
-}
-
 function buildHeroChart() {
   /* the chart's row order is the legend's order — they used to disagree on Garment */
   const ths = THREADS.slice();
@@ -4079,7 +4087,7 @@ function vStart() {
     '    <div class="hero-scroll">' +
     '      <span class="chart-corner tl">' + namedRefLink('Gen 1:1', 'Genesis') + '</span>' +
     '      <span class="chart-corner br">' + namedRefLink('Rev 22:21', 'Revelation') + '</span>' +
-    buildHeroChart() + buildHeroChartVertical() + '</div>' +
+    buildHeroChart() + '</div>' +
     '    <div class="hero-legend">' + legend + '</div>' +
     '  </div>' +
     '</div>' +
@@ -4263,8 +4271,8 @@ function vWalking() {
   const cards = WALKING.pillars.map(p =>
     '<div class="card pillar-card" style="--c:var(--c-walk)">' +
     '<div class="case-top"><span class="icon-chip">' + icon(p.icon) + '</span><h3>' + p.name + '</h3></div>' +
-    '<p class="lie">' + icon('ban') + '<span><b>Old Software:</b> ' + p.lie + '</span></p>' +
-    '<p class="truth">' + icon('bolt') + '<span><b>New Identity:</b> ' + p.truth + '</span></p>' +
+    '<div class="row lie"><b>' + icon('ban') + 'Old software</b><span>' + p.lie + '</span></div>' +
+    '<div class="row truth"><b>' + icon('bolt') + 'New identity</b><span>' + p.truth + '</span></div>' +
     '<p class="pillar-body">' + linkRefs(p.body) + '</p>' +
     '<div class="practice"><span class="label">' + icon('tool') + 'Try this</span>' + linkRefs(p.practice) + '</div>' +
     refRow(p.refs) + '</div>').join('');
@@ -4391,9 +4399,7 @@ function buildThreadPreviewHeader(t) {
 }
 
 function buildThreadPreviewContent(t) {
-  const shortWay = t.way.slice(0, 3).map(w =>
-    '<li><b>' + refLink(w.ref) + ':</b> ' + linkRefs(w.note) + '</li>'
-  ).join('');
+  const shortWay = previewMilestones(t);
 
   return (
     '<div class="preview-content" style="--c: var(' + t.cvar + ')">' +
@@ -4424,8 +4430,12 @@ function syncMobileStickyOffsets() {
   if (!heroChart) return;
   // The route labels are drawn to the left of x=0, so above 1100 the viewBox opens a gutter for
   // them. Padding the container instead put them off-canvas as soon as the chart got wider.
-  const heroSvgH = heroChart.querySelector('.hero-svg-h');
-  if (heroSvgH) heroSvgH.setAttribute('viewBox', window.innerWidth < 1100 ? '0 0 720 316' : '-150 0 870 316');
+  const heroSvg = heroChart.querySelector('.hero-svg');
+  if (!heroSvg) return;
+  // Narrower crop on a phone: the same chart, taller for the width it gets, with the gold line
+  // stopping just past the convergence instead of running out to an edge nobody can see.
+  const w = window.innerWidth;
+  heroSvg.setAttribute('viewBox', w <= 720 ? '26 0 566 316' : w < 1100 ? '0 0 720 316' : '-150 0 870 316');
 }
 
 /* Where the pills scroll sideways (phones), touching a route brings its name into view — the
@@ -4462,6 +4472,21 @@ function swapPreviewContent(previewEl, html) {
   }
 }
 
+function previewMilestones(t) {
+  return t.way.slice(0, 3).map(w => '<li><b>' + refLink(w.ref) + ':</b> ' + linkRefs(w.note) + '</li>').join('');
+}
+
+/* "Journey milestones" and "Where it lands" are the same words for every thread, so re-rendering
+   and re-animating them on each hover was thirteen labels flickering for no reason. They stay;
+   only the parts that actually differ fade. */
+function patchPart(el, html) {
+  if (!el) return;
+  el.innerHTML = html;
+  el.classList.remove('swap-fade');
+  void el.offsetWidth;
+  el.classList.add('swap-fade');
+}
+
 function updateThreadPreview(threadId) {
   revealLegendChip(threadId);
   if (activePreviewThreadId === threadId) return;
@@ -4472,7 +4497,31 @@ function updateThreadPreview(threadId) {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
 
-  swapPreviewContent(previewEl, buildThreadPreviewContent(t));
+  const content = previewEl.querySelector('.preview-content');
+  if (!content) {
+    swapPreviewContent(previewEl, buildThreadPreviewContent(t));
+    activePreviewThreadId = threadId;
+    return;
+  }
+
+  const token = ++previewSwapToken;
+  const start = previewEl.offsetHeight;
+  content.style.setProperty('--c', 'var(' + t.cvar + ')');
+  patchPart(content.querySelector('.preview-header'), buildThreadPreviewHeader(t));
+  patchPart(content.querySelector('.preview-tag'), t.tag);
+  patchPart(content.querySelector('.preview-body ul'), previewMilestones(t));
+  patchPart(content.querySelector('.preview-lands p'), linkRefs(t.landsOn));
+  const more = content.querySelector('.preview-more');
+  if (more) { more.setAttribute('href', '#t-' + t.id); more.dataset.threadMore = t.id; }
+
+  previewEl.style.height = '';
+  const end = previewEl.offsetHeight;
+  if (start && end && Math.abs(end - start) > 2) {
+    previewEl.style.height = start + 'px';
+    void previewEl.offsetWidth;
+    previewEl.style.height = end + 'px';
+    setTimeout(() => { if (token === previewSwapToken) previewEl.style.height = ''; }, 280);
+  }
   activePreviewThreadId = threadId;
 }
 
@@ -5221,7 +5270,47 @@ function initTooltip() {
 function refreshPinnedTooltip() {
   if (!tooltipPinned || !tooltipLink || !tooltipRef) return;
   if (!tooltipLink.isConnected) return;
-  showTooltip(tooltipLink, tooltipRef, true);
+  // Rebuilding the pop-up dropped it back to a one-line "loading" box and then grew it again.
+  // The verse stays on screen, dimmed, until its replacement is ready.
+  fillTooltip(tooltipRef, getVersion(), ++tooltipRequestId);
+}
+
+function positionTooltip(link) {
+  const rect = link.getBoundingClientRect();
+  const scrollY = window.scrollY || window.pageYOffset;
+  const scrollX = window.scrollX || window.pageXOffset;
+  const width = Math.min(340, window.innerWidth - 28);
+  // Anchoring to the link's own edges means the box can grow when the verse arrives without
+  // moving: below, it grows downward; above, translateY(-100%) makes it grow upward. The old
+  // code guessed a height, placed it, then re-placed it — which is the movement you could see.
+  const roomBelow = window.innerHeight - rect.bottom;
+  const below = roomBelow > 190 || roomBelow > rect.top;
+  if (below) {
+    tooltipEl.style.top = (scrollY + rect.bottom + 8) + 'px';
+    tooltipEl.style.transform = 'none';
+  } else {
+    tooltipEl.style.top = (scrollY + rect.top - 8) + 'px';
+    tooltipEl.style.transform = 'translateY(-100%)';
+  }
+  tooltipEl.style.left = Math.max(scrollX + 14, Math.min(scrollX + rect.left, scrollX + window.innerWidth - width - 14)) + 'px';
+}
+
+function fillTooltip(ref, version, requestId) {
+  const box = tooltipEl.querySelector('.tooltip-text');
+  if (box) box.classList.add('is-loading');
+  const label = tooltipEl.querySelector('.tooltip-ref');
+  if (label) label.textContent = ref + ' (' + version + ')';
+  const button = tooltipEl.querySelector('.tooltip-context-button');
+  if (button) { button.dataset.ref = ref; button.dataset.version = version; }
+  return loadVerseText(ref, version).then(text => {
+    if (requestId !== tooltipRequestId) return;
+    const b = tooltipEl.querySelector('.tooltip-text');
+    if (b) { b.classList.remove('is-loading'); setHTML(b, text); }
+  }).catch(() => {
+    if (requestId !== tooltipRequestId) return;
+    const b = tooltipEl.querySelector('.tooltip-text');
+    if (b) { b.classList.remove('is-loading'); b.innerHTML = '<span style="color:var(--thread)">Unable to load verse.</span>'; }
+  });
 }
 
 function showTooltip(link, ref, pinned) {
@@ -5231,49 +5320,15 @@ function showTooltip(link, ref, pinned) {
   tooltipRef = ref;
   const requestId = ++tooltipRequestId;
   const version = getVersion();
-  
-  const rect = link.getBoundingClientRect();
-  const scrollY = window.scrollY || window.pageYOffset;
-  const scrollX = window.scrollX || window.pageXOffset;
-  
-  // Initial positioning (loading state)
-  const tooltipHeight = 130;
-  if (rect.top - tooltipHeight > 20) {
-    tooltipEl.style.top = (scrollY + rect.top - tooltipHeight - 8) + 'px';
-  } else {
-    tooltipEl.style.top = (scrollY + rect.bottom + 8) + 'px';
-  }
-  const tooltipWidth = Math.min(340, window.innerWidth - 28);
-  const initialLeft = Math.max(scrollX + 14, Math.min(scrollX + rect.left, scrollX + window.innerWidth - tooltipWidth - 14));
-  tooltipEl.style.left = initialLeft + 'px';
 
+  positionTooltip(link);
   tooltipEl.innerHTML =
     '<span class="tooltip-ref">' + escapeScriptureText(ref) + ' (' + version + ')</span>' +
-    '<div class="tooltip-text">Loading verse...</div>' +
+    '<div class="tooltip-text is-loading">Reading…</div>' +
     '<div class="tooltip-actions"><button class="tooltip-context-button" type="button" data-ref="' + escapeScriptureText(ref) + '" data-version="' + version + '">See in context</button></div>';
   tooltipEl.classList.toggle('is-pinned', tooltipPinned);
   tooltipEl.classList.add('open');
-
-  loadVerseText(ref, version).then(text => {
-    if (requestId !== tooltipRequestId) return;
-    const txtBox = tooltipEl.querySelector('.tooltip-text');
-    if (txtBox) setHTML(txtBox, text);
-    
-    // Reposition based on actual height
-    const actualHeight = tooltipEl.offsetHeight;
-    if (rect.top - actualHeight > 20) {
-      tooltipEl.style.top = (scrollY + rect.top - actualHeight - 8) + 'px';
-    } else {
-      tooltipEl.style.top = (scrollY + rect.bottom + 8) + 'px';
-    }
-    
-    const finalLeft = Math.min(scrollX + window.innerWidth - tooltipEl.offsetWidth - 14, Math.max(scrollX + 14, scrollX + rect.left));
-    tooltipEl.style.left = finalLeft + 'px';
-  }).catch(err => {
-    if (requestId !== tooltipRequestId) return;
-    const txtBox = tooltipEl.querySelector('.tooltip-text');
-    if (txtBox) txtBox.innerHTML = '<span style="color:var(--thread)">Unable to load verse.</span>';
-  });
+  fillTooltip(ref, version, requestId);
 }
 
 function hideTooltip(force) {

@@ -868,7 +868,7 @@
      "name": "the pill strip scrolls sideways on a phone"
     },
     {
-     "clickPoint": "(() => { const p=document.querySelector('.hero-svg-v .hero-thread-trigger[data-thread=garment]'); const pt=p.getPointAtLength(p.getTotalLength()*0.12); const q=new DOMPoint(pt.x, pt.y).matrixTransform(p.getScreenCTM()); return {x:q.x, y:q.y}; })()",
+     "clickPoint": "(() => { const p=document.querySelector('.hero-thread-trigger[data-thread=garment]'); const pt=p.getPointAtLength(p.getTotalLength()*0.12); const q=new DOMPoint(pt.x, pt.y).matrixTransform(p.getScreenCTM()); return {x:q.x, y:q.y}; })()",
      "name": "touch the Garment route"
     },
     {
@@ -935,41 +935,8 @@
      "name": "the end label clears every era label"
     },
     {
-     "assert": "(() => { const a=document.querySelector('.hero-scroll .chart-corner.tl').getBoundingClientRect(), b=document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); return a.bottom <= b.top; })()",
-     "name": "Genesis sits well above Revelation"
-    }
-   ]
-  },
-  {
-   "name": "portrait-chart-on-a-phone",
-   "width": 375,
-   "steps": [
-    {
-     "assert": "getComputedStyle(document.querySelector('.hero-svg-v')).display === 'block' && getComputedStyle(document.querySelector('.hero-svg-h')).display === 'none'",
-     "name": "the phone gets the portrait chart, not the landscape one"
-    },
-    {
-     "assert": "document.querySelectorAll('.hero-svg-v .hero-thread').length === 13",
-     "name": "all thirteen routes are drawn"
-    },
-    {
-     "assert": "(() => { const r=document.querySelector('.hero-svg-v').getBoundingClientRect(); return r.height > r.width; })()",
-     "name": "it really is portrait"
-    },
-    {
-     "assert": "(() => { const v=document.querySelector('.hero-svg-v').getBoundingClientRect(); const g=document.querySelector('.chart-corner.tl').getBoundingClientRect(); const r=document.querySelector('.chart-corner.br').getBoundingClientRect(); return g.bottom <= v.top + 2 && r.top >= v.bottom - 2; })()",
-     "name": "Genesis sits above the fan and Revelation below it"
-    },
-    {
-     "clickPoint": "(() => { const p=document.querySelector('.hero-svg-v .hero-thread-trigger[data-thread=bread]'); const pt=p.getPointAtLength(p.getTotalLength()*0.12); const q=new DOMPoint(pt.x, pt.y).matrixTransform(p.getScreenCTM()); return {x:q.x, y:q.y}; })()",
-     "name": "touch the Bread route"
-    },
-    {
-     "wait": 500
-    },
-    {
-     "assert": "document.getElementById('thread-preview').textContent.includes('Bread')",
-     "name": "touching a route in the portrait chart still selects it"
+     "assert": "(() => { const a=document.querySelector('.hero-scroll .chart-corner.tl').getBoundingClientRect(), b=document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); const svg=document.querySelector('.hero-svg').getBoundingClientRect(); return Math.abs(a.top-b.top) < 3 && a.left < b.left && a.bottom <= svg.top + 2; })()",
+     "name": "both ends sit level along the top, above the drawing, in opposite corners"
     }
    ]
   },
@@ -1013,6 +980,94 @@
     {
      "assert": "[...document.querySelectorAll('.diagram-hint')].every(h => getComputedStyle(h).display === 'none')",
      "name": "and the swipe hint stays out of the way"
+    }
+   ]
+  },
+  {
+   "name": "phone-chart-is-cropped-not-shrunk",
+   "width": 375,
+   "steps": [
+    {
+     "assert": "document.querySelector('.hero-svg').getAttribute('viewBox') === '26 0 566 316'",
+     "name": "the phone gets a narrower crop of the same chart"
+    },
+    {
+     "assert": "[...document.querySelectorAll('.hero-svg .hero-era')].every(e => getComputedStyle(e).display === 'none')",
+     "name": "the era ruler, which runs past the crop, is hidden"
+    },
+    {
+     "assert": "document.querySelectorAll('.hero-svg .hero-thread').length === 13",
+     "name": "all thirteen routes are still drawn"
+    },
+    {
+     "assert": "(() => { const r=document.querySelector('.hero-svg').getBoundingClientRect(); return r.width / r.height < 1.9; })()",
+     "name": "cropping makes it taller for the width it has"
+    }
+   ]
+  },
+  {
+   "name": "summary-keeps-its-headings",
+   "width": 1280,
+   "steps": [
+    {
+     "click": ".hero-line-label[data-thread=lamb]"
+    },
+    {
+     "wait": 500
+    },
+    {
+     "eval": "(() => { const h=document.querySelector('#thread-preview .preview-body h4'); window.__h4=h; window.__reRendered=false; new MutationObserver(()=>{ window.__reRendered=true; }).observe(h,{childList:true,characterData:true,subtree:true}); return h.textContent; })()",
+     "print": false
+    },
+    {
+     "click": ".hero-line-label[data-thread=garment]"
+    },
+    {
+     "wait": 600
+    },
+    {
+     "assert": "window.__reRendered === false",
+     "name": "the 'Journey milestones' heading is not re-rendered between threads"
+    },
+    {
+     "assert": "document.querySelector('#thread-preview .preview-body h4') === window.__h4",
+     "name": "it is the same element, so it cannot flash"
+    },
+    {
+     "assert": "getComputedStyle(document.querySelector('#thread-preview .preview-tag')).animationName === 'swap-fade'",
+     "name": "the parts that do change still fade"
+    }
+   ]
+  },
+  {
+   "name": "verse-popup-does-not-move",
+   "width": 1280,
+   "steps": [
+    {
+     "assert": "!getComputedStyle(document.querySelector('.verse-tooltip')).transitionProperty.includes('top')",
+     "name": "nothing about the pop-up's position is animated"
+    },
+    {
+     "eval": "(() => { const l=[...document.querySelectorAll('.ref-link')].find(a=>/^Rom 8:1$/.test(a.dataset.ref)); l.id='audit-pop'; })()",
+     "print": false
+    },
+    {
+     "click": "#audit-pop"
+    },
+    {
+     "wait": 120
+    },
+    {
+     "eval": "(() => { const t=document.querySelector('.verse-tooltip'); const r=t.getBoundingClientRect(); window.__anchor = t.style.transform === 'none' ? Math.round(r.top) : Math.round(r.bottom); window.__mode = t.style.transform; return window.__mode; })()",
+     "print": false
+    },
+    {
+     "waitFor": "!document.querySelector('.verse-tooltip .tooltip-text').classList.contains('is-loading')",
+     "timeout": 15000
+    },
+    {
+     "assert": "(() => { const t=document.querySelector('.verse-tooltip'); const r=t.getBoundingClientRect(); const now = window.__mode === 'none' ? Math.round(r.top) : Math.round(r.bottom); return Math.abs(now - window.__anchor) <= 2; })()",
+     "name": "the anchored edge does not move when the verse arrives"
     }
    ]
   }

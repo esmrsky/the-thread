@@ -216,7 +216,7 @@ p { margin: 0; }
   <div class="stats">
     <div class="stat">
       <span class="label">Gate assertions</span>
-      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">91</span> / 91</div>
+      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">95</span> / 95</div>
       <p class="note">Measured with the audit harness against a local server. The two still failing both need
       bolls.life, which this build environment blocks at the proxy.</p>
     </div>
@@ -391,6 +391,30 @@ var LEDGER = [
       finding: 'Finding 9', to: 'library' }
   ]},
   { kind: 'updated', title: 'Updated', items: [
+    { what: 'The phone gets a narrower crop, not a different chart',
+      why: 'A portrait build was tried and reverted — the landscape one reads better. It is cropped tighter on a phone instead, which makes it taller for the width it has and stops the gold line just past the convergence rather than running it out to an edge nobody can see. The era ruler, which runs past the crop, is hidden there.',
+      finding: 'Follow-up — reader report', to: 'start' },
+    { what: 'Both ends of the story sit along the top',
+      why: '"Revelation" underneath crowded the era ruler. Genesis and Revelation now sit level in the panel\u2019s own top corners, with the inherited padding dropped so each is flush with its corner rather than inset from it.',
+      finding: 'Follow-up — reader report', to: 'start' },
+    { what: 'The summary keeps its headings',
+      why: '"Journey milestones" and "Where it lands" are the same words for every thread, but the card was rebuilt whole on each hover, so those labels flickered along with everything else. They are the same elements now; only the parts that differ fade.',
+      finding: 'Follow-up — reader report', to: 'start' },
+    { what: 'The verse pop-up cannot move',
+      why: 'It guessed a height, placed itself, then re-placed itself once the verse arrived — which is the drift you could see. It anchors to the link edge instead (growing down, or up via translateY(-100%)), so nothing shifts, and changing translation dims the verse in place rather than dropping back to a one-line loading box.',
+      finding: 'Follow-up — reader report', to: 'pattern' },
+    { what: 'A leftover card becomes a 2 x 2',
+      why: 'Ten case studies left one card alone; widening it to the full row then squeezed its Egypt/Wilderness/Land rows into three narrow columns that broke words down the middle. The last four now sit two-by-two, and their inner rows only run across while they have the width to read.',
+      finding: 'Follow-up — reader report', to: 'pattern' },
+    { what: 'The brand mark is a cross again',
+      why: 'The upright and the bar were nearly the same length, which read as an X, and it had taken the scarlet of the thread beside it. The upright is longer with the bar in the upper third, in the gold every convergence on this site already uses. The favicon matches.',
+      finding: 'Follow-up — reader report', to: 'start' },
+    { what: 'Old software / new identity follows the house pattern',
+      why: 'It was two sentences with an inline bold lead-in, unlike any other contrast on the site. It now reads like the Detour rows: a small uppercase label in the row\u2019s own colour — red for the old, green for the new — with the sentence underneath.',
+      finding: 'Follow-up — reader report', to: 'walking' },
+    { what: 'The trail-wisdom markers turn',
+      why: 'The dashed ring rotates slowly on its own pseudo-element, so the numeral inside stays upright — a compass bezel rather than a spinning label.',
+      finding: 'Follow-up — reader request', to: 'pattern' },
     { what: 'The chart is labelled Genesis and Revelation',
       why: 'The two ends were "Gen 1:1" and "Rev 22:21" set in the corners, where the lower one landed on top of the era ruler. They read as book names now, in their own strip above and below the drawing, and hovering either still opens the verse.',
       finding: 'Follow-up — reader request', to: 'start' },
