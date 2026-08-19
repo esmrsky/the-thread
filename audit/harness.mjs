@@ -164,6 +164,7 @@ if (cmd === 'paths') {
       } catch (e) { res.errors.push('path aborted: ' + e.message); }
       res.console = p.log.console.slice(0, 10); res.failedRequests = p.log.failed.slice(0, 10);
       results.push(res);
+      await sleep(+flag('pace', 400)); // paths share third-party APIs; back-to-back runs throttle them
       const passed = res.asserts.filter(a => a.passed).length;
       console.log(`${res.asserts.length && passed === res.asserts.length && !res.errors.length ? 'PASS' : 'FAIL'}  ${path.name}  (${passed}/${res.asserts.length} asserts, ${width}px ${res.theme})`);
       res.asserts.filter(a => !a.passed).forEach(a => console.log(`      ✗ ${a.name}  → ${a.value}`));

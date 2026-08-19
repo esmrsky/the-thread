@@ -130,7 +130,7 @@
     },
     {
      "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse, .verse-context-dialog .context-block').length > 3",
-     "timeout": 20000,
+     "timeout": 32000,
      "name": "wait for the passage to arrive"
     },
     {
@@ -623,14 +623,14 @@
     },
     {
      "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
-     "timeout": 20000
+     "timeout": 32000
     },
     {
      "click": ".context-more-button"
     },
     {
      "waitFor": "[...document.querySelectorAll('.context-verse-number')].some(n => n.textContent.includes(':'))",
-     "timeout": 20000,
+     "timeout": 32000,
      "name": "wait for the widened passage"
     },
     {
@@ -689,7 +689,7 @@
     },
     {
      "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
-     "timeout": 20000
+     "timeout": 32000
     },
     {
      "assert": "getComputedStyle(document.querySelector('.verse-context-dialog')).animationName !== 'none'",
@@ -725,7 +725,7 @@
     },
     {
      "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
-     "timeout": 20000
+     "timeout": 32000
     },
     {
      "wait": 450
@@ -745,7 +745,7 @@
     },
     {
      "waitFor": "document.querySelector('.verse-context-dialog .verpick-val').textContent === 'NLT' && document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
-     "timeout": 20000
+     "timeout": 32000
     },
     {
      "assert": "window.__blanked === false",
