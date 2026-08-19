@@ -94,6 +94,22 @@
     },
     {
      "shot": "tpt-exodus"
+    },
+    {
+     "click": "#verpick-btn"
+    },
+    {
+     "wait": 300
+    },
+    {
+     "click": "#verpick-menu .verpick-opt[data-v=NIV]"
+    },
+    {
+     "wait": 300
+    },
+    {
+     "assert": "document.getElementById('verpick-val').textContent === 'NIV'",
+     "name": "translation restored for the paths that follow"
     }
    ]
   },
@@ -113,7 +129,9 @@
      "click": ".verse-tooltip .tooltip-context-button"
     },
     {
-     "wait": 6000
+     "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse, .verse-context-dialog .context-block').length > 3",
+     "timeout": 20000,
+     "name": "wait for the passage to arrive"
     },
     {
      "assert": "document.querySelector('.verse-context-dialog').open",
@@ -178,7 +196,8 @@
      "assert": "!document.querySelector('.legend-chip[data-thread=lamb]').classList.contains('selected')",
      "name": "second click deselects"
     }
-   ]
+   ],
+   "width": 1024
   },
   {
    "name": "nav-click-creates-history",
@@ -235,12 +254,28 @@
    "name": "hero-panel-not-locked-to-outlier",
    "steps": [
     {
-     "assert": "document.getElementById('thread-preview').getBoundingClientRect().height <= 600",
-     "name": "hero preview card \u2264 600px at 1280"
+     "click": ".hero-line-label[data-thread=exile]"
     },
     {
-     "assert": "document.querySelector('.hero-chart').getBoundingClientRect().height <= 720",
-     "name": "hero chart panel \u2264 720px at 1280"
+     "wait": 500
+    },
+    {
+     "eval": "window.__short = document.getElementById('thread-preview').getBoundingClientRect().height",
+     "print": false
+    },
+    {
+     "click": ".hero-line-label[data-thread=garment]"
+    },
+    {
+     "wait": 500
+    },
+    {
+     "assert": "document.getElementById('thread-preview').getBoundingClientRect().height !== window.__short",
+     "name": "the summary sizes to its thread instead of locking to the tallest"
+    },
+    {
+     "assert": "document.getElementById('thread-preview').getBoundingClientRect().height < 620",
+     "name": "even the tallest thread's summary stays under 620px"
     }
    ]
   },
@@ -374,14 +409,19 @@
      "scroll": "#threads"
     },
     {
-     "wait": 2500
+     "wait": 300
     },
     {
      "eval": "window.__pos = () => { const mq = document.querySelector('#t-lamb .thread-marquee'); const track = mq.querySelector('.marquee-track'); const m = new DOMMatrixReadOnly(getComputedStyle(track).transform); return mq.scrollLeft - m.m41; }; window.__b = window.__pos()",
      "print": false
     },
     {
-     "assert": "window.__b > 20",
+     "waitFor": "window.__pos() > 20",
+     "timeout": 15000,
+     "name": "wait until the strip has actually travelled"
+    },
+    {
+     "assert": "window.__b = window.__pos(), window.__b > 20",
      "name": "strip has advanced before the test"
     },
     {
@@ -421,6 +461,171 @@
     {
      "assert": "true",
      "name": "see console/requests below"
+    }
+   ]
+  },
+  {
+   "name": "hero-labels-replace-pills-on-desktop",
+   "width": 1280,
+   "steps": [
+    {
+     "assert": "getComputedStyle(document.querySelector('.hero-chart .hero-legend')).display === 'none'",
+     "name": "pill legend hidden where route labels are shown"
+    },
+    {
+     "assert": "getComputedStyle(document.querySelector('.hero-line-label')).display === 'block'",
+     "name": "route labels shown"
+    },
+    {
+     "click": ".hero-line-label[data-thread=lamb]"
+    },
+    {
+     "wait": 400
+    },
+    {
+     "assert": "document.querySelector('.hero-line-label[data-thread=lamb]').classList.contains('selected')",
+     "name": "clicking a route label selects that thread"
+    },
+    {
+     "assert": "document.getElementById('thread-preview').textContent.includes('Lamb')",
+     "name": "the summary follows the label click"
+    }
+   ]
+  },
+  {
+   "name": "hero-summary-below-chart-no-inner-scroll",
+   "width": 1280,
+   "steps": [
+    {
+     "click": ".hero-line-label[data-thread=garment]"
+    },
+    {
+     "wait": 500
+    },
+    {
+     "assert": "(() => { const c = document.querySelector('.chart-main').getBoundingClientRect(); const p = document.getElementById('thread-preview').getBoundingClientRect(); return p.top >= c.bottom - 2; })()",
+     "name": "summary sits below the chart, not beside it"
+    },
+    {
+     "assert": "(() => { const p = document.getElementById('thread-preview'); return p.scrollHeight <= p.clientHeight + 2; })()",
+     "name": "summary has no scrollbar of its own"
+    },
+    {
+     "assert": "document.querySelector('.hero-svg').getBoundingClientRect().width > document.querySelector('.hero-chart').getBoundingClientRect().width * 0.75",
+     "name": "chart uses most of the panel width"
+    }
+   ]
+  },
+  {
+   "name": "thread-rows-are-tinted-and-spaced",
+   "width": 1280,
+   "steps": [
+    {
+     "assert": "(() => { const a = getComputedStyle(document.getElementById('t-lamb')).backgroundColor, b = getComputedStyle(document.getElementById('t-water')).backgroundColor; return a !== b; })()",
+     "name": "each thread row carries its own tint"
+    },
+    {
+     "assert": "(() => { const a = document.getElementById('t-lamb').getBoundingClientRect(), b = document.getElementById('t-bread').getBoundingClientRect(); return b.top - a.bottom >= 20; })()",
+     "name": "rows are separated by at least 20px"
+    }
+   ]
+  },
+  {
+   "name": "grids-leave-no-orphan",
+   "width": 1280,
+   "steps": [
+    {
+     "assert": "(() => { const bad = []; document.querySelectorAll('.grid-3, .grid-2').forEach(g => { const k = [...g.children]; if (k.length < 2) return; const last = k[k.length-1].getBoundingClientRect(); const prev = k[k.length-2].getBoundingClientRect(); if (last.top >= prev.bottom - 2 && last.width < g.getBoundingClientRect().width - 4) bad.push(g.className + ':' + k.length); }); window.__orphans = bad; return bad.length === 0; })()",
+     "name": "no card sits alone on a short last row"
+    }
+   ]
+  },
+  {
+   "name": "mind-blocks-are-colour-coded",
+   "width": 1280,
+   "steps": [
+    {
+     "assert": "new Set([...document.querySelectorAll('#mind .mind-card')].map(c => getComputedStyle(c).getPropertyValue('--c').trim())).size > 4",
+     "name": "Mind blocks use more than four distinct hues"
+    },
+    {
+     "assert": "document.querySelectorAll('#mind .mind-panel-ic svg').length >= 8",
+     "name": "every Mind panel carries a label icon"
+    }
+   ]
+  },
+  {
+   "name": "version-menu-sits-above-the-verse-popup",
+   "width": 1280,
+   "steps": [
+    {
+     "click": "#pattern .ref-link"
+    },
+    {
+     "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
+     "timeout": 8000
+    },
+    {
+     "click": "#verpick-btn"
+    },
+    {
+     "wait": 300
+    },
+    {
+     "assert": "parseInt(getComputedStyle(document.querySelector('#verpick-menu')).zIndex, 10) > parseInt(getComputedStyle(document.querySelector('.verse-tooltip')).zIndex, 10)",
+     "name": "the translation menu layers above the pinned pop-up"
+    }
+   ]
+  },
+  {
+   "name": "one-scrollbar-treatment",
+   "width": 1280,
+   "steps": [
+    {
+     "assert": "['.table-scroll', '.context-dialog-body', '.verpick-menu'].every(s => { const e = document.querySelector(s); return !e || getComputedStyle(e).scrollbarWidth === 'thin'; })",
+     "name": "scrollers share the thin styled scrollbar"
+    }
+   ]
+  },
+  {
+   "name": "context-reaches-into-the-previous-chapter",
+   "width": 1280,
+   "steps": [
+    {
+     "eval": "try { localStorage.removeItem('thread-version'); } catch (e) {}",
+     "print": false
+    },
+    {
+     "reload": true
+    },
+    {
+     "eval": "(() => { const l = [...document.querySelectorAll('.ref-link')].find(a => /^Rom 8:1$/.test(a.dataset.ref)); l.id = 'audit-rom'; return l.dataset.ref; })()"
+    },
+    {
+     "click": "#audit-rom"
+    },
+    {
+     "waitFor": "document.querySelector('.verse-tooltip').classList.contains('open')",
+     "timeout": 8000
+    },
+    {
+     "click": ".verse-tooltip .tooltip-context-button"
+    },
+    {
+     "waitFor": "document.querySelectorAll('.verse-context-dialog .context-verse').length > 3",
+     "timeout": 20000
+    },
+    {
+     "click": ".context-more-button"
+    },
+    {
+     "waitFor": "[...document.querySelectorAll('.context-verse-number')].some(n => n.textContent.includes(':'))",
+     "timeout": 20000,
+     "name": "wait for the widened passage"
+    },
+    {
+     "assert": "[...document.querySelectorAll('.context-verse-number')].some(n => /^7:/.test(n.textContent))",
+     "name": "asking for more context reaches back into the previous chapter"
     }
    ]
   }

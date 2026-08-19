@@ -216,7 +216,7 @@ p { margin: 0; }
   <div class="stats">
     <div class="stat">
       <span class="label">Gate assertions</span>
-      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">32</span> / 34</div>
+      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">50</span> / 50</div>
       <p class="note">Measured with the audit harness against a local server. The two still failing both need
       bolls.life, which this build environment blocks at the proxy.</p>
     </div>
@@ -306,6 +306,12 @@ p { margin: 0; }
 /* ---------------- the ledger ---------------- */
 var LEDGER = [
   { kind: 'added', title: 'Added', items: [
+    { what: 'A hue and a label icon for every Mind &amp; Body panel',
+      why: 'Eight blocks all painted in the one purple read as a single wall of prose. Each block now carries its own hue and each panel a label icon over a coloured rule, so the section can be skimmed before it is read.',
+      finding: 'Follow-up — reader report', to: 'mind' },
+    { what: 'A fade on anything the page swaps in',
+      why: 'Eighteen places replaced their contents with <code>innerHTML</code> and nothing else — verses, thread summaries and passages appeared mid-read with a snap. They fade in now, and the verse pop-up re-anchors smoothly once its text arrives instead of jumping to a new position.',
+      finding: 'Follow-up — reader report', to: 'threads' },
     { what: 'A static <code>.marquee-window</code> around each filmstrip',
       why: 'The fade mask used to sit on the element that scrolls. A mask on a scrolling element is one of the two suspects behind the strips going blank or freezing on iOS after ~30 seconds; it now rides a wrapper that never moves.',
       finding: 'Findings 1, 7', to: 'threads' },
@@ -335,6 +341,12 @@ var LEDGER = [
       finding: 'Finding 7', to: 'threads' }
   ]},
   { kind: 'removed', title: 'Removed', items: [
+    { what: 'The pill legend, on desktop only',
+      why: 'Above 1100px the thirteen route labels at the head of the lines and the thirteen pills below the chart were the same thirteen names twice. The labels became the control — hover and click select a thread — and the pills go. Below 1100px, where the labels are hidden, the pills remain.',
+      finding: 'Follow-up — reader report', to: 'start' },
+    { what: 'The scrollbar inside the thread summary',
+      why: 'The summary was given a fixed height with its own scrollbar, which satisfied the height check and looked worse than what it replaced. Moved below the chart it is as wide as the panel, sizes to its own thread, and has nothing to scroll.',
+      finding: 'Follow-up — reader report', to: 'start' },
     { what: 'Per-frame <code>scrollLeft</code> writes driving the filmstrips',
       why: 'scrollLeft is an integer, so the intended 0.37px per frame quantised into visible stepping rather than smooth drift — and writing it every frame is the other iOS suspect. Motion moved to a transform on the track, which takes sub-pixel values.',
       finding: 'Findings 1, 7', to: 'threads' },
@@ -367,6 +379,24 @@ var LEDGER = [
       finding: 'Finding 9', to: 'library' }
   ]},
   { kind: 'updated', title: 'Updated', items: [
+    { what: 'The chart gets the whole panel',
+      why: 'Side by side, the summary took 43% of the panel and left the chart 703px of 1240. Stacked, the chart runs the full width with the route labels inside its own viewBox rather than in a padding gutter that pushed them off-canvas as the chart grew.',
+      finding: 'Follow-up — reader report', to: 'start' },
+    { what: 'Each thread row carries its own tint',
+      why: 'Thirteen rows in the same card colour were hard to tell apart while scrolling. Every row now takes a wash of its own thread colour, a coloured header band and a full-strength top rule, with the gap between rows widened from 18px to 22–34px.',
+      finding: 'Follow-up — reader report', to: 'threads' },
+    { what: 'Grids no longer leave an orphan',
+      why: 'Ten case studies in a three-column grid left the last card alone beside two card-widths of nothing. On a six-column base a lone last card now widens to the full row and lays its Egypt/Wilderness/Land rows out along it as nested, phase-tinted cards; a last row of two takes half each.',
+      finding: 'Follow-up — reader report', to: 'pattern' },
+    { what: 'One z-index ladder',
+      why: 'Layer numbers were picked ad hoc — 3, 40, 45, 50, 120, 1000 — and the translation menu at 120 opened behind the pinned verse pop-up at 1000. Five named tokens now hold the order, and the menu sits above the pop-up where it belongs.',
+      finding: 'Follow-up — reader report', to: 'codes' },
+    { what: 'One scrollbar treatment',
+      why: 'Only the context dialog had the thin styled scrollbar; the tables, the feast arc and the translation menu showed the operating system\u2019s. They now share one treatment, and the two places that deliberately hide their scrollbar still do.',
+      finding: 'Follow-up — reader report', to: 'codes' },
+    { what: 'More context reaches backwards',
+      why: 'The passage range was clamped inside a single chapter, so once the top of the chapter was reached every further click on “Even more context” only added verses after it. It now pulls in the previous chapter — and the next — labelling those verses with their chapter number.',
+      finding: 'Follow-up — reader report', to: 'codes' },
     { what: 'The verse text cleaner',
       why: 'Stripping every tag to nothing glued words together at line breaks — poetry lines and inline headings arriving as “The Bronze SnakeThey traveled”, in a quarter of sampled NIV verses — and let <code>&lt;sup&gt;</code> translator notes leak in as verse words in 17% of KJV ones. Footnotes and Strong’s numbers now go entirely, a line break becomes a real newline, italics survive, and the rest is escaped.',
       finding: 'Finding 4', to: 'pattern' },

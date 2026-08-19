@@ -62,6 +62,13 @@ body { margin: 0; }
 
   --r: 10px;
   --r-lg: 16px;
+
+  /* one ladder, so a new layer never has to guess a number */
+  --z-rail: 40;
+  --z-fab: 45;
+  --z-topbar: 50;
+  --z-tooltip: 200;
+  --z-menu: 400;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -182,6 +189,41 @@ p, li { text-wrap: pretty; }
 
 ::selection { background: color-mix(in srgb, var(--thread) 25%, transparent); }
 
+/* ---------- one scrollbar, everywhere something scrolls ----------
+   Anything that hides its scrollbar entirely (nav strip, filmstrips) opts out below. */
+.table-scroll,
+.feast-arc-panel,
+.context-dialog-body,
+.verpick-menu,
+.thread-preview-card,
+.tabernacle-graphic-container {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--thread) 45%, var(--line)) transparent;
+}
+.table-scroll::-webkit-scrollbar,
+.feast-arc-panel::-webkit-scrollbar,
+.context-dialog-body::-webkit-scrollbar,
+.verpick-menu::-webkit-scrollbar,
+.thread-preview-card::-webkit-scrollbar,
+.tabernacle-graphic-container::-webkit-scrollbar { width: 8px; height: 8px; }
+.table-scroll::-webkit-scrollbar-track,
+.feast-arc-panel::-webkit-scrollbar-track,
+.context-dialog-body::-webkit-scrollbar-track,
+.verpick-menu::-webkit-scrollbar-track,
+.thread-preview-card::-webkit-scrollbar-track,
+.tabernacle-graphic-container::-webkit-scrollbar-track { background: transparent; }
+.table-scroll::-webkit-scrollbar-thumb,
+.feast-arc-panel::-webkit-scrollbar-thumb,
+.context-dialog-body::-webkit-scrollbar-thumb,
+.verpick-menu::-webkit-scrollbar-thumb,
+.thread-preview-card::-webkit-scrollbar-thumb,
+.tabernacle-graphic-container::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--thread) 45%, var(--line));
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
 html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 
 :focus-visible { outline: 2px solid var(--thread); outline-offset: 2px; border-radius: 4px; }
@@ -222,7 +264,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 
 /* ---------- top bar ---------- */
 .topbar {
-  position: sticky; top: 0; z-index: 50;
+  position: sticky; top: 0; z-index: var(--z-topbar);
   background: color-mix(in srgb, var(--paper) 88%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -413,6 +455,23 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .grid-2 { grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr)); }
 .grid-3 { grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr)); }
 
+/* No card ever sits alone next to dead space: on a six-column base each card spans two,
+   and a short last row widens to fill instead of leaving a hole. */
+@media (min-width: 820px) {
+  .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-2 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+@media (min-width: 900px) {
+  .grid-3 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .grid-3 > * { grid-column: span 2; }
+  .grid-3 > :last-child:nth-child(3n + 1) { grid-column: span 6; }
+  .grid-3 > :nth-last-child(2):nth-child(3n + 1),
+  .grid-3 > :nth-last-child(2):nth-child(3n + 1) + * { grid-column: span 3; }
+}
+/* a card that widened this way lays its innards out along the row rather than stretching one column */
+.grid-3 > :last-child:nth-child(3n + 1) .case-rows,
+.grid-2 > :last-child:nth-child(odd) .case-rows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
 .card {
   background: color-mix(in srgb, var(--c, var(--card)) 4%, var(--card));
   border: 1.5px solid color-mix(in srgb, var(--c, var(--line)) 18%, var(--line));
@@ -558,12 +617,18 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 .phase-bar .p1 { background: var(--s-egypt); }
 .phase-bar .p2 { background: var(--s-desert); }
 .phase-bar .p3 { background: var(--s-land); }
-.case-rows { display: flex; flex-direction: column; gap: 16px; font-size: 0.94rem; }
-.case-rows .row { display: flex; flex-direction: column; gap: 4px; }
-.case-rows .row b { font-family: var(--font-label); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; }
-.case-rows .row.r1 b { color: var(--s-egypt); }
-.case-rows .row.r2 b { color: var(--s-desert); }
-.case-rows .row.r3 b { color: var(--s-land); }
+.case-rows { display: grid; gap: 12px; font-size: 0.94rem; align-content: start; }
+.case-rows .row {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--r);
+  background: color-mix(in srgb, var(--rc) 7%, var(--card-2));
+  border: 1px solid color-mix(in srgb, var(--rc) 20%, var(--line-soft));
+}
+.case-rows .row.r1 { --rc: var(--s-egypt); }
+.case-rows .row.r2 { --rc: var(--s-desert); }
+.case-rows .row.r3 { --rc: var(--s-land); }
+.case-rows .row b { font-family: var(--font-label); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; color: var(--rc); }
 .case-rows .row span { color: var(--ink-soft); line-height: 1.55; }
 
 /* ---------- codes ---------- */
@@ -882,7 +947,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   align-items: center;
   gap: 12px;
   padding-bottom: 16px;
-  border-bottom: 1px dashed color-mix(in srgb, var(--c-mind) 30%, var(--line));
+  border-bottom: 1px dashed color-mix(in srgb, var(--c, var(--c-mind)) 34%, var(--line));
 }
 .neuro-primer {
   display: grid;
@@ -904,17 +969,34 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   font-size: 0.96rem;
   color: var(--ink-soft);
   line-height: 1.72;
-  background: color-mix(in srgb, var(--c-mind) 4%, var(--card));
-  border: 1px solid color-mix(in srgb, var(--c-mind) 12%, var(--line));
+  background: color-mix(in srgb, var(--c, var(--c-mind)) 7%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--c, var(--c-mind)) 22%, var(--line));
   border-radius: var(--r);
   padding: clamp(16px, 2.5vw, 22px);
   min-width: 0;
 }
 .mind-panel .label {
-  color: var(--c-mind);
+  color: var(--c, var(--c-mind));
   display: block;
-  margin-bottom: 10px;
 }
+/* An icon and a coloured rule per panel: eight blocks of prose needed something to read by. */
+.mind-panel-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--c, var(--c-mind)) 20%, var(--line-soft));
+}
+.mind-panel-ic {
+  width: 30px; height: 30px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 9px;
+  color: var(--c, var(--c-mind));
+  background: color-mix(in srgb, var(--c, var(--c-mind)) 15%, transparent);
+}
+.mind-panel-ic svg { width: 16px; height: 16px; }
+.mind-panel h4 + p { margin-top: 0; }
 .mind-panel h4 {
   font-size: 1.02rem;
   color: var(--ink);
@@ -1192,17 +1274,21 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 @media (max-width: 700px) { .journey-caps { grid-template-columns: 1fr; } }
 
 /* ---------- thread filmstrip rows ---------- */
-.thread-rows { display: grid; gap: 18px; }
+.thread-rows { display: grid; gap: clamp(22px, 3.2vw, 34px); }
 .thread-row {
-  background: var(--card);
-  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--c) 7%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--c) 26%, var(--line));
   border-radius: var(--r-lg);
   box-shadow: var(--shadow);
-  padding: 16px 0 16px;
+  padding: 0 0 16px;
   overflow: hidden;
-  border-top: 3px solid color-mix(in srgb, var(--c) 65%, var(--line));
+  border-top: 4px solid var(--c);
 }
-.thread-row-head { display: flex; align-items: center; gap: 13px; padding: 0 18px 13px; }
+.thread-row-head {
+  display: flex; align-items: center; gap: 13px;
+  padding: 16px 18px 13px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 15%, transparent), transparent);
+}
 .thread-row-title h3 { font-size: 1.14rem; }
 .thread-tag { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.45; display: block; }
 .thread-count {
@@ -1234,8 +1320,8 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .marquee-group { display: flex; gap: 10px; }
 .wp-card {
   flex: 0 0 252px;
-  background: var(--card-2);
-  border: 1px solid var(--line-soft);
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--c) 18%, var(--line-soft));
   border-radius: var(--r);
   padding: 10px 14px 12px;
   cursor: pointer;
@@ -1266,7 +1352,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 }
 
 /* ---------- scarlet progress rail ---------- */
-#rail { position: fixed; left: 16px; top: 130px; bottom: 56px; width: 14px; z-index: 40; }
+#rail { position: fixed; left: 16px; top: 130px; bottom: 56px; width: 14px; z-index: var(--z-rail); }
 /* The dots were unlabelled — thirteen identical 14px targets with only a title attribute. */
 .rail-dot-label {
   position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
@@ -1354,9 +1440,16 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   0% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--thread) 55%, transparent); }
   100% { box-shadow: 0 0 0 3px transparent; }
 }
+/* Anything the app swaps with innerHTML fades in rather than replacing mid-read. */
+@media (prefers-reduced-motion: no-preference) {
+  .swap-in { animation: swap-in 0.22s ease both; }
+  @keyframes swap-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .view { animation: none; }
   .flash { animation: none; outline: 2px solid var(--thread); }
+  .swap-in { animation: none; }
 }
 
 @media (max-width: 640px) {
@@ -1397,7 +1490,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .verpick.open .verpick-caret { transform: rotate(180deg); }
 
 .verpick-menu {
-  position: absolute; top: calc(100% + 8px); right: 0; z-index: 120;
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: var(--z-menu);
   min-width: 262px;
   padding: 6px;
   background: var(--card);
@@ -1449,7 +1542,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 /* Verse hover tooltip */
 .verse-tooltip {
   position: absolute;
-  z-index: 1000;
+  z-index: var(--z-tooltip);
   display: none;
   max-width: 340px;
   background: color-mix(in srgb, var(--card) 95%, transparent);
@@ -1466,7 +1559,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   color: var(--ink);
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease, top 0.18s ease, left 0.18s ease;
 }
 .verse-tooltip.is-pinned { pointer-events: auto; }
 .verse-tooltip.open {
@@ -1603,18 +1696,16 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   transform: scale(1.18) rotate(5deg);
 }
 
-/* Hero chart layout grid */
-/* One fixed height for the panel, instead of locking it to the tallest of the thirteen
-   previews (982px desktop / 914px mobile — a preview taller than the phone it was on).
-   Whatever overflows scrolls inside the card. */
+/* Hero chart layout */
+/* The chart is the point of the panel, so it gets the whole width and the summary sits
+   underneath it. Side by side, the summary ate 43% of the panel and forced the card to a
+   fixed height with its own scrollbar; stacked, both can size to their content. */
 .chart-panel.hero-chart {
-  --hero-panel-h: clamp(440px, 52vh, 520px);
   display: grid;
-  grid-template-columns: minmax(340px, 0.36fr) minmax(0, 1fr);
-  gap: clamp(16px, 2.5vw, 24px);
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(12px, 1.8vw, 18px);
   align-items: stretch;
   background-image: none;
-  min-height: var(--hero-panel-h);
   height: auto;
   overflow: hidden;
 }
@@ -1622,7 +1713,6 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 @media (min-width: 1100px) {
   .chart-panel.hero-chart {
     --hero-chart-width: min(1240px, calc(100vw - 32px));
-    grid-template-columns: minmax(330px, 0.29fr) minmax(0, 1fr);
     width: var(--hero-chart-width);
     max-width: var(--hero-chart-width);
     margin-left: calc((100% - var(--hero-chart-width)) / 2);
@@ -1631,58 +1721,35 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 }
 
 .chart-main {
+  grid-row: 1;
   position: relative;
-  flex: 1;
   min-width: 0;
-  border-left: 1px dashed var(--line-soft);
-  padding: 16px 0 12px 24px;
+  padding: 16px 0 4px;
   background-image:
     linear-gradient(var(--grat) 1px, transparent 1px),
     linear-gradient(90deg, var(--grat) 1px, transparent 1px);
   background-size: 42px 42px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  height: 100%;
-  min-height: var(--hero-panel-h, 480px);
+  justify-content: flex-start;
+  gap: 8px;
   overflow: hidden;
 }
 
-/* Responsive collapse */
 @media (max-width: 960px) {
-  .chart-panel.hero-chart {
-    grid-template-columns: 1fr;
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-    min-height: 0;
-    overflow: visible;
-  }
-  .chart-main {
-    grid-row: 1;
-    border-left: none;
-    padding-left: 0;
-    padding-top: 24px;
-    min-height: 0;
-    height: auto;
-    justify-content: flex-start;
-    gap: 24px;
-    overflow: visible;
-  }
-  .thread-preview-card { grid-row: 2; }
-  .hero-scroll svg {
-    min-width: 0;
-  }
+  .chart-panel.hero-chart { width: 100%; max-width: 100%; margin-left: 0; margin-right: 0; overflow: visible; }
+  .chart-main { padding-top: 20px; overflow: visible; }
+  .hero-scroll svg { min-width: 0; }
 }
 
+/* Where the route labels sit at the head of each line, the pill legend is the same
+   thirteen names a second time — so the labels take over as the control and the pills go. */
 .hero-line-label { display: none; }
 .mobile-preview-header { display: none; }
-@media (min-width: 1280px) {
-  .hero-scroll { padding-left: 132px; }
-  .hero-scroll svg { overflow: visible; }
-  .hero-line-label { display: block; }
+@media (min-width: 1100px) {
+  .hero-line-label { display: block; cursor: pointer; }
+  .hero-line-label:hover, .hero-line-label.hot, .hero-line-label.selected { font-weight: 900; }
+  .hero-chart .hero-legend { display: none; }
 }
 
 /* Thread preview card styling */
@@ -1694,12 +1761,34 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   display: flex;
   flex-direction: column;
   justify-content: flex-start; /* Keeps active preview title at a static vertical position */
+  grid-row: 2;
   position: relative;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  height: var(--hero-panel-h, 480px);
+  min-height: 208px;
   box-sizing: border-box;
   transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+/* Wide enough to read across: who the thread is on the left, its waypoints on the right. */
+@media (min-width: 900px) {
+  .thread-preview-card .preview-content {
+    display: grid;
+    grid-template-columns: minmax(230px, 0.85fr) minmax(0, 2fr);
+    column-gap: clamp(22px, 3vw, 34px);
+    align-items: start;
+  }
+  .thread-preview-card .preview-header { grid-column: 1; }
+  .thread-preview-card .preview-tag { grid-column: 1; border-bottom: none; padding-bottom: 0; margin-bottom: 14px; }
+  .thread-preview-card .preview-more { grid-column: 1; margin-top: 4px; padding-top: 0; }
+  .thread-preview-card .preview-body { grid-column: 2; grid-row: 1 / span 3; }
+}
+@media (min-width: 1180px) {
+  .thread-preview-card .preview-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    column-gap: clamp(18px, 2.4vw, 28px);
+    align-items: start;
+  }
+  .thread-preview-card .preview-body h4 { grid-column: 1 / -1; }
+  .thread-preview-card .preview-lands { margin-top: 0; }
 }
 
 .preview-more {
@@ -1814,7 +1903,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   position: fixed;
   right: max(18px, env(safe-area-inset-right));
   bottom: max(18px, env(safe-area-inset-bottom));
-  z-index: 45;
+  z-index: var(--z-fab);
   width: 44px;
   height: 44px;
   display: grid;
@@ -1847,6 +1936,19 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   text-align: center;
   color: var(--ink-faint);
   padding: 20px;
+}
+/* Full width, the placeholder was a wide empty box; laid out along the row it reads as a hint. */
+@media (min-width: 900px) {
+  .thread-preview-card .preview-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: left;
+    padding: 8px 20px;
+  }
+  .thread-preview-card .preview-placeholder-icon { margin: 0; width: 32px; height: 32px; flex-shrink: 0; }
+  .thread-preview-card .preview-placeholder h3 { margin-bottom: 0; white-space: nowrap; }
 }
 .thread-preview-card .preview-placeholder-icon {
   width: 48px;
