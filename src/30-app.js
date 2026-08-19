@@ -1,6 +1,95 @@
 /* ================= app: helpers ================= */
 const BG = 'https://www.biblegateway.com/passage/?search=';
-const REF_RE = /((?:[123]\s)?(?:Gen|Ex|Lev|Num|Deut|Josh|Judg|Ruth|Sam|Kings|Chr|Ezra|Neh|Esth|Job|Ps|Prov|Eccl|Song|Isa|Jer|Lam|Ezek|Dan|Hos|Joel|Amos|Jonah|Mic|Micah|Nah|Hab|Zeph|Hag|Zech|Mal|Matt|Mark|Luke|John|Acts|Rom|Cor|Gal|Eph|Phil|Col|Thess|Tim|Titus|Heb|Jas|James|Pet|Jude|Rev)\s\d+(?::\d+(?:[-–]\d+(?::\d+)?)?(?:,\s?\d+(?:[-–]\d+)?)*)?)/g;
+
+/* One table for every book, so the three places that used to keep their own list stay in
+   step: the link regex below, `parseReference`'s book ids, and the full name the context
+   dialog shows. `names` holds every spelling that appears in the copy — abbreviated and
+   spelled out — and `n` marks the numbered volumes so "2 Kings" and "Kings" resolve apart. */
+const BOOKS = [
+  { id: 1, full: 'Genesis', names: ['Gen', 'Genesis'] },
+  { id: 2, full: 'Exodus', names: ['Ex', 'Exod', 'Exodus'] },
+  { id: 3, full: 'Leviticus', names: ['Lev', 'Leviticus'] },
+  { id: 4, full: 'Numbers', names: ['Num', 'Numbers'] },
+  { id: 5, full: 'Deuteronomy', names: ['Deut', 'Deuteronomy'] },
+  { id: 6, full: 'Joshua', names: ['Josh', 'Joshua'] },
+  { id: 7, full: 'Judges', names: ['Judg', 'Judges'] },
+  { id: 8, full: 'Ruth', names: ['Ruth'] },
+  { id: 9, full: '1 Samuel', n: 1, names: ['Sam', 'Samuel'] },
+  { id: 10, full: '2 Samuel', n: 2, names: ['Sam', 'Samuel'] },
+  { id: 11, full: '1 Kings', n: 1, names: ['Kings'] },
+  { id: 12, full: '2 Kings', n: 2, names: ['Kings'] },
+  { id: 13, full: '1 Chronicles', n: 1, names: ['Chr', 'Chronicles'] },
+  { id: 14, full: '2 Chronicles', n: 2, names: ['Chr', 'Chronicles'] },
+  { id: 15, full: 'Ezra', names: ['Ezra'] },
+  { id: 16, full: 'Nehemiah', names: ['Neh', 'Nehemiah'] },
+  { id: 17, full: 'Esther', names: ['Esth', 'Esther'] },
+  { id: 18, full: 'Job', names: ['Job'] },
+  { id: 19, full: 'Psalms', names: ['Ps', 'Psalm', 'Psalms'] },
+  { id: 20, full: 'Proverbs', names: ['Prov', 'Proverbs'] },
+  { id: 21, full: 'Ecclesiastes', names: ['Eccl', 'Ecclesiastes'] },
+  { id: 22, full: 'Song of Songs', names: ['Song'] },
+  { id: 23, full: 'Isaiah', names: ['Isa', 'Isaiah'] },
+  { id: 24, full: 'Jeremiah', names: ['Jer', 'Jeremiah'] },
+  { id: 25, full: 'Lamentations', names: ['Lam', 'Lamentations'] },
+  { id: 26, full: 'Ezekiel', names: ['Ezek', 'Ezekiel'] },
+  { id: 27, full: 'Daniel', names: ['Dan', 'Daniel'] },
+  { id: 28, full: 'Hosea', names: ['Hos', 'Hosea'] },
+  { id: 29, full: 'Joel', names: ['Joel'] },
+  { id: 30, full: 'Amos', names: ['Amos'] },
+  { id: 31, full: 'Obadiah', names: ['Obad', 'Obadiah'] },
+  { id: 32, full: 'Jonah', names: ['Jonah'] },
+  { id: 33, full: 'Micah', names: ['Mic', 'Micah'] },
+  { id: 34, full: 'Nahum', names: ['Nah', 'Nahum'] },
+  { id: 35, full: 'Habakkuk', names: ['Hab', 'Habakkuk'] },
+  { id: 36, full: 'Zephaniah', names: ['Zeph', 'Zephaniah'] },
+  { id: 37, full: 'Haggai', names: ['Hag', 'Haggai'] },
+  { id: 38, full: 'Zechariah', names: ['Zech', 'Zechariah'] },
+  { id: 39, full: 'Malachi', names: ['Mal', 'Malachi'] },
+  { id: 40, full: 'Matthew', names: ['Matt', 'Matthew'] },
+  { id: 41, full: 'Mark', names: ['Mark'] },
+  { id: 42, full: 'Luke', names: ['Luke'] },
+  { id: 43, full: 'John', names: ['John'] },
+  { id: 44, full: 'Acts', names: ['Acts'] },
+  { id: 45, full: 'Romans', names: ['Rom', 'Romans'] },
+  { id: 46, full: '1 Corinthians', n: 1, names: ['Cor', 'Corinthians'] },
+  { id: 47, full: '2 Corinthians', n: 2, names: ['Cor', 'Corinthians'] },
+  { id: 48, full: 'Galatians', names: ['Gal', 'Galatians'] },
+  { id: 49, full: 'Ephesians', names: ['Eph', 'Ephesians'] },
+  { id: 50, full: 'Philippians', names: ['Phil', 'Philippians'] },
+  { id: 51, full: 'Colossians', names: ['Col', 'Colossians'] },
+  { id: 52, full: '1 Thessalonians', n: 1, names: ['Thess', 'Thessalonians'] },
+  { id: 53, full: '2 Thessalonians', n: 2, names: ['Thess', 'Thessalonians'] },
+  { id: 54, full: '1 Timothy', n: 1, names: ['Tim', 'Timothy'] },
+  { id: 55, full: '2 Timothy', n: 2, names: ['Tim', 'Timothy'] },
+  { id: 56, full: 'Titus', names: ['Titus'] },
+  { id: 57, full: 'Philemon', names: ['Philem', 'Philemon'] },
+  { id: 58, full: 'Hebrews', names: ['Heb', 'Hebrews'] },
+  { id: 59, full: 'James', names: ['Jas', 'James'] },
+  { id: 60, full: '1 Peter', n: 1, names: ['Pet', 'Peter'] },
+  { id: 61, full: '2 Peter', n: 2, names: ['Pet', 'Peter'] },
+  { id: 62, full: '1 John', n: 1, names: ['John'] },
+  { id: 63, full: '2 John', n: 2, names: ['John'] },
+  { id: 64, full: '3 John', n: 3, names: ['John'] },
+  { id: 65, full: 'Jude', names: ['Jude'] },
+  { id: 66, full: 'Revelation', names: ['Rev', 'Revelation'] }
+];
+
+/* name → { 0: unnumbered id, 1: "1 X" id, … }; full name by id, for the dialog heading. */
+const BOOK_BY_NAME = {};
+const BOOK_FULL_BY_ID = {};
+BOOKS.forEach(b => {
+  BOOK_FULL_BY_ID[b.id] = b.full;
+  b.names.forEach(name => {
+    const slot = BOOK_BY_NAME[name] || (BOOK_BY_NAME[name] = {});
+    slot[b.n || 0] = b.id;
+  });
+});
+
+/* Longest name first so "Isaiah 53" matches as Isaiah rather than backtracking through "Isa". */
+const BOOK_NAME_PATTERN = Array.from(new Set(BOOKS.flatMap(b => b.names)))
+  .sort((a, b) => b.length - a.length).join('|');
+const REF_RE = new RegExp(
+  '\\b((?:[123]\\s)?(?:' + BOOK_NAME_PATTERN + ')\\s\\d+(?::\\d+(?:[-–]\\d+(?::\\d+)?)?(?:,\\s?\\d+(?:[-–]\\d+)?)*)?)', 'g');
 
 function splitReferenceGroup(refs) {
   const parts = String(refs).split(/\s*;\s*/).filter(Boolean);
@@ -63,8 +152,8 @@ const NAV = [
 
 /* ================= hero thread chart ================= */
 function buildHeroChart() {
-  const picks = ['lamb', 'bread', 'water', 'garment', 'light', 'shepherd', 'king', 'temple', 'rest', 'covenant', 'bride', 'exile', 'name'];
-  const ths = picks.map(id => THREADS.find(t => t.id === id));
+  /* the chart's row order is the legend's order — they used to disagree on Garment */
+  const ths = THREADS.slice();
   const X0 = 34, CX = 528, CY = 158, XE = 706;
   const n = ths.length, top = 42, bot = 276;
   let paths = '';
@@ -270,7 +359,7 @@ function buildTabernacleSVG() {
 
   // stations (order must match CODES.tabernacle.stations / data-index 0-7)
   const sGate = pt(0.02, 0.5), sAltar = pt(0.15, 0.5), sLaver = pt(0.28, 0.5),
-    sTable = pt(0.52, 0.72), sLamp = pt(0.52, 0.28), sIncense = pt(0.68, 0.5),
+    sTable = pt(0.52, 0.28), sLamp = pt(0.52, 0.72), sIncense = pt(0.68, 0.5),
     sVeil = pt(0.79, 0.5), sArk = pt(0.9, 0.5);
 
   // tent: floor + two cutaway walls (back + west), gold boards
@@ -322,10 +411,10 @@ function buildTabernacleSVG() {
     box3(sArk[0], sArk[1], 22, 13, 'var(--gold)') +
     '<path d="M' + (sArk[0] - 8) + ' ' + (sArk[1] - 15) + ' q-5 -7 2 -8 M' + (sArk[0] + 8) + ' ' + (sArk[1] - 15) + ' q5 -7 -2 -8" fill="none" stroke="var(--gold)" stroke-width="1.8"/>';
 
-  // route: outside → gate → altar → laver → into the tent → lamp → table → incense → veil → ark
+  // route: outside → gate → altar → laver → into the tent → table → lamp → incense → veil → ark
   const entry = pt(0.44, 0.5);
   const route = 'M' + (sGate[0] - 46) + ' ' + sGate[1] + ' L' + sGate.join(' ') + ' L' + sAltar.join(' ') + ' L' + sLaver.join(' ') +
-    ' L' + entry.join(' ') + ' L' + sLamp.join(' ') + ' L' + sTable.join(' ') + ' L' + sIncense.join(' ') + ' L' + sVeil.join(' ') + ' L' + sArk.join(' ');
+    ' L' + entry.join(' ') + ' L' + sTable.join(' ') + ' L' + sLamp.join(' ') + ' L' + sIncense.join(' ') + ' L' + sVeil.join(' ') + ' L' + sArk.join(' ');
 
   // numbered pins + staggered name labels in the sky
   const stations = [
@@ -529,7 +618,8 @@ function vThreads() {
       '<div class="thread-row-title"><h3>' + t.name + '</h3><span class="thread-tag">' + t.tag + '</span></div>' +
       '<span class="thread-count">' + t.way.length + ' waypoints</span>' +
       '</div>' +
-      '<div class="thread-marquee" data-marquee><div class="marquee-track">' + wps + '</div></div>' +
+      /* the fade mask rides the static window, never the scrolling element */
+      '<div class="marquee-window"><div class="thread-marquee" data-marquee><div class="marquee-track">' + wps + '</div></div></div>' +
       '<div class="thread-row-foot">' +
       '<div class="lands-on"><span class="label">Where it lands</span>' + linkRefs(t.landsOn) + '</div>' +
       '<p class="for-you">For you: ' + linkRefs(t.forYou) + '</p>' +
@@ -638,7 +728,8 @@ function vTriune() {
 
 function vWalking() {
   const n = NAV[5];
-  const words = TEN_WORDS.map(w => '<span class="legend-chip" style="--c:var(--c-walk)"><span class="dot"></span>' + w + '</span>').join('');
+  /* static labels — they used to borrow .legend-chip, which reads as selectable and isn't */
+  const words = TEN_WORDS.map(w => '<span class="word-chip" style="--c:var(--c-walk)"><span class="dot"></span>' + w + '</span>').join('');
   const cards = WALKING.pillars.map(p =>
     '<div class="card pillar-card" style="--c:var(--c-walk)">' +
     '<div class="case-top"><span class="icon-chip">' + icon(p.icon) + '</span><h3>' + p.name + '</h3></div>' +
@@ -720,81 +811,6 @@ function vLibrary() {
 }
 
 /* ================= search ================= */
-let INDEX = [];
-function buildIndex() {
-  INDEX.length = 0;
-  const add = (view, anchor, whereLabel, cvar, title, sub, extra) =>
-    INDEX.push({ view, anchor, where: whereLabel, cvar, title, sub: sub || '', hay: (title + ' ' + (sub || '') + ' ' + (extra || '')).toLowerCase() });
-  THREADS.forEach(t => add('threads', 't-' + t.id, 'Threads', t.cvar, t.name, t.tag, t.way.map(w => w.ref + ' ' + w.note).join(' ') + ' ' + t.landsOn));
-  PATTERN.seasons.forEach(s => add('pattern', '', 'The Pattern', s.cvar, s.name, s.sub, s.rows.map(r => r.v).join(' ')));
-  PATTERN.insights.forEach(i => add('pattern', '', 'The Pattern', '--c-pattern', i.t, '', i.x));
-  PATTERN.cases.forEach((c, ix) => add('pattern', 'case-' + ix, 'Case studies', '--c-pattern', c.name + ' — ' + c.sub, '', c.p1 + ' ' + c.p2 + ' ' + c.p3));
-  CODES.prophecies.forEach(p => add('codes', '', 'Prophecies', '--c-codes', p.what, p.ot + ' → ' + p.nt, ''));
-  CODES.types.forEach(t => add('codes', '', 'Types & shadows', '--c-codes', t.name, t.refs, t.body));
-  CODES.feasts.forEach(f => add('codes', '', 'The feasts', '--c-codes', f.name, f.when, f.body));
-  CODES.loose.forEach(l => add('codes', '', 'Hold loosely', '--c-codes', l.name, '', l.body));
-  TRIUNE.anchors.forEach(a => add('triune', '', 'Threefold Witness', '--c-triune', a.name, a.refs.join(' · '), a.father + ' ' + a.son + ' ' + a.spirit));
-  TRIUNE.patterns.forEach(p => add('triune', '', 'Story echoes', '--c-triune', p.name, p.refs.join(' · '), p.story + ' ' + p.reading));
-  WALKING.pillars.forEach(p => add('walking', '', 'Walk It Out', '--c-walk', p.name, p.truth, p.lie + ' ' + p.body));
-  DETOURS.items.forEach((d, i) => add('detours', 'd-' + i, 'Detours', '--c-detour', d.name, '', d.pull + ' ' + d.cost + ' ' + d.home));
-  MIND.blocks.forEach(b => add('mind', '', 'Mind & Body', '--c-mind', b.name, '', b.body));
-  LIBRARY.shelves.forEach(s => s.items.forEach(i => add('library', '', 'Library', '--c-library', i.title, i.by, i.note)));
-}
-
-function runSearch(q) {
-  q = q.trim().toLowerCase();
-  const box = document.getElementById('search-results');
-  if (q.length < 2) { box.classList.remove('open'); box.innerHTML = ''; return; }
-  const scored = INDEX.map(e => {
-    let s = 0;
-    if (e.title.toLowerCase().includes(q)) s += 10;
-    if (e.sub.toLowerCase().includes(q)) s += 4;
-    if (e.hay.includes(q)) s += 2;
-    return [s, e];
-  }).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 10);
-  if (!scored.length) {
-    box.innerHTML = '<div class="search-empty">Nothing on the map for “' + q.replace(/</g, '&lt;') + '” — try a thread, name, or verse word.</div>';
-    box.classList.add('open'); return;
-  }
-  box.innerHTML = scored.map(([s, e], i) =>
-    '<button class="search-hit" data-i="' + INDEX.indexOf(e) + '" style="--c:var(' + e.cvar + ')">' +
-    '<span class="hit-where">' + e.where + '</span>' +
-    '<div class="hit-title">' + e.title + '</div>' +
-    (e.sub ? '<div class="hit-sub">' + e.sub + '</div>' : '') + '</button>').join('');
-  box.classList.add('open');
-}
-
-function goToHit(e) {
-  const box = document.getElementById('search-results');
-  const input = document.getElementById('search-input');
-  if (box) box.classList.remove('open');
-  if (input) input.value = '';
-  
-  if (e.view === 'threads' && e.anchor) {
-    const cardId = e.anchor;
-    const card = document.getElementById(cardId);
-    if (card) {
-      card.classList.add('open');
-      const headBtn = card.querySelector('[data-toggle]');
-      if (headBtn) headBtn.setAttribute('aria-expanded', 'true');
-    }
-  }
-
-  const targetId = e.anchor || e.view;
-  const el = document.getElementById(targetId);
-  if (el) {
-    isScrollingNav = true;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.classList.add('flash');
-    setTimeout(() => {
-      el.classList.remove('flash');
-      isScrollingNav = false;
-    }, 2200);
-    history.replaceState(null, null, '#/' + e.view);
-    updateActiveNav(e.view);
-  }
-}
-
 /* ================= router & boot ================= */
 const VIEWS = { start: vStart, pattern: vPattern, threads: vThreads, codes: vCodes, triune: vTriune, walking: vWalking, detours: vDetours, mind: vMind, library: vLibrary };
 
@@ -867,50 +883,15 @@ function buildThreadPreviewContent(t) {
 
 let activePreviewThreadId = null;
 let selectedPreviewThreadId = null;
-let previewMeasureTimer = null;
 
-function measureThreadPreviewHeight() {
-  const previewEl = document.getElementById('thread-preview');
-  if (!previewEl) return;
-
-  const rect = previewEl.getBoundingClientRect();
-  if (!rect.width) return;
-
-  let lockedHeight = 0;
-  THREADS.forEach(t => {
-    const clone = previewEl.cloneNode(false);
-    clone.removeAttribute('id');
-    clone.style.position = 'absolute';
-    clone.style.visibility = 'hidden';
-    clone.style.pointerEvents = 'none';
-    clone.style.left = '-9999px';
-    clone.style.top = '0';
-    clone.style.width = rect.width + 'px';
-    clone.style.height = 'auto';
-    clone.style.minHeight = '0';
-    clone.innerHTML = buildThreadPreviewContent(t);
-    document.body.appendChild(clone);
-    lockedHeight = Math.max(lockedHeight, Math.ceil(clone.scrollHeight));
-    clone.remove();
-  });
-
-  previewEl.style.setProperty('--thread-preview-lock-height', Math.max(lockedHeight, 420) + 'px');
-  syncMobileStickyOffsets();
-}
-
+/* The panel used to be measured against all thirteen previews and locked to the tallest,
+   which made it 982px on desktop and 914px on a phone — an empty box taller than the
+   viewport under a sticky chart. CSS now fixes the height and the card scrolls inside it,
+   so there is nothing left to measure. */
 function syncMobileStickyOffsets() {
   const heroChart = document.querySelector('.hero-chart');
-  const chartMain = heroChart && heroChart.querySelector('.chart-main');
-  const topbar = document.querySelector('.topbar');
-  if (!heroChart || !chartMain || !topbar) return;
-  heroChart.style.setProperty('--mobile-sticky-top', Math.ceil(topbar.getBoundingClientRect().height) + 'px');
-  const heroSvg = heroChart.querySelector('.hero-svg');
+  const heroSvg = heroChart && heroChart.querySelector('.hero-svg');
   if (heroSvg) heroSvg.setAttribute('viewBox', window.innerWidth <= 720 ? '28 0 664 316' : '0 0 720 316');
-}
-
-function scheduleThreadPreviewMeasure() {
-  if (previewMeasureTimer) clearTimeout(previewMeasureTimer);
-  previewMeasureTimer = setTimeout(measureThreadPreviewHeight, 80);
 }
 
 function updateThreadPreview(threadId) {
@@ -962,16 +943,26 @@ function selectPreviewThread(threadId) {
   updateThreadPreview(threadId);
 }
 
-function wireAllSections() {
-  // Wire thread card accordions
-  document.querySelectorAll('[data-toggle]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const card = btn.closest('.thread-card');
-      const open = card.classList.toggle('open');
-      btn.setAttribute('aria-expanded', open);
-    });
+function clearPreviewSelection() {
+  selectedPreviewThreadId = null;
+  document.querySelectorAll('.legend-chip').forEach(chip => {
+    chip.classList.remove('selected');
+    chip.setAttribute('aria-pressed', 'false');
   });
+  document.querySelectorAll('.hero-thread').forEach(path => path.classList.remove('selected'));
+  resetThreadPreview();
+}
 
+/* A selected chip had no way back — clicking it again is the obvious undo. */
+function togglePreviewThread(threadId) {
+  if (selectedPreviewThreadId === threadId) clearPreviewSelection();
+  else selectPreviewThread(threadId);
+}
+
+/* A real pointing device, as opposed to a touchscreen synthesising mouse events. */
+const HOVER_CAPABLE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+function wireAllSections() {
   // Wire subtabs (in The Codes section)
   document.querySelectorAll('.subtab').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1004,15 +995,18 @@ function wireAllSections() {
       queuePreviewReset();
     };
 
-    chip.addEventListener('mouseenter', showPreview);
-    chip.addEventListener('pointerenter', showPreview);
+    /* iOS swallows the click when a pointerenter handler mutates the DOM, and showPreview
+       does — so a tap only made the chip hot, and the next tap anywhere fired the chip's
+       pointerleave and wiped the preview back to the placeholder. Two taps to select one
+       chip. Hover is for pointing devices; touch selects on the tap itself. */
+    if (HOVER_CAPABLE) {
+      chip.addEventListener('mouseenter', showPreview);
+      chip.addEventListener('mouseleave', clearPreviewHotState);
+    }
     chip.addEventListener('focus', showPreview);
-
-    chip.addEventListener('mouseleave', clearPreviewHotState);
-    chip.addEventListener('pointerleave', clearPreviewHotState);
     chip.addEventListener('blur', clearPreviewHotState);
 
-    chip.addEventListener('click', () => selectPreviewThread(threadId));
+    chip.addEventListener('click', () => togglePreviewThread(threadId));
   });
 
   // Wire hero thread paths hover and click (using thicker trigger overlay)
@@ -1036,13 +1030,12 @@ function wireAllSections() {
       queuePreviewReset();
     };
 
-    trigger.addEventListener('mouseenter', showPreview);
-    trigger.addEventListener('pointerenter', showPreview);
+    if (HOVER_CAPABLE) {
+      trigger.addEventListener('mouseenter', showPreview);
+      trigger.addEventListener('mouseleave', clearPreviewHotState);
+    }
 
-    trigger.addEventListener('mouseleave', clearPreviewHotState);
-    trigger.addEventListener('pointerleave', clearPreviewHotState);
-
-    trigger.addEventListener('click', () => selectPreviewThread(threadId));
+    trigger.addEventListener('click', () => togglePreviewThread(threadId));
   });
 
   const previewEl = document.getElementById('thread-preview');
@@ -1252,7 +1245,8 @@ function initVersionPicker() {
   if (saved && VERSIONS.some(v => v.code === saved)) ACTIVE_VERSION = saved;
   val.textContent = ACTIVE_VERSION;
   menu.innerHTML = versionMenuHtml('Verse pop-ups read in');
-  wireVersionPicker(wrap);
+  /* Changing translation used to close the pinned pop-up and leave it stale; re-read it instead. */
+  wireVersionPicker(wrap, () => refreshPinnedTooltip());
 }
 
 /* ================= hover scripture tooltips & translation APIs ================= */
@@ -1276,6 +1270,8 @@ let tooltipEl = null;
 let tooltipTimer = null;
 let tooltipPinned = false;
 let tooltipRequestId = 0;
+let tooltipLink = null;
+let tooltipRef = '';
 let contextDialogEl = null;
 let contextRequestId = 0;
 let contextVersionPicker = null;
@@ -1291,36 +1287,30 @@ function parseReference(refStr) {
   const verseStart = match[4] ? parseInt(match[4], 10) : null;
   const verseEnd = match[5] ? parseInt(match[5], 10) : null;
 
-  const baseMap = {
-    'Gen': 1, 'Ex': 2, 'Lev': 3, 'Num': 4, 'Deut': 5, 'Josh': 6, 'Judg': 7, 'Ruth': 8,
-    'Sam': 9, 'Kings': 11, 'Chr': 13, 'Ezra': 15, 'Neh': 16, 'Esth': 17, 'Job': 18,
-    'Ps': 19, 'Prov': 20, 'Eccl': 21, 'Song': 22, 'Isa': 23, 'Jer': 24, 'Lam': 25,
-    'Ezek': 26, 'Dan': 27, 'Hos': 28, 'Joel': 29, 'Amos': 30, 'Obadiah': 31, 'Jonah': 32,
-    'Mic': 33, 'Micah': 33, 'Nah': 34, 'Hab': 35, 'Zeph': 36, 'Hag': 37, 'Zech': 38, 'Mal': 39,
-    'Matt': 40, 'Mark': 41, 'Luke': 42, 'John': 43, 'Acts': 44, 'Rom': 45, 'Cor': 46,
-    'Gal': 48, 'Eph': 49, 'Phil': 50, 'Col': 51, 'Thess': 52, 'Tim': 54, 'Titus': 56,
-    'Philemon': 57, 'Heb': 58, 'Jas': 59, 'James': 59, 'Pet': 60, 'Jude': 65, 'Rev': 66
-  };
+  const slot = BOOK_BY_NAME[name];
+  if (!slot) return null;
 
-  let bookId = baseMap[name];
+  /* "1 Kings" picks slot 1; a bare "Kings" has no unnumbered volume, so it falls to the first. */
+  const num = numPrefix ? parseInt(numPrefix, 10) : 0;
+  const bookId = slot[num] !== undefined ? slot[num]
+    : slot[0] !== undefined ? slot[0]
+      : slot[1];
   if (!bookId) return null;
 
-  if (numPrefix) {
-    const num = parseInt(numPrefix, 10);
-    if (name === 'Sam' && num === 2) bookId = 10;
-    else if (name === 'Kings' && num === 2) bookId = 12;
-    else if (name === 'Chr' && num === 2) bookId = 14;
-    else if (name === 'Cor' && num === 2) bookId = 47;
-    else if (name === 'Thess' && num === 2) bookId = 53;
-    else if (name === 'Tim' && num === 2) bookId = 55;
-    else if (name === 'Pet' && num === 2) bookId = 61;
-    else if (name === 'John') {
-      if (num === 2) bookId = 63;
-      else if (num === 3) bookId = 64;
-    }
-  }
-
   return { bookId, chapter, verseStart, verseEnd };
+}
+
+/* "1 Cor 10:11" → "1 Corinthians 10:11", for the context dialog heading. */
+function formatReferenceTitle(refStr) {
+  const parsed = parseReference(refStr);
+  const full = parsed && BOOK_FULL_BY_ID[parsed.bookId];
+  if (!full) return refStr;
+  let out = full + ' ' + parsed.chapter;
+  if (parsed.verseStart !== null) {
+    out += ':' + parsed.verseStart;
+    if (parsed.verseEnd !== null && parsed.verseEnd !== parsed.verseStart) out += '–' + parsed.verseEnd;
+  }
+  return out;
 }
 
 function toYouVersionPassage(ref) {
@@ -1340,10 +1330,26 @@ function escapeScriptureText(text) {
   })[character]);
 }
 
+/* bolls.life ships verses as small HTML fragments. Stripping every tag to '' glued words
+   together at line breaks ("The Bronze SnakeThey traveled") and let <sup> footnote text
+   leak in as verse words. So: footnotes and Strong's numbers go entirely, <br> becomes a
+   real newline (the reader renders `white-space: pre-line`), italics survive, and
+   everything else is escaped — the result is safe HTML, already escaped for its caller. */
+const ITALIC_OPEN = '\u0001i\u0001';
+const ITALIC_CLOSE = '\u0001/i\u0001';
 function cleanBollsText(text) {
-  return String(text)
+  const marked = String(text)
     .replace(/<s>[\s\S]*?<\/s>/gi, '')
-    .replace(/<[^>]+>/g, '')
+    .replace(/<sup>[\s\S]*?<\/sup>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?(?:i|em)\b[^>]*>/gi, m => (m.charAt(1) === '/' ? ITALIC_CLOSE : ITALIC_OPEN))
+    .replace(/<[^>]*>/g, '');
+  return escapeScriptureText(marked)
+    .split(ITALIC_OPEN).join('<i>')
+    .split(ITALIC_CLOSE).join('</i>')
+    .replace(/[ \t]*\n[ \t]*/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
     .trim();
 }
 
@@ -1371,9 +1377,26 @@ async function fetchTptPassage(passage) {
   return tptPassageCache.get(passage);
 }
 
+/* The TPT source has no Pentateuch — Exodus through Deuteronomy 404 — which dead-ended
+   ~50 references on this site. Those books skip the request and read NIV instead, and any
+   other TPT failure falls back the same way, with a line saying so. */
+const TPT_MISSING_BOOKS = [2, 3, 4, 5];
+const TPT_FALLBACK_VERSION = 'NIV';
+const TPT_FALLBACK_NOTE = '<span class="verse-fallback-note">TPT does not carry this book — showing ' + TPT_FALLBACK_VERSION + '.</span>';
+
+function tptCoversBook(ref) {
+  const parsed = parseReference(ref);
+  return !parsed || TPT_MISSING_BOOKS.indexOf(parsed.bookId) === -1;
+}
+
 async function loadVerseText(ref, version) {
-  if (version === 'TPT') return fetchTptFromYouVersion(ref);
-  return fetchFromBolls(ref, version);
+  if (version !== 'TPT') return fetchFromBolls(ref, version);
+  if (tptCoversBook(ref)) {
+    try {
+      return await fetchTptFromYouVersion(ref);
+    } catch (e) { /* fall through to the NIV fallback */ }
+  }
+  return (await fetchFromBolls(ref, TPT_FALLBACK_VERSION)) + '\n' + TPT_FALLBACK_NOTE;
 }
 
 async function fetchFromBolls(ref, version) {
@@ -1423,9 +1446,14 @@ async function getBollsChapter(version, bookId, chapter) {
 async function loadVerseContext(ref, version, radius) {
   const parsed = parseReference(ref);
   if (!parsed) throw new Error('Reference not recognized.');
-  return version === 'TPT'
-    ? loadTptContext(parsed, radius)
-    : loadBollsContext(parsed, version, radius);
+  if (version !== 'TPT') return loadBollsContext(parsed, version, radius);
+  if (TPT_MISSING_BOOKS.indexOf(parsed.bookId) === -1) {
+    try {
+      return await loadTptContext(parsed, radius);
+    } catch (e) { /* fall through to the NIV fallback */ }
+  }
+  return (await loadBollsContext(parsed, TPT_FALLBACK_VERSION, radius)) +
+    '<p class="context-fallback-note">' + TPT_FALLBACK_NOTE + '</p>';
 }
 
 async function loadBollsContext(parsed, version, radius) {
@@ -1438,7 +1466,7 @@ async function loadBollsContext(parsed, version, radius) {
   const rows = verses.filter(v => v.verse >= rangeStart && v.verse <= rangeEnd);
   return '<p class="context-passage">' + rows.map(v => {
     const selected = v.verse >= selectedStart && v.verse <= selectedEnd;
-    const text = escapeScriptureText(cleanBollsText(v.text));
+    const text = cleanBollsText(v.text);
     return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + v.verse + '</sup>' + text + '</span>';
   }).join(' ') + '</p>';
 }
@@ -1543,7 +1571,16 @@ function initTooltip() {
       return;
     }
 
-    if (tooltipPinned && !ev.target.closest('.verse-tooltip')) hideTooltip(true);
+    /* The translation picker is part of the pop-up's controls, not "somewhere else". */
+    if (tooltipPinned && !ev.target.closest('.verse-tooltip') && !ev.target.closest('.verpick')) hideTooltip(true);
+  });
+
+  document.addEventListener('keydown', ev => {
+    if (ev.key !== 'Escape' || !tooltipPinned) return;
+    if (contextDialogEl && contextDialogEl.open) return;   // <dialog> closes itself
+    if (document.querySelector('.verpick.open')) return;   // the open menu takes it first
+    ev.preventDefault();
+    hideTooltip(true);
   });
 
   contextDialogEl.querySelector('.context-dialog-close').addEventListener('click', () => contextDialogEl.close());
@@ -1557,9 +1594,18 @@ function initTooltip() {
   });
 }
 
+/* Re-read the pinned pop-up in whatever translation is now active. */
+function refreshPinnedTooltip() {
+  if (!tooltipPinned || !tooltipLink || !tooltipRef) return;
+  if (!tooltipLink.isConnected) return;
+  showTooltip(tooltipLink, tooltipRef, true);
+}
+
 function showTooltip(link, ref, pinned) {
   if (tooltipTimer) clearTimeout(tooltipTimer);
   tooltipPinned = Boolean(pinned);
+  tooltipLink = link;
+  tooltipRef = ref;
   const requestId = ++tooltipRequestId;
   const version = getVersion();
   
@@ -1655,7 +1701,7 @@ function openVerseContext(ref, version) {
   contextDialogEl.dataset.ref = ref;
   contextDialogEl.dataset.version = version;
   contextDialogEl.dataset.radius = '4';
-  contextDialogEl.querySelector('h3').textContent = ref;
+  contextDialogEl.querySelector('h3').textContent = formatReferenceTitle(ref);
   applyVersion(version);
   const body = contextDialogEl.querySelector('.context-dialog-body');
   body.scrollTop = 0;
@@ -1675,7 +1721,6 @@ function renderSections() {
     if (fn) html += '<section id="' + n.id + '" class="section-block" style="--section-c:var(' + n.cvar + ')">' + fn() + '</section>';
   });
   container.innerHTML = html;
-  measureThreadPreviewHeight();
   syncMobileStickyOffsets();
   wireAllSections();
   initMarquees();
@@ -1684,18 +1729,25 @@ function renderSections() {
 }
 
 /* ================= filmstrip marquees (threads) ================= */
+/* Motion lives on the track's `transform`, not on the wrapper's `scrollLeft`. scrollLeft is
+   an integer, so 0.37px per frame quantised into visible stepping — and writing it every
+   frame, together with a mask on the scrolling element, are the two suspects behind the
+   iOS filmstrip going blank or freezing. The wrapper keeps its native scroll for the
+   reader's own wheel and touch panning; the two are additive and nothing here writes
+   scrollLeft except a deliberate mouse drag, so a trackpad scroll no longer snaps back. */
 let marqueeCleanups = [];
 function initMarquees() {
   marqueeCleanups.forEach(cleanup => cleanup());
   marqueeCleanups = [];
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TRACK_GAP = 10;   // matches .marquee-track's gap
 
-  document.querySelectorAll('[data-marquee]').forEach(mq => {
+  document.querySelectorAll('[data-marquee]').forEach((mq, rowIndex) => {
     const track = mq.querySelector('.marquee-track');
     if (!track) return;
     if (!track.dataset.orig) track.dataset.orig = track.innerHTML;
     track.innerHTML = track.dataset.orig;
-    mq.scrollLeft = 0;
+    track.style.transform = '';
     if (reduced) return;
 
     track.innerHTML =
@@ -1704,10 +1756,12 @@ function initMarquees() {
 
     const firstGroup = track.querySelector('.marquee-group');
     track.querySelectorAll('.marquee-group[aria-hidden="true"] a, .marquee-group[aria-hidden="true"] button').forEach(el => el.tabIndex = -1);
-    const loopWidth = firstGroup.offsetWidth + 10;
+
+    let loopWidth = firstGroup.offsetWidth + TRACK_GAP;
+    const speed = 0.022 * (rowIndex % 2 ? -1 : 1);   // neighbouring rows drift opposite ways
+    let offset = 0;
     let frame = 0;
     let lastTime = 0;
-    let scrollPosition = 0;
     let dragging = false;
     let hoverPaused = false;
     let tapPaused = false;
@@ -1716,37 +1770,53 @@ function initMarquees() {
     let startX = 0;
     let startScroll = 0;
 
-    const wrapScroll = () => {
-      if (scrollPosition >= loopWidth) scrollPosition -= loopWidth;
-      else if (scrollPosition < 0) scrollPosition += loopWidth;
-      mq.scrollLeft = scrollPosition;
+    const applyOffset = () => {
+      if (loopWidth > 0) offset = ((offset % loopWidth) + loopWidth) % loopWidth;
+      track.style.transform = 'translate3d(' + (-offset).toFixed(2) + 'px, 0, 0)';
     };
 
     const tick = time => {
       if (!lastTime) lastTime = time;
       if (!dragging && !hoverPaused && !tapPaused) {
-        scrollPosition += Math.min(time - lastTime, 40) * 0.022;
-        wrapScroll();
+        offset += Math.min(time - lastTime, 40) * speed;
+        applyOffset();
       }
       lastTime = time;
       frame = requestAnimationFrame(tick);
     };
+    const startTicking = () => { if (!frame) { lastTime = 0; frame = requestAnimationFrame(tick); } };
+    const stopTicking = () => { if (frame) { cancelAnimationFrame(frame); frame = 0; } };
 
     const onPointerDown = ev => {
-      if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+      if (ev.pointerType !== 'mouse') {
+        /* Touch pans natively — no pointer capture, which is the second iOS suspect: if
+           setPointerCapture throws on a touch pointer, `dragging` sticks and the strip
+           freezes for good. Just hold the motion while a finger is down. */
+        startX = ev.clientX;
+        tapPaused = true;
+        mq.classList.add('is-paused');
+        return;
+      }
+      if (ev.button !== 0) return;
       dragging = true;
       startX = ev.clientX;
-      startScroll = scrollPosition;
+      startScroll = mq.scrollLeft;
       mq.classList.add('is-dragging');
-      mq.setPointerCapture(ev.pointerId);
+      try { mq.setPointerCapture(ev.pointerId); } catch (e) { /* capture is a nicety, not a requirement */ }
     };
     const onPointerMove = ev => {
       if (!dragging) return;
-      const delta = ev.clientX - startX;
-      scrollPosition = startScroll - delta;
-      wrapScroll();
+      mq.scrollLeft = startScroll - (ev.clientX - startX);
     };
     const onPointerEnd = ev => {
+      if (ev.pointerType !== 'mouse') {
+        /* a deliberate tap parks the strip; a swipe (or a cancel, meaning native scrolling
+           took the gesture) lets it run again */
+        tapPaused = ev.type === 'pointerup' && Math.abs(ev.clientX - startX) <= 6;
+        mq.classList.toggle('is-paused', hoverPaused || tapPaused);
+        lastTime = 0;
+        return;
+      }
       if (!dragging) return;
       dragging = false;
       const wasDrag = Math.abs(ev.clientX - startX) > 6;
@@ -1756,11 +1826,10 @@ function initMarquees() {
         hoverPaused = false;
         ignoreHoverUntilLeave = true;
       }
-      else if (ev.pointerType !== 'mouse') tapPaused = true;
-      lastTime = performance.now();
+      lastTime = 0;
       mq.classList.remove('is-dragging');
       mq.classList.toggle('is-paused', hoverPaused || tapPaused);
-      if (mq.hasPointerCapture(ev.pointerId)) mq.releasePointerCapture(ev.pointerId);
+      try { if (mq.hasPointerCapture(ev.pointerId)) mq.releasePointerCapture(ev.pointerId); } catch (e) { /* already gone */ }
     };
     const onClick = ev => {
       if (performance.now() >= suppressClickUntil) return;
@@ -1776,13 +1845,13 @@ function initMarquees() {
       ignoreHoverUntilLeave = false;
       hoverPaused = false;
       mq.classList.toggle('is-paused', tapPaused);
-      lastTime = performance.now();
+      lastTime = 0;
     };
     const onDocumentPointerDown = ev => {
       if (!tapPaused || mq.contains(ev.target)) return;
       tapPaused = false;
       mq.classList.toggle('is-paused', hoverPaused);
-      lastTime = performance.now();
+      lastTime = 0;
     };
 
     mq.addEventListener('pointerdown', onPointerDown);
@@ -1793,10 +1862,34 @@ function initMarquees() {
     mq.addEventListener('mouseenter', onMouseEnter);
     mq.addEventListener('mouseleave', onMouseLeave);
     document.addEventListener('pointerdown', onDocumentPointerDown);
-    frame = requestAnimationFrame(tick);
+
+    /* Thirteen strips animating off screen is thirteen rAF loops doing nothing visible. */
+    let observer = null;
+    if (typeof IntersectionObserver === 'function') {
+      observer = new IntersectionObserver(entries => {
+        entries[0].isIntersecting ? startTicking() : stopTicking();
+      }, { rootMargin: '250px 0px' });
+      observer.observe(mq);
+    } else {
+      startTicking();
+    }
+
+    /* A resize used to rebuild every strip from scratch, which reset all thirteen to zero —
+       and on phones the URL bar fires resize while you scroll. Re-measure the loop instead
+       and leave the position alone. */
+    let sizer = null;
+    if (typeof ResizeObserver === 'function') {
+      sizer = new ResizeObserver(() => {
+        const next = firstGroup.offsetWidth + TRACK_GAP;
+        if (next > 0 && next !== loopWidth) { loopWidth = next; applyOffset(); }
+      });
+      sizer.observe(firstGroup);
+    }
 
     marqueeCleanups.push(() => {
-      cancelAnimationFrame(frame);
+      stopTicking();
+      if (observer) observer.disconnect();
+      if (sizer) sizer.disconnect();
       mq.classList.remove('is-dragging');
       mq.removeEventListener('pointerdown', onPointerDown);
       mq.removeEventListener('pointermove', onPointerMove);
@@ -1809,11 +1902,6 @@ function initMarquees() {
     });
   });
 }
-let marqueeResizeTimer = null;
-window.addEventListener('resize', () => {
-  if (marqueeResizeTimer) clearTimeout(marqueeResizeTimer);
-  marqueeResizeTimer = setTimeout(initMarquees, 150);
-});
 
 /* ================= scarlet progress rail ================= */
 function initRail() {
@@ -1821,7 +1909,7 @@ function initRail() {
   const rail = document.createElement('div');
   rail.id = 'rail';
   rail.innerHTML = '<div class="rail-track"></div><div class="rail-fill"></div>' +
-    NAV.map(n => '<button class="rail-dot" data-view="' + n.id + '" title="' + n.label + '" aria-label="Jump to ' + n.label + '" style="--c:var(' + n.cvar + ')"></button>').join('');
+    NAV.map(n => '<button class="rail-dot" data-view="' + n.id + '" title="' + n.label + '" aria-label="Jump to ' + n.label + '" style="--c:var(' + n.cvar + ')"><span class="rail-dot-label">' + n.label + '</span></button>').join('');
   document.body.appendChild(rail);
   rail.addEventListener('click', ev => {
     const dot = ev.target.closest('.rail-dot');
@@ -1899,7 +1987,10 @@ function boot() {
       if (el) {
         isScrollingNav = true;
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        history.replaceState(null, null, '#/' + id);
+        /* A deliberate jump is a place you can come back from. This used to replaceState,
+           so Back left the site instead of returning to the section you came from —
+           scrollspy still replaces as you drift, which is right. */
+        if (location.hash !== '#/' + id) history.pushState(null, '', '#/' + id);
         updateActiveNav(id);
         setTimeout(() => { isScrollingNav = false; }, 800);
       }
@@ -1921,29 +2012,11 @@ function boot() {
   initRail();
   renderSections();
 
-  buildIndex();
-  const input = document.getElementById('search-input');
-  const box = document.getElementById('search-results');
-  if (input && box) {
-    input.addEventListener('input', () => runSearch(input.value));
-    input.addEventListener('focus', () => runSearch(input.value));
-    document.addEventListener('click', ev => {
-      const hit = ev.target.closest('.search-hit');
-      if (hit) { goToHit(INDEX[+hit.dataset.i]); return; }
-      if (!ev.target.closest('.searchbox')) box.classList.remove('open');
-    });
-    input.addEventListener('keydown', ev => {
-      if (ev.key === 'Escape') { box.classList.remove('open'); input.blur(); }
-      if (ev.key === 'Enter') { const first = box.querySelector('.search-hit'); if (first) goToHit(INDEX[+first.dataset.i]); }
-    });
-  }
-
   // Wire events, then handle the initial route before enabling scrollspy.
   initTooltip();
 
   window.addEventListener('hashchange', route);
-  window.addEventListener('resize', scheduleThreadPreviewMeasure);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleThreadPreviewMeasure);
+  window.addEventListener('resize', syncMobileStickyOffsets);
   if (location.hash) {
     route({ instant: true });
     setupScrollspy();

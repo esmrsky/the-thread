@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath d=%27M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8%27 fill=%27none%27 stroke=%27%23b3242f%27 stroke-width=%272.2%27 stroke-linecap=%27round%27 stroke-dasharray=%273 2.4%27/%3E%3Cpath d=%27M18.5 4.5v6M15.8 7h5.4%27 fill=%27none%27 stroke=%27%23a1791f%27 stroke-width=%272.2%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Thread — before and after the audit fix pass</title>
+<meta name="description" content="Side-by-side comparison of The Thread before and after the 2026-08-19 audit fix pass, with a ledger of every change and why it was made.">
+<style>
+:root {
+  color-scheme: light dark;
+  --paper: #f6f3ea;
+  --card: #fffdf7;
+  --card-2: #f1ece0;
+  --ink: #2b2620;
+  --ink-soft: #5d5648;
+  --ink-faint: #6f6957;
+  --line: #ddd5c4;
+  --line-soft: #e9e2d4;
+  --thread: #b3242f;
+  --gold: #a1791f;
+  --add: #3f7a44;
+  --del: #a8502f;
+  --upd: #4d679b;
+  --r: 8px;
+  --r-lg: 14px;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --label: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171d;
+    --card: #1b1f27;
+    --card-2: #171b22;
+    --ink: #e6e0d1;
+    --ink-soft: #a89f8a;
+    --ink-faint: #948c7a;
+    --line: #303642;
+    --line-soft: #252b35;
+    --thread: #e05a66;
+    --gold: #cfa648;
+    --add: #6fb075;
+    --del: #dd8358;
+    --upd: #93a8e6;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171d;
+  --card: #1b1f27;
+  --card-2: #171b22;
+  --ink: #e6e0d1;
+  --ink-soft: #a89f8a;
+  --ink-faint: #948c7a;
+  --line: #303642;
+  --line-soft: #252b35;
+  --thread: #e05a66;
+  --gold: #cfa648;
+  --add: #6fb075;
+  --del: #dd8358;
+  --upd: #93a8e6;
+}
+
+* { box-sizing: border-box; }
+html, body { max-width: 100%; overflow-x: hidden; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.wrap { width: min(1400px, calc(100% - 32px)); margin: 0 auto; }
+@media (max-width: 560px) { .wrap { width: calc(100% - 20px); } }
+
+h1, h2, h3 { font-family: var(--serif); line-height: 1.2; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.label {
+  font-family: var(--label); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-faint);
+}
+
+/* ---------- summary header ---------- */
+.masthead { padding: 34px 0 22px; border-bottom: 2px dashed var(--line-soft); }
+.masthead h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); margin: 8px 0 10px; }
+.masthead .sub { color: var(--ink-soft); max-width: 68ch; }
+.stats {
+  display: grid; gap: 12px; margin-top: 22px;
+  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+}
+.stat {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--r-lg); padding: 14px 16px;
+}
+.stat .val { font-family: var(--label); font-size: 1.5rem; font-weight: 700; line-height: 1.2; margin-top: 4px; }
+.stat .val .was { color: var(--ink-faint); font-size: 1rem; }
+.stat .val .arrow { color: var(--ink-faint); font-size: 1rem; margin: 0 6px; }
+.stat .val .now { color: var(--add); }
+.stat .note { font-size: 0.82rem; color: var(--ink-soft); margin-top: 4px; line-height: 1.45; }
+
+/* ---------- controls ---------- */
+.controls {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  padding: 12px 0; margin-bottom: 14px;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line-soft);
+}
+.ctl { display: flex; align-items: center; gap: 8px; }
+.seg { display: flex; gap: 4px; background: var(--card-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.seg button {
+  font-family: var(--label); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--ink-soft); background: none; border: 0; border-radius: 999px;
+  padding: 7px 13px; min-height: 34px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.14); }
+.seg button:focus-visible { outline: 2px solid var(--thread); outline-offset: 2px; }
+@media (pointer: coarse) { .seg button { min-height: 44px; } }
+
+/* ---------- panes ---------- */
+.panes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.pane { min-width: 0; }
+.pane-head {
+  display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px;
+}
+.pane-head .tag {
+  font-family: var(--label); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.13em;
+  text-transform: uppercase; padding: 3px 9px; border-radius: 999px;
+}
+.pane.before .tag { color: var(--del); background: color-mix(in srgb, var(--del) 12%, transparent); }
+.pane.after .tag { color: var(--add); background: color-mix(in srgb, var(--add) 12%, transparent); }
+.pane-head .meta { font-size: 0.78rem; color: var(--ink-faint); font-family: var(--mono); }
+.viewport {
+  position: relative; overflow: hidden;
+  height: 560px;
+  background: var(--card);
+  border: 1px solid var(--line); border-radius: var(--r-lg);
+}
+.viewport iframe {
+  position: absolute; top: 0; left: 0;
+  border: 0; display: block;
+  transform-origin: top left;
+  background: var(--card);
+}
+
+/* ---------- ledger ---------- */
+.ledger { padding: 34px 0 60px; }
+.ledger > h2 { font-size: 1.5rem; margin-bottom: 6px; }
+.ledger > .lede { color: var(--ink-soft); max-width: 74ch; margin-bottom: 24px; }
+.group { margin-top: 30px; }
+.group > h3 {
+  font-family: var(--label); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.group > h3 .count { color: var(--ink-faint); font-weight: 600; }
+.group.added > h3 { color: var(--add); }
+.group.removed > h3 { color: var(--del); }
+.group.updated > h3 { color: var(--upd); }
+.entries { display: grid; gap: 10px; }
+.entry {
+  display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: start;
+  background: var(--card); border: 1px solid var(--line);
+  border-left: 3px solid var(--c, var(--line));
+  border-radius: var(--r); padding: 13px 15px;
+}
+.group.added .entry { --c: var(--add); }
+.group.removed .entry { --c: var(--del); }
+.group.updated .entry { --c: var(--upd); }
+.entry .what { font-weight: 700; font-size: 0.98rem; }
+.entry .why { grid-column: 1 / -1; color: var(--ink-soft); font-size: 0.92rem; line-height: 1.55; }
+.entry .why code { font-family: var(--mono); font-size: 0.84em; background: var(--card-2); padding: 1px 5px; border-radius: 4px; }
+.entry .finding {
+  font-family: var(--label); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-faint); white-space: nowrap;
+  border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; align-self: center;
+}
+.jump {
+  font-family: var(--label); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--thread);
+  background: none; border: 1px solid color-mix(in srgb, var(--thread) 35%, var(--line));
+  border-radius: 999px; padding: 6px 12px; min-height: 32px; cursor: pointer; white-space: nowrap;
+}
+.jump:hover { background: color-mix(in srgb, var(--thread) 10%, transparent); }
+.jump:focus-visible { outline: 2px solid var(--thread); outline-offset: 2px; }
+@media (pointer: coarse) { .jump { min-height: 44px; } }
+.entry-actions { display: flex; align-items: center; gap: 8px; }
+
+.foot { padding: 22px 0 40px; border-top: 2px dashed var(--line-soft); color: var(--ink-faint); font-size: 0.86rem; }
+.foot a { color: var(--thread); }
+
+/* ---------- stacked below 900px ---------- */
+.ab-toggle { display: none; }
+@media (max-width: 900px) {
+  .panes { grid-template-columns: 1fr; }
+  .ab-toggle { display: flex; }
+  .pane[hidden] { display: none; }
+  .viewport { height: 460px; }
+  .entry { grid-template-columns: 1fr; }
+  .entry-actions { justify-content: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<header class="masthead wrap">
+  <span class="label">The Thread · audit fix pass · 19 August 2026</span>
+  <h1>What changed, and why</h1>
+  <p class="sub">The left pane is the site as it stood at commit <code>f0a7683</code>. The right pane is the same
+  site after fix passes A–E from <code>audit/REPORT.md</code>. Both are live — drive them with the controls, and use
+  the jump buttons in the ledger to put the two panes on the same section.</p>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="label">Gate assertions</span>
+      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">32</span> / 34</div>
+      <p class="note">Measured with the audit harness against a local server. The two still failing both need
+      bolls.life, which this build environment blocks at the proxy.</p>
+    </div>
+    <div class="stat">
+      <span class="label">Findings addressed</span>
+      <div class="val">12 <span class="was">of 12</span></div>
+      <p class="note">Finding 8 is partial — the label halos and the corner overlap are fixed, the small SVG
+      label sizes on mobile are not. Findings 1 and 2 are iOS Safari defects: fixed as prescribed, but they
+      need a check on a real device.</p>
+    </div>
+    <div class="stat">
+      <span class="label">Source files touched</span>
+      <div class="val">4</div>
+      <p class="note"><code>src/00-style.css</code>, <code>src/30-app.js</code>, <code>src/10-shell.html</code>,
+      <code>build.sh</code> — plus the rebuilt <code>index.html</code> and one corrected gate assertion.</p>
+    </div>
+    <div class="stat">
+      <span class="label">Net change</span>
+      <div class="val">+50 <span class="was">lines of src</span></div>
+      <p class="note">About 75 lines of dead search code, the thread-card accordion and five unused rule blocks
+      came out; one shared book table and the rewritten filmstrip engine went in.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="controls">
+    <div class="ctl">
+      <span class="label">Width</span>
+      <div class="seg" id="width-seg">
+        <button type="button" data-w="375" aria-pressed="false">375</button>
+        <button type="button" data-w="768" aria-pressed="false">768</button>
+        <button type="button" data-w="1280" aria-pressed="true">1280</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <span class="label">Theme</span>
+      <div class="seg" id="theme-seg">
+        <button type="button" data-t="light" aria-pressed="true">Light</button>
+        <button type="button" data-t="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <span class="label">Sync scroll</span>
+      <div class="seg" id="sync-seg">
+        <button type="button" data-s="on" aria-pressed="true">On</button>
+        <button type="button" data-s="off" aria-pressed="false">Off</button>
+      </div>
+    </div>
+    <div class="ctl ab-toggle">
+      <span class="label">Show</span>
+      <div class="seg" id="ab-seg">
+        <button type="button" data-p="before" aria-pressed="true">Before</button>
+        <button type="button" data-p="after" aria-pressed="false">After</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panes" id="panes">
+    <section class="pane before" id="pane-before">
+      <div class="pane-head"><span class="tag">Before</span><span class="meta">f0a7683</span></div>
+      <div class="viewport"><iframe id="frame-before" src="old/index.html" title="The Thread before the fix pass"></iframe></div>
+    </section>
+    <section class="pane after" id="pane-after" hidden>
+      <div class="pane-head"><span class="tag">After</span><span class="meta">fix/audit-pass-1</span></div>
+      <div class="viewport"><iframe id="frame-after" src="../index.html" title="The Thread after the fix pass"></iframe></div>
+    </section>
+  </div>
+
+  <section class="ledger">
+    <h2>The change ledger</h2>
+    <p class="lede">Every change from the fix pass, grouped by what it did to the site. Each entry cites the finding
+    number in <code>audit/REPORT.md</code> that motivated it, and jumps both panes to where you can see it.</p>
+    <div id="ledger-body"></div>
+  </section>
+
+  <footer class="foot">
+    <p>Built 19 August 2026 from <code>audit/REPORT.md</code>. The “before” pane is a frozen copy carrying
+    <code>&lt;meta name="robots" content="noindex"&gt;</code> so the duplicate is not indexed.
+    <a href="../">Back to The Thread</a>.</p>
+  </footer>
+
+</main>
+
+<script>
+/* ---------------- the ledger ---------------- */
+var LEDGER = [
+  { kind: 'added', title: 'Added', items: [
+    { what: 'A static <code>.marquee-window</code> around each filmstrip',
+      why: 'The fade mask used to sit on the element that scrolls. A mask on a scrolling element is one of the two suspects behind the strips going blank or freezing on iOS after ~30 seconds; it now rides a wrapper that never moves.',
+      finding: 'Findings 1, 7', to: 'threads' },
+    { what: 'A NIV fallback when TPT has no such book',
+      why: 'The TPT source carries no Pentateuch, so roughly fifty references on this site dead-ended in “Unable to load verse.” Exodus through Deuteronomy now skip the request and read NIV, with a line saying so — as does any other TPT failure.',
+      finding: 'Finding 5', to: 'codes' },
+    { what: 'One <code>BOOKS</code> table behind links, ids and titles',
+      why: 'The link regex, the chapter ids and the dialog heading each kept their own list of book names. One table now feeds all three, so spelled-out references like “Hosea 11:1” and “Isaiah 53” link like their abbreviated neighbours, and the context dialog reads “1 Corinthians 10:11” instead of the authored abbreviation.',
+      finding: 'Finding 12', to: 'codes' },
+    { what: 'Escape closes the pinned verse pop-up',
+      why: 'A pinned pop-up could only be dismissed by clicking away — Escape did nothing, which is the one key everybody tries.',
+      finding: 'Finding 6', to: 'pattern' },
+    { what: 'Deselecting a selected thread chip',
+      why: 'Selecting a chip locked the hero preview with no way back; clicking the same chip again now clears it.',
+      finding: 'Finding 10', to: 'start' },
+    { what: 'Labels on the progress rail dots',
+      why: 'Nine identical 14px dots down the left edge, distinguished only by a title attribute. Each now carries its section name, always visible on wide screens and on hover or focus otherwise.',
+      finding: 'Finding 11', to: 'pattern' },
+    { what: 'A favicon',
+      why: 'Every single page load fired a request for /favicon.ico and got a 404. The mark is now inlined as an SVG data URI, so there is no request to fail.',
+      finding: 'Small stuff', to: 'start' },
+    { what: 'A 44px touch-target floor',
+      why: 'Nav links were 32px, toggles 34, chips 28, rail dots 14 — all under the 44px minimum for a finger. The floor applies under <code>(pointer: coarse)</code>, where it matters, so desktop density is unchanged.',
+      finding: 'Finding 11', to: 'start' },
+    { what: 'Off-screen filmstrips stop animating',
+      why: 'All thirteen strips ran their animation loop continuously whether or not they were on screen. An IntersectionObserver parks each one until its row is in view.',
+      finding: 'Finding 7', to: 'threads' }
+  ]},
+  { kind: 'removed', title: 'Removed', items: [
+    { what: 'Per-frame <code>scrollLeft</code> writes driving the filmstrips',
+      why: 'scrollLeft is an integer, so the intended 0.37px per frame quantised into visible stepping rather than smooth drift — and writing it every frame is the other iOS suspect. Motion moved to a transform on the track, which takes sub-pixel values.',
+      finding: 'Findings 1, 7', to: 'threads' },
+    { what: 'The resize rebuild of all thirteen strips',
+      why: 'Any resize event tore down every strip and rebuilt it at position zero. On phones the URL bar fires resize while you scroll, so the strips reset constantly. A ResizeObserver re-measures the loop in place instead.',
+      finding: 'Finding 7', to: 'threads' },
+    { what: 'Pointer capture on touch',
+      why: 'If <code>setPointerCapture</code> throws on a touch pointer, the drag flag stays true and that strip freezes permanently. Touch now pans natively, with momentum, and never takes a capture.',
+      finding: 'Finding 1', to: 'threads' },
+    { what: 'The hero preview measuring pass',
+      why: 'The panel was measured against all thirteen previews and locked to the tallest — 982px on desktop, 914px on a phone, which is an empty box taller than the viewport. The height is fixed in CSS now and the card scrolls inside it.',
+      finding: 'Finding 3', to: 'start' },
+    { what: 'The sticky chart panel on phones',
+      why: 'Once a preview loaded, the pinned panel grew by the height of the mobile header and covered the first milestone of the very thread it was previewing.',
+      finding: 'Finding 3', to: 'start' },
+    { what: 'Hover handlers that fired on touch',
+      why: 'iOS swallows the click when a pointerenter handler mutates the DOM, and the preview handler does. Tapping a chip only made it hot; the next tap anywhere fired its pointerleave and wiped the preview. Two taps to select one chip. Hover is now bound only on a real pointing device.',
+      finding: 'Finding 2', to: 'start' },
+    { what: 'The hover lift on non-interactive cards',
+      why: 'Cards that do nothing when clicked rose to meet the pointer, promising an action that was never there. The shadow still acknowledges the pointer; the movement is gone.',
+      finding: 'Finding 10', to: 'start' },
+    { what: 'The search feature',
+      why: 'There is no search input anywhere in the markup, so the index builder, the query scorer and the result navigator never ran. About 75 lines of code for a feature with no user interface.',
+      finding: 'Finding 9', to: 'start' },
+    { what: 'The thread-card accordion',
+      why: 'The threads became filmstrip rows some time ago; the accordion markup went with them, but its CSS and its click handler stayed behind with nothing to bind to.',
+      finding: 'Finding 9', to: 'threads' },
+    { what: 'Five unused rule blocks',
+      why: '<code>.trail</code>, <code>.callout</code>, <code>.route-rule</code>, <code>.tooltip-note</code> and <code>.verpick-note</code> matched no element on any page.',
+      finding: 'Finding 9', to: 'library' }
+  ]},
+  { kind: 'updated', title: 'Updated', items: [
+    { what: 'The verse text cleaner',
+      why: 'Stripping every tag to nothing glued words together at line breaks — poetry lines and inline headings arriving as “The Bronze SnakeThey traveled”, in a quarter of sampled NIV verses — and let <code>&lt;sup&gt;</code> translator notes leak in as verse words in 17% of KJV ones. Footnotes and Strong’s numbers now go entirely, a line break becomes a real newline, italics survive, and the rest is escaped.',
+      finding: 'Finding 4', to: 'pattern' },
+    { what: 'Section bands span the viewport',
+      why: 'The section tint was painted on a band sitting inside the 1080px reading wrapper, so it rendered as a hard-edged column down the middle of the page at every width, including on a phone. The band is full width now and the wrapper moved inside it.',
+      finding: 'Finding 11', to: 'pattern' },
+    { what: 'The narrow-phone rules actually apply',
+      why: 'The <code>@media (max-width: 520px)</code> block sat above the <code>.nav-link</code> and <code>.verpick-*</code> rules it overrides. Same specificity, later wins — so none of it had any effect. It moved to the end of the sheet.',
+      finding: 'Finding 9', to: 'start' },
+    { what: 'The garment thread has a dark colour',
+      why: '<code>--t-garment</code> was defined under the dark media query but missing from the manual dark toggle, so toggling to dark left it light purple at 3.0:1 against the background.',
+      finding: 'Finding 9', to: 'start' },
+    { what: 'The last hard-coded colour became a token',
+      why: 'A raw <code>#d9534f</code> in the detour cards ignored both themes; it now uses <code>--c-detour</code>.',
+      finding: 'Finding 9', to: 'detours' },
+    { what: 'The progress rail shows at 1280',
+      why: 'The rail was hidden by <code>max-width: 1280px</code> — which matches at exactly 1280, the width it was designed for. The breakpoint moved to 1199.',
+      finding: 'Finding 11', to: 'pattern' },
+    { what: 'The library cards show their cue at rest',
+      why: 'The “open” affordance was fully transparent until hover, so a card gave no sign it led anywhere.',
+      finding: 'Finding 10', to: 'library' },
+    { what: 'Section navigation is reversible',
+      why: 'Clicking a nav link replaced the history entry instead of pushing one, so Back left the site rather than returning to where you came from. Scrollspy still replaces as you drift, which is correct.',
+      finding: 'Finding 10', to: 'start' },
+    { what: '“Rev 22:21” clears the REV era label',
+      why: 'The corner reference sat directly on top of the last label of the era ruler at 1024 and wider. It lifts clear of the tick row.',
+      finding: 'Finding 8', to: 'start' },
+    { what: 'Diagram label halos match their surface',
+      why: 'Every diagram drew its label halo in <code>--card</code>. On the journey diorama’s white slabs that is a light outline on a light fill, which is why those labels were hard to read. Each diagram now names the surface its labels actually sit on.',
+      finding: 'Finding 8', to: 'pattern' },
+    { what: 'The hero chart rows match the legend',
+      why: 'The chart drew its thirteen rows in a hand-written order that disagreed with the legend beneath it, leaving Garment fourth above and last below — an orphan row.',
+      finding: 'Small stuff', to: 'start' },
+    { what: 'The tabernacle pins read 1 to 8',
+      why: 'They read 1 2 3 5 4 6 7 8. The isometric projection shifts x by depth, and the Lampstand held the shallower slot, so it landed left of the Table it follows. The two swap, and the walked route now follows the numbering instead of doubling back.',
+      finding: 'Small stuff', to: 'codes' },
+    { what: 'Micro-label contrast',
+      why: '<code>--ink-faint</code> carried most of the small labels at around 3.0:1. It gains contrast in both themes.',
+      finding: 'Finding 12', to: 'mind' },
+    { what: 'Words stop breaking mid-word',
+      why: '<code>overflow-wrap: anywhere</code> split ordinary words at the end of a line; it becomes <code>break-word</code>, and paragraphs get <code>text-wrap: pretty</code> so they no longer strand a single word on the last line.',
+      finding: 'Finding 12', to: 'mind' },
+    { what: 'Vertical rhythm and the hero breakout',
+      why: 'Roughly 215px of stacked padding sat above every section, and the hero panel broke out to 1460px — nearly edge to edge. Padding comes down and the breakout comes in to 1240px, so it reads as a deliberate step out rather than an escape.',
+      finding: 'Finding 11', to: 'pattern' },
+    { what: 'Neighbouring filmstrips drift opposite ways',
+      why: 'All thirteen strips scrolled the same direction at the same speed, which read as one sheet sliding rather than thirteen independent threads.',
+      finding: 'Finding 7', to: 'threads' }
+  ]}
+];
+
+/* ---------------- render the ledger ---------------- */
+(function renderLedger() {
+  var host = document.getElementById('ledger-body');
+  var html = '';
+  LEDGER.forEach(function (group) {
+    html += '<div class="group ' + group.kind + '">' +
+      '<h3>' + group.title + ' <span class="count">' + group.items.length + '</span></h3>' +
+      '<div class="entries">';
+    group.items.forEach(function (item) {
+      html += '<div class="entry">' +
+        '<div class="what">' + item.what + '</div>' +
+        '<div class="entry-actions">' +
+          '<span class="finding">' + item.finding + '</span>' +
+          '<button class="jump" type="button" data-to="' + item.to + '">Show me</button>' +
+        '</div>' +
+        '<p class="why">' + item.why + '</p>' +
+      '</div>';
+    });
+    html += '</div></div>';
+  });
+  host.innerHTML = html;
+})();
+
+/* ---------------- pane plumbing ---------------- */
+var frames = {
+  before: document.getElementById('frame-before'),
+  after: document.getElementById('frame-after')
+};
+var panes = {
+  before: document.getElementById('pane-before'),
+  after: document.getElementById('pane-after')
+};
+/* Start from the reader's own preference rather than forcing light, then let the
+   control take over from there. */
+var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+var state = { width: 1280, theme: prefersDark ? 'dark' : 'light', sync: true, shown: 'before' };
+var stacked = function () { return window.matchMedia('(max-width: 900px)').matches; };
+
+function eachFrame(fn) {
+  ['before', 'after'].forEach(function (key) {
+    var f = frames[key];
+    var doc = null;
+    try { doc = f.contentDocument; } catch (e) { doc = null; }
+    if (doc && doc.documentElement) fn(f, doc, key);
+  });
+}
+
+function layout() {
+  ['before', 'after'].forEach(function (key) {
+    var f = frames[key];
+    var box = f.parentElement;
+    var avail = box.clientWidth;
+    var h = box.clientHeight;
+    if (!avail || !h) return;
+    var scale = Math.min(1, avail / state.width);
+    f.style.width = state.width + 'px';
+    f.style.height = (h / scale) + 'px';
+    f.style.transform = 'scale(' + scale + ')';
+  });
+}
+
+function applyTheme() {
+  document.documentElement.dataset.theme = state.theme;
+  eachFrame(function (f, doc) {
+    doc.documentElement.dataset.theme = state.theme;
+  });
+}
+
+function applyPaneVisibility() {
+  if (stacked()) {
+    panes.before.hidden = state.shown !== 'before';
+    panes.after.hidden = state.shown !== 'after';
+  } else {
+    panes.before.hidden = false;
+    panes.after.hidden = false;
+  }
+  layout();
+}
+
+/* Docs differ in height, so sync by scroll fraction rather than pixel offset. */
+var syncing = false;
+function wireSync(key) {
+  var other = key === 'before' ? 'after' : 'before';
+  var win;
+  try { win = frames[key].contentWindow; } catch (e) { return; }
+  if (!win) return;
+  win.addEventListener('scroll', function () {
+    if (!state.sync || syncing) return;
+    var od;
+    try { od = frames[other].contentDocument; } catch (e) { return; }
+    if (!od || !od.documentElement) return;
+    var sd = win.document.documentElement;
+    var srcMax = sd.scrollHeight - win.innerHeight;
+    var dstMax = od.documentElement.scrollHeight - frames[other].contentWindow.innerHeight;
+    if (srcMax <= 0 || dstMax <= 0) return;
+    var frac = win.scrollY / srcMax;
+    syncing = true;
+    frames[other].contentWindow.scrollTo(0, frac * dstMax);
+    setTimeout(function () { syncing = false; }, 40);
+  }, { passive: true });
+}
+
+function jumpTo(id) {
+  if (stacked()) {
+    document.getElementById('panes').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  var wasSync = state.sync;
+  state.sync = false;
+  eachFrame(function (f, doc) {
+    var el = doc.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  setTimeout(function () { state.sync = wasSync; }, 900);
+}
+
+/* ---------------- controls ---------------- */
+function wireSeg(id, attr, onPick) {
+  var seg = document.getElementById(id);
+  seg.addEventListener('click', function (ev) {
+    var btn = ev.target.closest('button[' + attr + ']');
+    if (!btn) return;
+    Array.prototype.forEach.call(seg.querySelectorAll('button'), function (b) {
+      b.setAttribute('aria-pressed', String(b === btn));
+    });
+    onPick(btn.getAttribute(attr));
+  });
+}
+
+wireSeg('width-seg', 'data-w', function (v) { state.width = +v; layout(); });
+wireSeg('theme-seg', 'data-t', function (v) { state.theme = v; applyTheme(); });
+wireSeg('sync-seg', 'data-s', function (v) { state.sync = v === 'on'; });
+wireSeg('ab-seg', 'data-p', function (v) { state.shown = v; applyPaneVisibility(); });
+
+document.getElementById('ledger-body').addEventListener('click', function (ev) {
+  var btn = ev.target.closest('.jump');
+  if (btn) jumpTo(btn.dataset.to);
+});
+
+['before', 'after'].forEach(function (key) {
+  frames[key].addEventListener('load', function () {
+    applyTheme();
+    layout();
+    wireSync(key);
+  });
+});
+
+window.addEventListener('resize', function () { applyPaneVisibility(); });
+
+Array.prototype.forEach.call(document.querySelectorAll('#theme-seg button'), function (b) {
+  b.setAttribute('aria-pressed', String(b.getAttribute('data-t') === state.theme));
+});
+applyPaneVisibility();
+applyTheme();
+</script>
+</body>
+</html>
