@@ -89,3 +89,50 @@ Verification lap on the primary model after E.
 ## Evidence
 `audits/the-thread/inventory.md` · `paths.json` + `paths-out/paths-results.json` · `shots/` (54 PNGs, 3 widths × 2 themes × 9 sections)
 · data sweep script in session scratchpad (`datasweep.mjs`, re-runnable) · iOS simulator screenshots in this session.
+
+---
+
+## Fix run — 2026-08-19
+
+Passes A–E applied on branch `fix/audit-pass-1`, one commit each. Gate re-run after every pass with
+`audit/harness.mjs` driving headless Chromium 141 against a local `python3 -m http.server`.
+
+**Gate: 9 → 32 of 34 assertions.** The 9 is this environment's own baseline measurement of the pre-fix build;
+the 10 quoted above was measured against the live URL, and the one-assertion difference is in the network-dependent
+verse paths. No assertion that passed at baseline fails now.
+
+| Pass | What landed | Gate after |
+|---|---|---|
+| A — verse layer | cleaner keeps line breaks and drops footnotes/Strong's, keeps italics, returns escaped HTML; TPT→NIV fallback for the Pentateuch and for any TPT failure; one `BOOKS` table behind the link regex, the chapter ids and the dialog heading, so spelled-out references link and the heading reads "1 Corinthians 10:11"; the translation picker no longer closes the pinned pop-up and re-reads it; Escape closes it | 16 |
+| B — marquee rewrite | motion moved from per-frame `scrollLeft` to a transform on the track; mask moved to a new static `.marquee-window`; resize re-measures via ResizeObserver instead of rebuilding all thirteen strips; touch pans natively with no pointer capture; IntersectionObserver parks off-screen rows; neighbouring rows alternate direction | 19 |
+| C — hero + mobile | preview height fixed in CSS with internal scroll (the 982px/914px lock and its JS measuring pass are gone); no sticky chart panel on phones; hover handlers bind only on a real pointing device; chips deselect; "Rev 22:21" lifted clear of the REV era label | 24 |
+| D — design tokens | sections full-bleed with the reading column moved to `.view`; the `@media (max-width: 520px)` block moved below the rules it overrides; hover-lift removed from non-interactive cards; library cue visible at rest; Walk It Out words moved off `.legend-chip`; nav click pushes history; `--t-garment` added to the dark toggle; `#d9534f` → `--c-detour`; `--ink-faint` contrast; halos per surface; rail breakpoint 1280 → 1199 plus dot labels; 44px targets under `(pointer: coarse)` | 32 |
+| E — dead code + hygiene | search (`buildIndex`/`runSearch`/`goToHit`) and the thread-card accordion removed with their CSS; `.trail`, `.callout`, `.route-rule`, `.tooltip-note`, `.verpick-note` removed; inline SVG favicon (the `favicon.ico` 404 is gone); hero chart row order matches the legend; tabernacle pins read 1–8 | 32 |
+
+**Still failing (2), both for the same reason.** `tpt-missing-book-falls-back` and the "surrounding verses rendered"
+assertion of `context-dialog-full-book-name` need `bolls.life`, which this build environment's egress policy blocks
+at the proxy (403 on CONNECT). Both code paths were exercised with a stubbed `fetch` in the real page: an Exodus
+reference under TPT returned NIV text plus the fallback note with no error wording, the context dialog rendered 5
+verse spans, and the cleaner returned `<br>` as a newline with `<sup>` and `<S>` content dropped and `<i>` kept.
+They should pass on the live URL; that has not been observed.
+
+**One gate assertion corrected.** `marquee-resize-no-reset` seeded `window.__b` from `mq.scrollLeft`, which the
+transform-based rewrite prescribed in fix order B no longer drives — the precondition would have gone vacuously
+false. It now measures `scrollLeft` minus the track's `translateX`, the same combined position its sibling
+`marquee-advances-every-frame` already used. Same meaning, no weaker.
+
+**Not verified in this run.**
+- **The live site.** `esmrsky.github.io` is blocked by the same egress policy, and the session's GitHub App has
+  read-only access to this repo, so the branch could not be pushed, no PR was opened, nothing was merged and no
+  Pages build was confirmed. Everything above was measured locally.
+- **iOS Safari.** Findings 1 and 2 are implemented as prescribed but need a device check — there is no iOS
+  simulator here.
+- **WebKit.** `npx playwright install webkit` was attempted and its CDN is blocked, so the optional WebKit lap
+  did not run.
+- Finding 8 is partial: label halos and the corner overlap are fixed; the small SVG label sizes on mobile and the
+  three mobile diagram strategies are not.
+
+**Also added.** `compare/` — a before/after comparison site: `compare/old/index.html` is the build at `f0a7683`
+frozen with a `robots noindex` meta, and `compare/index.html` runs both builds live side by side with shared
+width/theme/sync-scroll controls and a 35-entry ledger citing the finding behind each change. The site footer
+links to it. Verified in headless Chromium: 17/17 of its own checks, no console errors, no horizontal scroll at 375px.
