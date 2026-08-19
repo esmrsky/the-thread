@@ -16,7 +16,7 @@
 //                           {"key": "Escape"}, {"wait": 300},
 //                           {"assert": "!document.querySelector('.verse-tooltip').classList.contains('open')", "name": "Escape closes"},
 //                           {"shot": "after-escape"} ] } ] }
-// step kinds: click, hover, dblclick, type, key, scroll (y or selector), drag {from,to,steps}, wheel {selector,dx,dy}, eval, assert, wait, shot, reload
+// step kinds: click, hover, dblclick, type, key, scroll (y or selector), drag {from,to,steps}, wheel {selector,dx,dy}, eval, assert, wait, waitFor {expr,timeout}, shot, reload
 // Every step may carry "name". Assertions are JS expressions evaluated in-page; truthy = pass. Console errors + failed requests are collected per path.
 
 import { spawn } from 'node:child_process';
@@ -148,6 +148,14 @@ if (cmd === 'paths') {
             else if ('eval' in step) { const v = await p.ev(step.eval); if (step.print !== false) res.notes.push((step.name || 'eval') + ' → ' + JSON.stringify(v).slice(0, 400)); }
             else if ('assert' in step) { const v = await p.ev(step.assert); res.asserts.push({ name: step.name || step.assert.slice(0, 80), passed: !!v, value: JSON.stringify(v).slice(0, 200) }); }
             else if ('wait' in step) await sleep(step.wait);
+            else if ('waitFor' in step) {
+              // Poll rather than guess. Fixed waits are the main source of false failures:
+              // a slow fetch or an animation that has not travelled far enough yet is not a defect.
+              const deadline = Date.now() + (step.timeout || 10000);
+              let ok = false;
+              while (Date.now() < deadline) { if (await p.ev(step.waitFor)) { ok = true; break; } await sleep(150); }
+              if (!ok) throw new Error('waitFor timed out after ' + (step.timeout || 10000) + 'ms: ' + String(step.waitFor).slice(0, 90));
+            }
             else if ('shot' in step) { const f = join(OUT, `${path.name}-${step.shot}.png`); await p.shot(f); res.shots.push(f); }
             else if ('reload' in step) await p.nav(cfg.url || url);
             else res.errors.push('unknown step ' + JSON.stringify(step));

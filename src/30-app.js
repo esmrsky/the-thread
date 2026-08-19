@@ -123,6 +123,19 @@ function linkRefs(html) { return html.replace(REF_RE, (m) => refLink(m)); }
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* preferences just won't persist */ } }
 
+/* Swapped content fades in; without this every verse, preview and passage replaces itself mid-read. */
+function flashSwap(el) {
+  if (!el) return;
+  el.classList.remove('swap-in');
+  void el.offsetWidth;
+  el.classList.add('swap-in');
+}
+function setHTML(el, html) {
+  if (!el) return;
+  el.innerHTML = html;
+  flashSwap(el);
+}
+
 function refRow(refs) {
   return '<div class="pillar-refs">' + refs.map(refLink).join(' · ') + '</div>';
 }
@@ -130,11 +143,37 @@ function badge(kind) {
   const b = CODES.badges[kind];
   return '<span class="badge ' + b.cls + '" title="' + b.tip + '">' + b.label + '</span>';
 }
+/* A label alone left eight blocks reading as one wall of prose; the icon gives each panel a handle. */
+const PANEL_ICONS = [
+  [/brain|neuro|scan/, 'brain'],
+  [/discern|test/, 'key'],
+  [/gratitude|joy/, 'light'],
+  [/treasure/, 'star'],
+  [/ditch|trap/, 'fork'],
+  [/jesus|model/, 'cross'],
+  [/prayer|gears/, 'temple'],
+  [/attach|relationship/, 'heart'],
+  [/elijah|wind|breath/, 'wind'],
+  [/sleep|rest|pace|body/, 'rest'],
+  [/hear|comes|voice/, 'ear'],
+  [/scripture|biblical|frame/, 'scroll'],
+  [/practice|tool|checklist|path/, 'tool']
+];
+function panelIcon(label) {
+  const l = String(label || '').toLowerCase();
+  for (let i = 0; i < PANEL_ICONS.length; i++) if (PANEL_ICONS[i][0].test(l)) return PANEL_ICONS[i][1];
+  return 'compass';
+}
+function panelHead(label) {
+  return '<div class="mind-panel-top"><span class="mind-panel-ic">' + icon(panelIcon(label)) +
+    '</span><span class="label">' + label + '</span></div>';
+}
+
 function paragraphCards(html, labels) {
   const parts = html.match(/<p>[\s\S]*?<\/p>/g) || [html];
   return parts.map((part, i) =>
     '<div class="mind-panel">' +
-    '<span class="label">' + (labels && labels[i] ? labels[i] : 'Field note ' + (i + 1)) + '</span>' +
+    panelHead(labels && labels[i] ? labels[i] : 'Field note ' + (i + 1)) +
     linkRefs(part) + '</div>').join('');
 }
 
@@ -168,7 +207,7 @@ function buildHeroChart() {
     paths += '<path class="hero-thread" data-thread="' + t.id + '" style="--i:' + i + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.2" stroke-linecap="round"></path>';
     // Thicker invisible trigger path on top of visual path
     paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round"></path>';
-    labels += '<text class="hero-line-label" x="-10" y="' + (y0 + 3) + '" text-anchor="end" font-size="7.2" letter-spacing="0.7" fill="var(' + t.cvar + ')" style="font-family:var(--font-label);font-weight:700">' + t.name.toUpperCase() + '</text>';
+    labels += '<text class="hero-line-label" data-thread="' + t.id + '" x="-10" y="' + (y0 + 3) + '" text-anchor="end" font-size="7.2" letter-spacing="0.7" fill="var(' + t.cvar + ')" style="font-family:var(--font-label);font-weight:700">' + t.name.toUpperCase() + '</text>';
   });
   const eras = [[70, 'TORAH'], [180, 'HISTORY'], [277, 'POETS'], [398, 'PROPHETS'], [528, 'GOSPELS'], [622, 'LETTERS'], [694, 'REV']];
   let ticks = '';
@@ -762,11 +801,12 @@ function vMind() {
   const n = NAV[7];
   const primer = NEURO_PRIMER.map(p =>
     '<div class="mind-panel">' +
-    '<span class="label">' + p.label + '</span>' +
+    panelHead(p.label) +
     '<h4>' + p.title + '</h4>' +
     '<p>' + linkRefs(p.body) + '</p>' +
     refRow(p.refs) + '</div>').join('');
-  const cards = MIND.blocks.map(b => {
+  const MIND_HUES = ['--c-mind', '--c-library', '--t-shepherd', '--t-name', '--c-triune', '--t-bride', '--t-temple', '--t-king'];
+  const cards = MIND.blocks.map((b, bi) => {
     let tv = '';
     if (b.tv) {
       tv = '<div class="tv-grid"><div class="tv-box treasure"><span class="label">Keep the treasure</span><ul>' +
@@ -774,7 +814,7 @@ function vMind() {
         '<div class="tv-box ditch"><span class="label">Skip the ditch</span><ul>' +
         b.tv.ditch.map(x => '<li>' + linkRefs(x) + '</li>').join('') + '</ul></div></div>';
     }
-    return '<div class="card mind-card" style="--c:var(--c-mind)">' +
+    return '<div class="card mind-card" style="--c:var(' + MIND_HUES[bi % MIND_HUES.length] + ')">' +
       '<h3><span class="icon-chip">' + icon(b.icon) + '</span>' + b.name + '</h3>' +
       '<div class="mind-body-txt mind-panel-grid">' + paragraphCards(b.body, b.panelLabels) + '</div>' + tv + refRow(b.refs) + '</div>';
   }).join('');
@@ -891,7 +931,12 @@ let selectedPreviewThreadId = null;
 function syncMobileStickyOffsets() {
   const heroChart = document.querySelector('.hero-chart');
   const heroSvg = heroChart && heroChart.querySelector('.hero-svg');
-  if (heroSvg) heroSvg.setAttribute('viewBox', window.innerWidth <= 720 ? '28 0 664 316' : '0 0 720 316');
+  // The route labels are drawn to the left of x=0, so above 1100 the viewBox opens a gutter for
+  // them. Padding the container instead put them off-canvas as soon as the chart got wider.
+  if (heroSvg) {
+    const w = window.innerWidth;
+    heroSvg.setAttribute('viewBox', w <= 720 ? '28 0 664 316' : w < 1100 ? '0 0 720 316' : '-150 0 870 316');
+  }
 }
 
 function updateThreadPreview(threadId) {
@@ -903,7 +948,7 @@ function updateThreadPreview(threadId) {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
 
-  previewEl.innerHTML = buildThreadPreviewContent(t);
+  setHTML(previewEl, buildThreadPreviewContent(t));
   const mobileHeader = document.getElementById('mobile-preview-header');
   if (mobileHeader) {
     mobileHeader.hidden = false;
@@ -928,6 +973,7 @@ function resetThreadPreview() {
     '    <h3>The Story Map</h3>' +
     '    <p>Hover over a thread to preview it, or select one to keep its route highlighted.</p>' +
     '  </div>';
+  flashSwap(previewEl);
 }
 
 function selectPreviewThread(threadId) {
@@ -937,8 +983,8 @@ function selectPreviewThread(threadId) {
     chip.classList.toggle('selected', selected);
     chip.setAttribute('aria-pressed', selected ? 'true' : 'false');
   });
-  document.querySelectorAll('.hero-thread').forEach(path => {
-    path.classList.toggle('selected', path.dataset.thread === threadId);
+  document.querySelectorAll('.hero-thread, .hero-line-label').forEach(el => {
+    el.classList.toggle('selected', el.dataset.thread === threadId);
   });
   updateThreadPreview(threadId);
 }
@@ -1010,7 +1056,7 @@ function wireAllSections() {
   });
 
   // Wire hero thread paths hover and click (using thicker trigger overlay)
-  document.querySelectorAll('.hero-thread-trigger').forEach(trigger => {
+  document.querySelectorAll('.hero-thread-trigger, .hero-line-label').forEach(trigger => {
     const threadId = trigger.dataset.thread;
     const path = document.querySelector('.hero-thread[data-thread="' + threadId + '"]');
     const chipEl = () => document.querySelector('.legend-chip[data-thread="' + threadId + '"]');
@@ -1461,13 +1507,35 @@ async function loadBollsContext(parsed, version, radius) {
   if (!verses || !verses.length) throw new Error('Verse not found.');
   const selectedStart = parsed.verseStart === null ? 1 : parsed.verseStart;
   const selectedEnd = parsed.verseEnd || selectedStart;
-  const rangeStart = Math.max(1, selectedStart - radius);
+  const rangeStart = selectedStart - radius;
   const rangeEnd = selectedEnd + radius;
-  const rows = verses.filter(v => v.verse >= rangeStart && v.verse <= rangeEnd);
+  const rows = verses
+    .filter(v => v.verse >= rangeStart && v.verse <= rangeEnd)
+    .map(v => ({ chapter: parsed.chapter, verse: v.verse, text: v.text }));
+
+  // A passage does not stop where the chapter file does. Asking for more context at the top of
+  // a chapter used to add verses after it, which is the opposite of what was asked for.
+  if (rangeStart < 1 && parsed.chapter > 1) {
+    const prev = await getBollsChapter(version, parsed.bookId, parsed.chapter - 1).catch(() => null);
+    if (prev && prev.length) {
+      const wanted = 1 - rangeStart;
+      const tail = prev.slice(Math.max(0, prev.length - wanted));
+      rows.unshift.apply(rows, tail.map(v => ({ chapter: parsed.chapter - 1, verse: v.verse, text: v.text })));
+    }
+  }
+  if (rangeEnd > verses.length) {
+    const next = await getBollsChapter(version, parsed.bookId, parsed.chapter + 1).catch(() => null);
+    if (next && next.length) {
+      const headRows = next.slice(0, rangeEnd - verses.length);
+      rows.push.apply(rows, headRows.map(v => ({ chapter: parsed.chapter + 1, verse: v.verse, text: v.text })));
+    }
+  }
+
   return '<p class="context-passage">' + rows.map(v => {
-    const selected = v.verse >= selectedStart && v.verse <= selectedEnd;
+    const selected = v.chapter === parsed.chapter && v.verse >= selectedStart && v.verse <= selectedEnd;
     const text = cleanBollsText(v.text);
-    return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + v.verse + '</sup>' + text + '</span>';
+    const num = v.chapter === parsed.chapter ? String(v.verse) : v.chapter + ':' + v.verse;
+    return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num + '</sup>' + text + '</span>';
   }).join(' ') + '</p>';
 }
 
@@ -1634,7 +1702,7 @@ function showTooltip(link, ref, pinned) {
   loadVerseText(ref, version).then(text => {
     if (requestId !== tooltipRequestId) return;
     const txtBox = tooltipEl.querySelector('.tooltip-text');
-    if (txtBox) txtBox.innerHTML = text;
+    if (txtBox) setHTML(txtBox, text);
     
     // Reposition based on actual height
     const actualHeight = tooltipEl.offsetHeight;
@@ -1680,7 +1748,7 @@ function refreshVerseContext(preserveSelection) {
 
   loadVerseContext(ref, version, radius).then(html => {
     if (requestId !== contextRequestId) return;
-    body.innerHTML = html;
+    setHTML(body, html);
     if (preserveSelection) {
       const selectedAfter = body.querySelector('.is-selected');
       if (selectedAfter) body.scrollTop = scrollBefore + selectedAfter.offsetTop - selectedOffsetBefore;
