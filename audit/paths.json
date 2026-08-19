@@ -377,7 +377,7 @@
      "wait": 2500
     },
     {
-     "eval": "window.__b = document.querySelector('#t-lamb .thread-marquee').scrollLeft",
+     "eval": "window.__pos = () => { const mq = document.querySelector('#t-lamb .thread-marquee'); const track = mq.querySelector('.marquee-track'); const m = new DOMMatrixReadOnly(getComputedStyle(track).transform); return mq.scrollLeft - m.m41; }; window.__b = window.__pos()",
      "print": false
     },
     {
@@ -392,7 +392,7 @@
      "wait": 500
     },
     {
-     "assert": "document.querySelector('#t-lamb .thread-marquee').scrollLeft > window.__b - 5",
+     "assert": "window.__pos() > window.__b - 5",
      "name": "resize does not reset the strip to zero"
     }
    ]

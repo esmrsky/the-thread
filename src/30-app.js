@@ -618,7 +618,8 @@ function vThreads() {
       '<div class="thread-row-title"><h3>' + t.name + '</h3><span class="thread-tag">' + t.tag + '</span></div>' +
       '<span class="thread-count">' + t.way.length + ' waypoints</span>' +
       '</div>' +
-      '<div class="thread-marquee" data-marquee><div class="marquee-track">' + wps + '</div></div>' +
+      /* the fade mask rides the static window, never the scrolling element */
+      '<div class="marquee-window"><div class="thread-marquee" data-marquee><div class="marquee-track">' + wps + '</div></div></div>' +
       '<div class="thread-row-foot">' +
       '<div class="lands-on"><span class="label">Where it lands</span>' + linkRefs(t.landsOn) + '</div>' +
       '<p class="for-you">For you: ' + linkRefs(t.forYou) + '</p>' +
@@ -1826,18 +1827,25 @@ function renderSections() {
 }
 
 /* ================= filmstrip marquees (threads) ================= */
+/* Motion lives on the track's `transform`, not on the wrapper's `scrollLeft`. scrollLeft is
+   an integer, so 0.37px per frame quantised into visible stepping — and writing it every
+   frame, together with a mask on the scrolling element, are the two suspects behind the
+   iOS filmstrip going blank or freezing. The wrapper keeps its native scroll for the
+   reader's own wheel and touch panning; the two are additive and nothing here writes
+   scrollLeft except a deliberate mouse drag, so a trackpad scroll no longer snaps back. */
 let marqueeCleanups = [];
 function initMarquees() {
   marqueeCleanups.forEach(cleanup => cleanup());
   marqueeCleanups = [];
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TRACK_GAP = 10;   // matches .marquee-track's gap
 
-  document.querySelectorAll('[data-marquee]').forEach(mq => {
+  document.querySelectorAll('[data-marquee]').forEach((mq, rowIndex) => {
     const track = mq.querySelector('.marquee-track');
     if (!track) return;
     if (!track.dataset.orig) track.dataset.orig = track.innerHTML;
     track.innerHTML = track.dataset.orig;
-    mq.scrollLeft = 0;
+    track.style.transform = '';
     if (reduced) return;
 
     track.innerHTML =
@@ -1846,10 +1854,12 @@ function initMarquees() {
 
     const firstGroup = track.querySelector('.marquee-group');
     track.querySelectorAll('.marquee-group[aria-hidden="true"] a, .marquee-group[aria-hidden="true"] button').forEach(el => el.tabIndex = -1);
-    const loopWidth = firstGroup.offsetWidth + 10;
+
+    let loopWidth = firstGroup.offsetWidth + TRACK_GAP;
+    const speed = 0.022 * (rowIndex % 2 ? -1 : 1);   // neighbouring rows drift opposite ways
+    let offset = 0;
     let frame = 0;
     let lastTime = 0;
-    let scrollPosition = 0;
     let dragging = false;
     let hoverPaused = false;
     let tapPaused = false;
@@ -1858,37 +1868,53 @@ function initMarquees() {
     let startX = 0;
     let startScroll = 0;
 
-    const wrapScroll = () => {
-      if (scrollPosition >= loopWidth) scrollPosition -= loopWidth;
-      else if (scrollPosition < 0) scrollPosition += loopWidth;
-      mq.scrollLeft = scrollPosition;
+    const applyOffset = () => {
+      if (loopWidth > 0) offset = ((offset % loopWidth) + loopWidth) % loopWidth;
+      track.style.transform = 'translate3d(' + (-offset).toFixed(2) + 'px, 0, 0)';
     };
 
     const tick = time => {
       if (!lastTime) lastTime = time;
       if (!dragging && !hoverPaused && !tapPaused) {
-        scrollPosition += Math.min(time - lastTime, 40) * 0.022;
-        wrapScroll();
+        offset += Math.min(time - lastTime, 40) * speed;
+        applyOffset();
       }
       lastTime = time;
       frame = requestAnimationFrame(tick);
     };
+    const startTicking = () => { if (!frame) { lastTime = 0; frame = requestAnimationFrame(tick); } };
+    const stopTicking = () => { if (frame) { cancelAnimationFrame(frame); frame = 0; } };
 
     const onPointerDown = ev => {
-      if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+      if (ev.pointerType !== 'mouse') {
+        /* Touch pans natively — no pointer capture, which is the second iOS suspect: if
+           setPointerCapture throws on a touch pointer, `dragging` sticks and the strip
+           freezes for good. Just hold the motion while a finger is down. */
+        startX = ev.clientX;
+        tapPaused = true;
+        mq.classList.add('is-paused');
+        return;
+      }
+      if (ev.button !== 0) return;
       dragging = true;
       startX = ev.clientX;
-      startScroll = scrollPosition;
+      startScroll = mq.scrollLeft;
       mq.classList.add('is-dragging');
-      mq.setPointerCapture(ev.pointerId);
+      try { mq.setPointerCapture(ev.pointerId); } catch (e) { /* capture is a nicety, not a requirement */ }
     };
     const onPointerMove = ev => {
       if (!dragging) return;
-      const delta = ev.clientX - startX;
-      scrollPosition = startScroll - delta;
-      wrapScroll();
+      mq.scrollLeft = startScroll - (ev.clientX - startX);
     };
     const onPointerEnd = ev => {
+      if (ev.pointerType !== 'mouse') {
+        /* a deliberate tap parks the strip; a swipe (or a cancel, meaning native scrolling
+           took the gesture) lets it run again */
+        tapPaused = ev.type === 'pointerup' && Math.abs(ev.clientX - startX) <= 6;
+        mq.classList.toggle('is-paused', hoverPaused || tapPaused);
+        lastTime = 0;
+        return;
+      }
       if (!dragging) return;
       dragging = false;
       const wasDrag = Math.abs(ev.clientX - startX) > 6;
@@ -1898,11 +1924,10 @@ function initMarquees() {
         hoverPaused = false;
         ignoreHoverUntilLeave = true;
       }
-      else if (ev.pointerType !== 'mouse') tapPaused = true;
-      lastTime = performance.now();
+      lastTime = 0;
       mq.classList.remove('is-dragging');
       mq.classList.toggle('is-paused', hoverPaused || tapPaused);
-      if (mq.hasPointerCapture(ev.pointerId)) mq.releasePointerCapture(ev.pointerId);
+      try { if (mq.hasPointerCapture(ev.pointerId)) mq.releasePointerCapture(ev.pointerId); } catch (e) { /* already gone */ }
     };
     const onClick = ev => {
       if (performance.now() >= suppressClickUntil) return;
@@ -1918,13 +1943,13 @@ function initMarquees() {
       ignoreHoverUntilLeave = false;
       hoverPaused = false;
       mq.classList.toggle('is-paused', tapPaused);
-      lastTime = performance.now();
+      lastTime = 0;
     };
     const onDocumentPointerDown = ev => {
       if (!tapPaused || mq.contains(ev.target)) return;
       tapPaused = false;
       mq.classList.toggle('is-paused', hoverPaused);
-      lastTime = performance.now();
+      lastTime = 0;
     };
 
     mq.addEventListener('pointerdown', onPointerDown);
@@ -1935,10 +1960,34 @@ function initMarquees() {
     mq.addEventListener('mouseenter', onMouseEnter);
     mq.addEventListener('mouseleave', onMouseLeave);
     document.addEventListener('pointerdown', onDocumentPointerDown);
-    frame = requestAnimationFrame(tick);
+
+    /* Thirteen strips animating off screen is thirteen rAF loops doing nothing visible. */
+    let observer = null;
+    if (typeof IntersectionObserver === 'function') {
+      observer = new IntersectionObserver(entries => {
+        entries[0].isIntersecting ? startTicking() : stopTicking();
+      }, { rootMargin: '250px 0px' });
+      observer.observe(mq);
+    } else {
+      startTicking();
+    }
+
+    /* A resize used to rebuild every strip from scratch, which reset all thirteen to zero —
+       and on phones the URL bar fires resize while you scroll. Re-measure the loop instead
+       and leave the position alone. */
+    let sizer = null;
+    if (typeof ResizeObserver === 'function') {
+      sizer = new ResizeObserver(() => {
+        const next = firstGroup.offsetWidth + TRACK_GAP;
+        if (next > 0 && next !== loopWidth) { loopWidth = next; applyOffset(); }
+      });
+      sizer.observe(firstGroup);
+    }
 
     marqueeCleanups.push(() => {
-      cancelAnimationFrame(frame);
+      stopTicking();
+      if (observer) observer.disconnect();
+      if (sizer) sizer.disconnect();
       mq.classList.remove('is-dragging');
       mq.removeEventListener('pointerdown', onPointerDown);
       mq.removeEventListener('pointermove', onPointerMove);
@@ -1951,11 +2000,6 @@ function initMarquees() {
     });
   });
 }
-let marqueeResizeTimer = null;
-window.addEventListener('resize', () => {
-  if (marqueeResizeTimer) clearTimeout(marqueeResizeTimer);
-  marqueeResizeTimer = setTimeout(initMarquees, 150);
-});
 
 /* ================= scarlet progress rail ================= */
 function initRail() {

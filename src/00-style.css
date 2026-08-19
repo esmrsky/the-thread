@@ -1272,19 +1272,24 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   background: color-mix(in srgb, var(--c) 10%, transparent);
   padding: 4px 10px; border-radius: 999px;
 }
+/* The fade sits on this static window. A mask on the *scrolling* element is one of the two
+   suspects behind the filmstrips going blank on iOS, and it costs nothing to move it out. */
+.marquee-window {
+  mask-image: linear-gradient(90deg, transparent, #000 3.5%, #000 96.5%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 3.5%, #000 96.5%, transparent);
+}
 .thread-marquee {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
   cursor: grab;
-  touch-action: pan-y pinch-zoom;
-  mask-image: linear-gradient(90deg, transparent, #000 3.5%, #000 96.5%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 3.5%, #000 96.5%, transparent);
+  /* pan-x so a finger scrolls the strip natively, with momentum, instead of through JS */
+  touch-action: pan-x pan-y pinch-zoom;
 }
 .thread-marquee::-webkit-scrollbar { display: none; }
 .thread-marquee.is-dragging { cursor: grabbing; }
 .thread-marquee.is-dragging, .thread-marquee.is-dragging * { user-select: none; }
-.marquee-track { display: flex; gap: 10px; width: max-content; padding: 2px 18px; }
+.marquee-track { display: flex; gap: 10px; width: max-content; padding: 2px 18px; will-change: transform; }
 .marquee-group { display: flex; gap: 10px; }
 .wp-card {
   flex: 0 0 252px;
@@ -1315,7 +1320,8 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   .wp-card { flex-basis: 220px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .thread-marquee { overflow-x: auto; touch-action: auto; mask-image: none; -webkit-mask-image: none; }
+  .thread-marquee { overflow-x: auto; touch-action: auto; }
+  .marquee-window { mask-image: none; -webkit-mask-image: none; }
 }
 
 /* ---------- scarlet progress rail ---------- */
