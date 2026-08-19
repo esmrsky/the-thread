@@ -600,8 +600,8 @@ function vStart() {
     '  </div>' +
     '  <div class="chart-main">' +
     '    <div class="hero-scroll">' +
-    '      <span class="chart-corner tl">' + namedRefLink('Gen 1:1', 'Genesis') + '</span>' +
-    '      <span class="chart-corner br">' + namedRefLink('Rev 22:21', 'Revelation') + '</span>' +
+    '      <span class="chart-corner tl">' + namedRefLink('Gen 1:1', '<span class="cc-long">Genesis</span><span class="cc-short">Gen</span>') + '</span>' +
+    '      <span class="chart-corner br">' + namedRefLink('Rev 22:21', '<span class="cc-long">Revelation</span><span class="cc-short">Rev</span>') + '</span>' +
     buildHeroChart() + '</div>' +
     '    <div class="hero-legend">' + legend + '</div>' +
     '  </div>' +
@@ -1180,6 +1180,19 @@ function wireAllSections() {
     trigger.addEventListener('click', () => togglePreviewThread(threadId));
   });
 
+  /* Letting a held route go used to mean finding its pill again — which on a phone is a
+     sideways-scrolling strip where the held one may well be off-screen. Tapping the chart
+     anywhere off a line is the obvious "show me all of them again", so it does that. */
+  document.querySelectorAll('.hero-scroll').forEach(scroll => {
+    scroll.addEventListener('click', ev => {
+      if (!selectedPreviewThreadId) return;
+      if (ev.target.closest && ev.target.closest('.hero-thread-trigger, .hero-line-label, a')) return;
+      document.querySelectorAll('.legend-chip.hot, .hero-thread.hot').forEach(el => el.classList.remove('hot'));
+      cancelPreviewReset();
+      clearPreviewSelection();
+    });
+  });
+
   const previewEl = document.getElementById('thread-preview');
   if (previewEl) {
     previewEl.addEventListener('click', ev => {
@@ -1499,6 +1512,11 @@ function applyWithFade(mutate, prepare) {
 function setTypeTheme(name, instant) {
   const value = TYPE_THEMES[name] ? name : PREFS.type.def;
   markPrefButtons('type', value);
+  /* The six buttons are two letters each now, so the head carries the name of the one held —
+     the only place a touch reader, who never sees a title attribute, can read it. */
+  const label = document.getElementById('type-name');
+  const picked = document.querySelector('[data-pref="type"] button[data-v="' + value + '"]');
+  if (label && picked) label.textContent = picked.dataset.name || value;
   lsSet(PREFS.type.key, value);
   const apply = () => {
     if (value === PREFS.type.def) delete document.documentElement.dataset.type;
@@ -1570,12 +1588,24 @@ function initPrefs() {
   const btn = document.getElementById('prefs-btn');
   const menu = document.getElementById('prefs-menu');
   if (!wrap || !btn || !menu) return;
-  const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+
+  /* On a phone the panel is a sheet pinned to the bottom of the screen, and `position: fixed`
+     resolves against the nearest ancestor with a filter — which is the topbar, blurred. Left
+     where it sits it would pin to the bottom of the header instead. So for as long as it is
+     open at that width it lives on <body>; the CSS restates the header's own font-size so the
+     em-sized controls inside come out the same either way. */
+  const sheetMQ = window.matchMedia('(max-width: 760px)');
+  let onBody = false;
+  const toSheet = () => { if (!onBody && sheetMQ.matches) { document.body.appendChild(menu); onBody = true; } };
+  const toWrap = () => { if (onBody) { wrap.appendChild(menu); onBody = false; } };
+
+  const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); toWrap(); };
   /* The six previews are each set in their own two faces. A hidden menu renders nothing,
      so this first open is the moment they are worth fetching — and by the time one is
      picked its faces are already there. */
   let previewsWarmed = false;
   const open = () => {
+    toSheet();
     menu.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
     if (previewsWarmed) return;
@@ -1594,8 +1624,18 @@ function initPrefs() {
     if (!b) return;
     applyPref(b.closest('[data-pref]').dataset.pref, b.dataset.v);
   });
-  document.addEventListener('click', ev => { if (!menu.hidden && !wrap.contains(ev.target)) close(); });
-  wrap.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !menu.hidden) { ev.preventDefault(); close(); btn.focus(); } });
+  /* the menu is no longer always inside the wrapper, so both count as "inside" */
+  document.addEventListener('click', ev => {
+    if (!menu.hidden && !wrap.contains(ev.target) && !menu.contains(ev.target)) close();
+  });
+  /* likewise Escape: once portaled, focus inside the sheet is no longer under the wrapper */
+  document.addEventListener('keydown', ev => {
+    if (ev.key === 'Escape' && !menu.hidden) { ev.preventDefault(); close(); btn.focus(); }
+  });
+  /* crossing the sheet/dropdown boundary mid-open would leave it anchored to the wrong thing */
+  const onMQ = () => { if (!menu.hidden) close(); };
+  if (sheetMQ.addEventListener) sheetMQ.addEventListener('change', onMQ);
+  else if (sheetMQ.addListener) sheetMQ.addListener(onMQ);
 }
 
 function initVersionPicker() {
