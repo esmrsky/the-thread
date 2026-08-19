@@ -1534,6 +1534,18 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 .verse-tooltip .tooltip-text {
   font-style: normal;
+  /* the cleaner turns <br> into a real newline, so poetry lines and inline headings
+     keep their break instead of gluing to the next word */
+  white-space: pre-line;
+}
+.verse-fallback-note {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
 .verse-tooltip .tooltip-note {
   font-family: var(--font-label);
@@ -1600,7 +1612,8 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   background-clip: padding-box;
 }
 .context-loading { color: var(--ink-soft); }
-.context-passage { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: 1.9; }
+.context-passage { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: 1.9; white-space: pre-line; }
+.context-fallback-note { margin: 12px 0 0; }
 .context-verse, .context-block { display: inline; }
 .context-verse + .context-verse::before, .context-block + .context-block::before { content: " "; }
 .context-verse-number { margin-right: 0.3em; color: var(--ink-faint); font-family: var(--font-label); font-size: 0.62rem; font-weight: 700; }

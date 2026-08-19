@@ -1536,6 +1536,18 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 .verse-tooltip .tooltip-text {
   font-style: normal;
+  /* the cleaner turns <br> into a real newline, so poetry lines and inline headings
+     keep their break instead of gluing to the next word */
+  white-space: pre-line;
+}
+.verse-fallback-note {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
 .verse-tooltip .tooltip-note {
   font-family: var(--font-label);
@@ -1602,7 +1614,8 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   background-clip: padding-box;
 }
 .context-loading { color: var(--ink-soft); }
-.context-passage { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: 1.9; }
+.context-passage { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: 1.9; white-space: pre-line; }
+.context-fallback-note { margin: 12px 0 0; }
 .context-verse, .context-block { display: inline; }
 .context-verse + .context-verse::before, .context-block + .context-block::before { content: " "; }
 .context-verse-number { margin-right: 0.3em; color: var(--ink-faint); font-family: var(--font-label); font-size: 0.62rem; font-weight: 700; }
@@ -3204,7 +3217,96 @@ const TRIUNE = {
 };
 /* ================= app: helpers ================= */
 const BG = 'https://www.biblegateway.com/passage/?search=';
-const REF_RE = /((?:[123]\s)?(?:Gen|Ex|Lev|Num|Deut|Josh|Judg|Ruth|Sam|Kings|Chr|Ezra|Neh|Esth|Job|Ps|Prov|Eccl|Song|Isa|Jer|Lam|Ezek|Dan|Hos|Joel|Amos|Jonah|Mic|Micah|Nah|Hab|Zeph|Hag|Zech|Mal|Matt|Mark|Luke|John|Acts|Rom|Cor|Gal|Eph|Phil|Col|Thess|Tim|Titus|Heb|Jas|James|Pet|Jude|Rev)\s\d+(?::\d+(?:[-–]\d+(?::\d+)?)?(?:,\s?\d+(?:[-–]\d+)?)*)?)/g;
+
+/* One table for every book, so the three places that used to keep their own list stay in
+   step: the link regex below, `parseReference`'s book ids, and the full name the context
+   dialog shows. `names` holds every spelling that appears in the copy — abbreviated and
+   spelled out — and `n` marks the numbered volumes so "2 Kings" and "Kings" resolve apart. */
+const BOOKS = [
+  { id: 1, full: 'Genesis', names: ['Gen', 'Genesis'] },
+  { id: 2, full: 'Exodus', names: ['Ex', 'Exod', 'Exodus'] },
+  { id: 3, full: 'Leviticus', names: ['Lev', 'Leviticus'] },
+  { id: 4, full: 'Numbers', names: ['Num', 'Numbers'] },
+  { id: 5, full: 'Deuteronomy', names: ['Deut', 'Deuteronomy'] },
+  { id: 6, full: 'Joshua', names: ['Josh', 'Joshua'] },
+  { id: 7, full: 'Judges', names: ['Judg', 'Judges'] },
+  { id: 8, full: 'Ruth', names: ['Ruth'] },
+  { id: 9, full: '1 Samuel', n: 1, names: ['Sam', 'Samuel'] },
+  { id: 10, full: '2 Samuel', n: 2, names: ['Sam', 'Samuel'] },
+  { id: 11, full: '1 Kings', n: 1, names: ['Kings'] },
+  { id: 12, full: '2 Kings', n: 2, names: ['Kings'] },
+  { id: 13, full: '1 Chronicles', n: 1, names: ['Chr', 'Chronicles'] },
+  { id: 14, full: '2 Chronicles', n: 2, names: ['Chr', 'Chronicles'] },
+  { id: 15, full: 'Ezra', names: ['Ezra'] },
+  { id: 16, full: 'Nehemiah', names: ['Neh', 'Nehemiah'] },
+  { id: 17, full: 'Esther', names: ['Esth', 'Esther'] },
+  { id: 18, full: 'Job', names: ['Job'] },
+  { id: 19, full: 'Psalms', names: ['Ps', 'Psalm', 'Psalms'] },
+  { id: 20, full: 'Proverbs', names: ['Prov', 'Proverbs'] },
+  { id: 21, full: 'Ecclesiastes', names: ['Eccl', 'Ecclesiastes'] },
+  { id: 22, full: 'Song of Songs', names: ['Song'] },
+  { id: 23, full: 'Isaiah', names: ['Isa', 'Isaiah'] },
+  { id: 24, full: 'Jeremiah', names: ['Jer', 'Jeremiah'] },
+  { id: 25, full: 'Lamentations', names: ['Lam', 'Lamentations'] },
+  { id: 26, full: 'Ezekiel', names: ['Ezek', 'Ezekiel'] },
+  { id: 27, full: 'Daniel', names: ['Dan', 'Daniel'] },
+  { id: 28, full: 'Hosea', names: ['Hos', 'Hosea'] },
+  { id: 29, full: 'Joel', names: ['Joel'] },
+  { id: 30, full: 'Amos', names: ['Amos'] },
+  { id: 31, full: 'Obadiah', names: ['Obad', 'Obadiah'] },
+  { id: 32, full: 'Jonah', names: ['Jonah'] },
+  { id: 33, full: 'Micah', names: ['Mic', 'Micah'] },
+  { id: 34, full: 'Nahum', names: ['Nah', 'Nahum'] },
+  { id: 35, full: 'Habakkuk', names: ['Hab', 'Habakkuk'] },
+  { id: 36, full: 'Zephaniah', names: ['Zeph', 'Zephaniah'] },
+  { id: 37, full: 'Haggai', names: ['Hag', 'Haggai'] },
+  { id: 38, full: 'Zechariah', names: ['Zech', 'Zechariah'] },
+  { id: 39, full: 'Malachi', names: ['Mal', 'Malachi'] },
+  { id: 40, full: 'Matthew', names: ['Matt', 'Matthew'] },
+  { id: 41, full: 'Mark', names: ['Mark'] },
+  { id: 42, full: 'Luke', names: ['Luke'] },
+  { id: 43, full: 'John', names: ['John'] },
+  { id: 44, full: 'Acts', names: ['Acts'] },
+  { id: 45, full: 'Romans', names: ['Rom', 'Romans'] },
+  { id: 46, full: '1 Corinthians', n: 1, names: ['Cor', 'Corinthians'] },
+  { id: 47, full: '2 Corinthians', n: 2, names: ['Cor', 'Corinthians'] },
+  { id: 48, full: 'Galatians', names: ['Gal', 'Galatians'] },
+  { id: 49, full: 'Ephesians', names: ['Eph', 'Ephesians'] },
+  { id: 50, full: 'Philippians', names: ['Phil', 'Philippians'] },
+  { id: 51, full: 'Colossians', names: ['Col', 'Colossians'] },
+  { id: 52, full: '1 Thessalonians', n: 1, names: ['Thess', 'Thessalonians'] },
+  { id: 53, full: '2 Thessalonians', n: 2, names: ['Thess', 'Thessalonians'] },
+  { id: 54, full: '1 Timothy', n: 1, names: ['Tim', 'Timothy'] },
+  { id: 55, full: '2 Timothy', n: 2, names: ['Tim', 'Timothy'] },
+  { id: 56, full: 'Titus', names: ['Titus'] },
+  { id: 57, full: 'Philemon', names: ['Philem', 'Philemon'] },
+  { id: 58, full: 'Hebrews', names: ['Heb', 'Hebrews'] },
+  { id: 59, full: 'James', names: ['Jas', 'James'] },
+  { id: 60, full: '1 Peter', n: 1, names: ['Pet', 'Peter'] },
+  { id: 61, full: '2 Peter', n: 2, names: ['Pet', 'Peter'] },
+  { id: 62, full: '1 John', n: 1, names: ['John'] },
+  { id: 63, full: '2 John', n: 2, names: ['John'] },
+  { id: 64, full: '3 John', n: 3, names: ['John'] },
+  { id: 65, full: 'Jude', names: ['Jude'] },
+  { id: 66, full: 'Revelation', names: ['Rev', 'Revelation'] }
+];
+
+/* name → { 0: unnumbered id, 1: "1 X" id, … }; full name by id, for the dialog heading. */
+const BOOK_BY_NAME = {};
+const BOOK_FULL_BY_ID = {};
+BOOKS.forEach(b => {
+  BOOK_FULL_BY_ID[b.id] = b.full;
+  b.names.forEach(name => {
+    const slot = BOOK_BY_NAME[name] || (BOOK_BY_NAME[name] = {});
+    slot[b.n || 0] = b.id;
+  });
+});
+
+/* Longest name first so "Isaiah 53" matches as Isaiah rather than backtracking through "Isa". */
+const BOOK_NAME_PATTERN = Array.from(new Set(BOOKS.flatMap(b => b.names)))
+  .sort((a, b) => b.length - a.length).join('|');
+const REF_RE = new RegExp(
+  '\\b((?:[123]\\s)?(?:' + BOOK_NAME_PATTERN + ')\\s\\d+(?::\\d+(?:[-–]\\d+(?::\\d+)?)?(?:,\\s?\\d+(?:[-–]\\d+)?)*)?)', 'g');
 
 function splitReferenceGroup(refs) {
   const parts = String(refs).split(/\s*;\s*/).filter(Boolean);
@@ -4456,7 +4558,8 @@ function initVersionPicker() {
   if (saved && VERSIONS.some(v => v.code === saved)) ACTIVE_VERSION = saved;
   val.textContent = ACTIVE_VERSION;
   menu.innerHTML = versionMenuHtml('Verse pop-ups read in');
-  wireVersionPicker(wrap);
+  /* Changing translation used to close the pinned pop-up and leave it stale; re-read it instead. */
+  wireVersionPicker(wrap, () => refreshPinnedTooltip());
 }
 
 /* ================= hover scripture tooltips & translation APIs ================= */
@@ -4480,6 +4583,8 @@ let tooltipEl = null;
 let tooltipTimer = null;
 let tooltipPinned = false;
 let tooltipRequestId = 0;
+let tooltipLink = null;
+let tooltipRef = '';
 let contextDialogEl = null;
 let contextRequestId = 0;
 let contextVersionPicker = null;
@@ -4495,36 +4600,30 @@ function parseReference(refStr) {
   const verseStart = match[4] ? parseInt(match[4], 10) : null;
   const verseEnd = match[5] ? parseInt(match[5], 10) : null;
 
-  const baseMap = {
-    'Gen': 1, 'Ex': 2, 'Lev': 3, 'Num': 4, 'Deut': 5, 'Josh': 6, 'Judg': 7, 'Ruth': 8,
-    'Sam': 9, 'Kings': 11, 'Chr': 13, 'Ezra': 15, 'Neh': 16, 'Esth': 17, 'Job': 18,
-    'Ps': 19, 'Prov': 20, 'Eccl': 21, 'Song': 22, 'Isa': 23, 'Jer': 24, 'Lam': 25,
-    'Ezek': 26, 'Dan': 27, 'Hos': 28, 'Joel': 29, 'Amos': 30, 'Obadiah': 31, 'Jonah': 32,
-    'Mic': 33, 'Micah': 33, 'Nah': 34, 'Hab': 35, 'Zeph': 36, 'Hag': 37, 'Zech': 38, 'Mal': 39,
-    'Matt': 40, 'Mark': 41, 'Luke': 42, 'John': 43, 'Acts': 44, 'Rom': 45, 'Cor': 46,
-    'Gal': 48, 'Eph': 49, 'Phil': 50, 'Col': 51, 'Thess': 52, 'Tim': 54, 'Titus': 56,
-    'Philemon': 57, 'Heb': 58, 'Jas': 59, 'James': 59, 'Pet': 60, 'Jude': 65, 'Rev': 66
-  };
+  const slot = BOOK_BY_NAME[name];
+  if (!slot) return null;
 
-  let bookId = baseMap[name];
+  /* "1 Kings" picks slot 1; a bare "Kings" has no unnumbered volume, so it falls to the first. */
+  const num = numPrefix ? parseInt(numPrefix, 10) : 0;
+  const bookId = slot[num] !== undefined ? slot[num]
+    : slot[0] !== undefined ? slot[0]
+      : slot[1];
   if (!bookId) return null;
 
-  if (numPrefix) {
-    const num = parseInt(numPrefix, 10);
-    if (name === 'Sam' && num === 2) bookId = 10;
-    else if (name === 'Kings' && num === 2) bookId = 12;
-    else if (name === 'Chr' && num === 2) bookId = 14;
-    else if (name === 'Cor' && num === 2) bookId = 47;
-    else if (name === 'Thess' && num === 2) bookId = 53;
-    else if (name === 'Tim' && num === 2) bookId = 55;
-    else if (name === 'Pet' && num === 2) bookId = 61;
-    else if (name === 'John') {
-      if (num === 2) bookId = 63;
-      else if (num === 3) bookId = 64;
-    }
-  }
-
   return { bookId, chapter, verseStart, verseEnd };
+}
+
+/* "1 Cor 10:11" → "1 Corinthians 10:11", for the context dialog heading. */
+function formatReferenceTitle(refStr) {
+  const parsed = parseReference(refStr);
+  const full = parsed && BOOK_FULL_BY_ID[parsed.bookId];
+  if (!full) return refStr;
+  let out = full + ' ' + parsed.chapter;
+  if (parsed.verseStart !== null) {
+    out += ':' + parsed.verseStart;
+    if (parsed.verseEnd !== null && parsed.verseEnd !== parsed.verseStart) out += '–' + parsed.verseEnd;
+  }
+  return out;
 }
 
 function toYouVersionPassage(ref) {
@@ -4544,10 +4643,26 @@ function escapeScriptureText(text) {
   })[character]);
 }
 
+/* bolls.life ships verses as small HTML fragments. Stripping every tag to '' glued words
+   together at line breaks ("The Bronze SnakeThey traveled") and let <sup> footnote text
+   leak in as verse words. So: footnotes and Strong's numbers go entirely, <br> becomes a
+   real newline (the reader renders `white-space: pre-line`), italics survive, and
+   everything else is escaped — the result is safe HTML, already escaped for its caller. */
+const ITALIC_OPEN = '\u0001i\u0001';
+const ITALIC_CLOSE = '\u0001/i\u0001';
 function cleanBollsText(text) {
-  return String(text)
+  const marked = String(text)
     .replace(/<s>[\s\S]*?<\/s>/gi, '')
-    .replace(/<[^>]+>/g, '')
+    .replace(/<sup>[\s\S]*?<\/sup>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?(?:i|em)\b[^>]*>/gi, m => (m.charAt(1) === '/' ? ITALIC_CLOSE : ITALIC_OPEN))
+    .replace(/<[^>]*>/g, '');
+  return escapeScriptureText(marked)
+    .split(ITALIC_OPEN).join('<i>')
+    .split(ITALIC_CLOSE).join('</i>')
+    .replace(/[ \t]*\n[ \t]*/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
     .trim();
 }
 
@@ -4575,9 +4690,26 @@ async function fetchTptPassage(passage) {
   return tptPassageCache.get(passage);
 }
 
+/* The TPT source has no Pentateuch — Exodus through Deuteronomy 404 — which dead-ended
+   ~50 references on this site. Those books skip the request and read NIV instead, and any
+   other TPT failure falls back the same way, with a line saying so. */
+const TPT_MISSING_BOOKS = [2, 3, 4, 5];
+const TPT_FALLBACK_VERSION = 'NIV';
+const TPT_FALLBACK_NOTE = '<span class="verse-fallback-note">TPT does not carry this book — showing ' + TPT_FALLBACK_VERSION + '.</span>';
+
+function tptCoversBook(ref) {
+  const parsed = parseReference(ref);
+  return !parsed || TPT_MISSING_BOOKS.indexOf(parsed.bookId) === -1;
+}
+
 async function loadVerseText(ref, version) {
-  if (version === 'TPT') return fetchTptFromYouVersion(ref);
-  return fetchFromBolls(ref, version);
+  if (version !== 'TPT') return fetchFromBolls(ref, version);
+  if (tptCoversBook(ref)) {
+    try {
+      return await fetchTptFromYouVersion(ref);
+    } catch (e) { /* fall through to the NIV fallback */ }
+  }
+  return (await fetchFromBolls(ref, TPT_FALLBACK_VERSION)) + '\n' + TPT_FALLBACK_NOTE;
 }
 
 async function fetchFromBolls(ref, version) {
@@ -4627,9 +4759,14 @@ async function getBollsChapter(version, bookId, chapter) {
 async function loadVerseContext(ref, version, radius) {
   const parsed = parseReference(ref);
   if (!parsed) throw new Error('Reference not recognized.');
-  return version === 'TPT'
-    ? loadTptContext(parsed, radius)
-    : loadBollsContext(parsed, version, radius);
+  if (version !== 'TPT') return loadBollsContext(parsed, version, radius);
+  if (TPT_MISSING_BOOKS.indexOf(parsed.bookId) === -1) {
+    try {
+      return await loadTptContext(parsed, radius);
+    } catch (e) { /* fall through to the NIV fallback */ }
+  }
+  return (await loadBollsContext(parsed, TPT_FALLBACK_VERSION, radius)) +
+    '<p class="context-fallback-note">' + TPT_FALLBACK_NOTE + '</p>';
 }
 
 async function loadBollsContext(parsed, version, radius) {
@@ -4642,7 +4779,7 @@ async function loadBollsContext(parsed, version, radius) {
   const rows = verses.filter(v => v.verse >= rangeStart && v.verse <= rangeEnd);
   return '<p class="context-passage">' + rows.map(v => {
     const selected = v.verse >= selectedStart && v.verse <= selectedEnd;
-    const text = escapeScriptureText(cleanBollsText(v.text));
+    const text = cleanBollsText(v.text);
     return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + v.verse + '</sup>' + text + '</span>';
   }).join(' ') + '</p>';
 }
@@ -4747,7 +4884,16 @@ function initTooltip() {
       return;
     }
 
-    if (tooltipPinned && !ev.target.closest('.verse-tooltip')) hideTooltip(true);
+    /* The translation picker is part of the pop-up's controls, not "somewhere else". */
+    if (tooltipPinned && !ev.target.closest('.verse-tooltip') && !ev.target.closest('.verpick')) hideTooltip(true);
+  });
+
+  document.addEventListener('keydown', ev => {
+    if (ev.key !== 'Escape' || !tooltipPinned) return;
+    if (contextDialogEl && contextDialogEl.open) return;   // <dialog> closes itself
+    if (document.querySelector('.verpick.open')) return;   // the open menu takes it first
+    ev.preventDefault();
+    hideTooltip(true);
   });
 
   contextDialogEl.querySelector('.context-dialog-close').addEventListener('click', () => contextDialogEl.close());
@@ -4761,9 +4907,18 @@ function initTooltip() {
   });
 }
 
+/* Re-read the pinned pop-up in whatever translation is now active. */
+function refreshPinnedTooltip() {
+  if (!tooltipPinned || !tooltipLink || !tooltipRef) return;
+  if (!tooltipLink.isConnected) return;
+  showTooltip(tooltipLink, tooltipRef, true);
+}
+
 function showTooltip(link, ref, pinned) {
   if (tooltipTimer) clearTimeout(tooltipTimer);
   tooltipPinned = Boolean(pinned);
+  tooltipLink = link;
+  tooltipRef = ref;
   const requestId = ++tooltipRequestId;
   const version = getVersion();
   
@@ -4859,7 +5014,7 @@ function openVerseContext(ref, version) {
   contextDialogEl.dataset.ref = ref;
   contextDialogEl.dataset.version = version;
   contextDialogEl.dataset.radius = '4';
-  contextDialogEl.querySelector('h3').textContent = ref;
+  contextDialogEl.querySelector('h3').textContent = formatReferenceTitle(ref);
   applyVersion(version);
   const body = contextDialogEl.querySelector('.context-dialog-body');
   body.scrollTop = 0;
