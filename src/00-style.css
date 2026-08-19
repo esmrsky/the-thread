@@ -1272,9 +1272,11 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 /* Touch targets. Fingers need ~44px; a mouse does not, and forcing it everywhere would
    pull the header apart — so the floor applies where the pointer is actually coarse. */
 @media (pointer: coarse) {
-  .nav-link, .verpick-btn, .theme-toggle, .subtab, .legend-chip, .tooltip-context-button {
+  .nav-link, .verpick-btn, .theme-toggle, .subtab, .legend-chip, .tooltip-context-button,
+  .typegrid button {
     min-height: 44px;
   }
+  .typegrid button { align-items: center; }
   .nav-link, .verpick-btn, .subtab, .legend-chip { padding-top: 10px; padding-bottom: 10px; }
   .theme-toggle { min-width: 44px; }
   /* the rail dot stays a 14px mark; only its hit area grows */
@@ -1545,19 +1547,22 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 /* ---------- one route at a time ----------
    Thirteen lines at 0.7 and one at 1.0 is a difference you have to hunt for, and the
    0.7 -> 3.6 width step reads as almost nothing on a phone. So while a route is hot or
-   held, the other twelve fall right back: the live one is the only thing left at full
-   strength. Letting go — or clicking the held route again — brings them all back. */
-.hero-chart.route-focus .hero-thread { opacity: 0.12; stroke-width: 1.8; }
+   held, the other twelve fall back: the live one is the only thing left at full strength.
+   Falling all the way to 0.12 erased them, though, and the point of the picture is that
+   the held route runs *with* twelve others — so they stay visible, just quiet. Letting go,
+   clicking the held route again, or tapping empty chart brings them all back. */
+.hero-chart.route-focus .hero-thread { opacity: 0.3; stroke-width: 2; }
 .hero-chart.route-focus .hero-thread.hot,
 .hero-chart.route-focus .hero-thread.selected { opacity: 1; stroke-width: 4.4; }
-.hero-chart.route-focus .legend-chip:not(.hot):not(.selected) { opacity: 0.32; }
-.hero-chart.route-focus .hero-line-label:not(.hot):not(.selected) { opacity: 0.2; }
+.hero-chart.route-focus .legend-chip:not(.hot):not(.selected) { opacity: 0.55; }
+.hero-chart.route-focus .hero-line-label:not(.hot):not(.selected) { opacity: 0.45; }
 .hero-chart .legend-chip,
 .hero-chart .hero-line-label { transition: opacity 0.25s ease, color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease; }
 /* No hover on a phone, so this only ever fires on a tap — which is exactly when the
-   width difference was hardest to read. Push both ends of it further apart there. */
+   width difference was hardest to read. The gap stays in the stroke width there rather
+   than in how far the other twelve are faded out. */
 @media (max-width: 760px) {
-  .hero-chart.route-focus .hero-thread { opacity: 0.1; stroke-width: 1.6; }
+  .hero-chart.route-focus .hero-thread { opacity: 0.28; stroke-width: 1.9; }
   .hero-chart.route-focus .hero-thread.hot,
   .hero-chart.route-focus .hero-thread.selected { stroke-width: 5.4; }
 }
@@ -2019,12 +2024,20 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
     flex-wrap: nowrap;
     justify-content: flex-start;
     overflow-x: auto;
-    padding: 2px 10px 8px;
+    padding: 2px 0 8px 14px;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
+    /* The snap point is the scrollport edge unless told otherwise, so scrolling the strip
+       parked whichever pill was nearest hard against the panel wall — the leading padding
+       only ever showed at rest. Inset the snap line by the same amount and the pills keep
+       their margin wherever the strip stops. */
+    scroll-padding-left: 14px;
   }
   .hero-chart .hero-legend::-webkit-scrollbar { display: none; }
   .hero-chart .legend-chip { flex: 0 0 auto; scroll-snap-align: start; }
+  /* Trailing padding on a flex scroller is dropped by some engines, which put the last pill
+     on the edge; a flex spacer is the same gap nothing skips. */
+  .hero-chart .hero-legend::after { content: ""; flex: 0 0 14px; }
   .thread-preview-card .preview-header { display: none; }
   .verse-tooltip { max-width: calc(100vw - 28px); }
   .context-dialog-head, .context-dialog-body { padding-left: 16px; padding-right: 16px; }
@@ -2563,6 +2576,8 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   font-family: var(--font-label); font-size: 0.56em; font-weight: 700;
   letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint);
 }
+.prefs-head-val { font-weight: 700; color: var(--thread); }
+.prefs-head-val::before { content: "\00b7"; margin: 0 5px 0 2px; color: var(--ink-faint); }
 .seg { display: flex; gap: 2px; padding: 3px; margin-bottom: 14px;
   border: 1px solid var(--line); border-radius: 999px; background: var(--card-2); }
 .seg button {
@@ -2579,27 +2594,30 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 }
 .prefs-note { display: block; font-size: 0.68em; color: var(--ink-faint); line-height: 1.4; }
 
-/* Six pairings, each previewed in its own two faces: the name is set in the theme's
-   heading font and the line under it in its body font, so a theme that crosses the pair
-   shows that it does before you pick it. */
-.typegrid { display: grid; gap: 3px; margin-bottom: 14px; }
+/* Six pairings, each previewed in its own two faces — but as six named rows with a
+   descriptive line each they were over half the panel's height, which on a phone meant
+   scrolling a settings sheet to reach the text size. A pairing only ever needed two
+   letters to show itself: the cap is set in the theme's heading font and the lowercase
+   in its body font, so a theme that crosses serif and sans still shows that it does. */
+.typegrid { display: flex; gap: 5px; margin-bottom: 14px; }
 .typegrid button {
-  display: block; width: 100%; text-align: left;
-  padding: 7px 10px; border-radius: 8px;
-  border: 1px solid transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  flex: 1 1 0; min-width: 0;
+  display: flex; align-items: baseline; justify-content: center; gap: 1px;
+  padding: 7px 2px 8px; border-radius: 9px;
+  border: 1px solid var(--line-soft);
+  background: var(--card-2);
+  line-height: 1;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.typegrid button:hover { background: var(--card-2); }
-.typegrid button b { display: block; font-size: 0.94em; font-weight: 600; color: var(--ink); line-height: 1.25; }
-.typegrid button i {
-  display: block; font-style: normal; font-size: 0.72em;
-  color: var(--ink-faint); line-height: 1.35; margin-top: 1px;
-}
+.typegrid button:hover { border-color: color-mix(in srgb, var(--thread) 30%, var(--line)); }
+.typegrid button b { font-size: 1.05em; font-weight: 600; color: var(--ink); }
+.typegrid button i { font-style: normal; font-size: 0.92em; color: var(--ink-soft); }
 .typegrid button[aria-pressed="true"] {
   background: color-mix(in srgb, var(--thread) 12%, var(--card));
-  border-color: color-mix(in srgb, var(--thread) 32%, transparent);
+  border-color: color-mix(in srgb, var(--thread) 42%, transparent);
 }
-.typegrid button[aria-pressed="true"] b { color: var(--thread); }
+.typegrid button[aria-pressed="true"] b,
+.typegrid button[aria-pressed="true"] i { color: var(--thread); }
 
 .typegrid button[data-v="literata"] b,
 .typegrid button[data-v="literata"] i { font-family: "Literata", var(--fb-serif); }
@@ -2634,6 +2652,45 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 
 @media (max-width: 520px) { .prefs-menu { min-width: min(272px, calc(100vw - 28px)); } }
 
+/* ---------- the panel comes up from the bottom on a phone ----------
+   Hung off the button it covered the top third of the screen — the header, the section
+   you were reading, and the chart whose type you were adjusting. Everything this panel
+   changes is *below* it, so it belongs at the bottom of the screen with the page still
+   showing above. No scrim, deliberately: the point is watching the page change. */
+@media (max-width: 760px) {
+  .prefs-menu {
+    position: fixed;
+    top: auto; right: 0; bottom: 0; left: 0;
+    width: auto; min-width: 0;
+    max-height: min(72dvh, 520px);
+    /* it opens on <body>, away from the header whose em sizing these controls are cut to */
+    font-size: calc(1rem / (var(--fs) * var(--fs-theme)));
+    padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
+    border-width: 1px 0 0;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    box-shadow: 0 -14px 40px color-mix(in srgb, #000 28%, transparent);
+    overscroll-behavior: contain;
+  }
+  /* the pointer that aimed at the button becomes the sheet's grab handle */
+  .prefs-menu::before {
+    position: static;
+    display: block;
+    width: 40px; height: 4px;
+    margin: 2px auto 12px;
+    transform: none;
+    border: 0;
+    border-radius: 999px;
+    background: var(--line);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .prefs-menu:not([hidden]) { animation: sheet-up 0.24s cubic-bezier(.2,.7,.3,1) both; }
+  }
+}
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 
 /* ---------- the two ends of the story ----------
    They read as book names and carry the verse on hover. Both charts live in the DOM and CSS
@@ -2652,10 +2709,19 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .hero-scroll .chart-corner { padding: 0; line-height: 1; }
 .hero-scroll .chart-corner.tl { top: 0; bottom: auto; left: 0; right: auto; }
 .hero-scroll .chart-corner.br { top: 0; bottom: auto; right: 0; left: auto; }
+/* Full book names above, abbreviations once the panel is phone-width — see below. */
+.chart-corner .cc-short { display: none; }
 
 @media (max-width: 720px) {
   /* The era ruler runs past the crop, so it goes; the two book names carry the ends instead. */
   .hero-svg .hero-era { display: none; }
+  /* GENESIS and REVELATION, letterspaced, ran the full width of a phone panel and sat hard
+     against both edges. The abbreviations are what the chart's own era ruler used anyway,
+     and the pair now sits inside the frame rather than on it. */
+  .chart-corner .cc-long { display: none; }
+  .chart-corner .cc-short { display: inline; }
+  .hero-scroll .chart-corner.tl { left: 12px; }
+  .hero-scroll .chart-corner.br { right: 12px; }
 }
 
 
