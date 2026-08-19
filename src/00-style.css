@@ -449,9 +449,6 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 }
 .chart-corner.tl { top: 0; left: 0; }
 .chart-corner.br { bottom: 0; right: 0; }
-/* The hero's bottom edge is the era ruler, and "Rev 22:21" sat straight on top of REV.
-   Lift it clear of the tick row; the space above it is empty out at that end of the chart. */
-.hero-scroll .chart-corner.br { bottom: 13%; }
 /* the corner co-ordinates are real references — let them be read, not just seen */
 .chart-corner .ref-link {
   pointer-events: auto;
@@ -1145,7 +1142,6 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 
 .hero-chart { padding: 12px; }
 .hero-chart svg { width: 100%; height: auto; }
-.hero-mobile-testaments { display: none; }
 .hero-legend { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; padding: 0 12px 10px; }
 .legend-chip {
   display: flex; align-items: center; gap: 6px;
@@ -1389,11 +1385,11 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 
 /* ---------- feast arc ---------- */
 .feast-arc-panel { margin-bottom: 22px; padding: 14px 10px 6px; }
-.feast-arc-panel svg { width: 100%; height: auto; min-width: 620px; }
-.feast-arc-panel { overflow-x: auto; }
+.feast-arc-panel svg { width: 100%; height: auto; }
 
 /* ---------- tabernacle "details worth noticing" ---------- */
 .tab-insights { margin-top: 30px; }
+.tabernacle-graphic-container { margin-bottom: 8px; }
 .tab-insights-title { display: flex; align-items: center; gap: 9px; font-family: var(--font-label); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--c-codes); margin-bottom: 14px; }
 .tab-insights-title svg { width: 17px; height: 17px; }
 .insight-mini { border-left: 3px solid color-mix(in srgb, var(--c-codes) 55%, var(--line)); }
@@ -1899,8 +1895,6 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   }
   .hero-chart .hero-legend::-webkit-scrollbar { display: none; }
   .hero-chart .legend-chip { flex: 0 0 auto; scroll-snap-align: start; }
-  .hero-svg .hero-era, .hero-svg .hero-jesus { display: none; }
-  .hero-svg .hero-mobile-testaments { display: block; }
   .thread-preview-card .preview-header { display: none; }
   .verse-tooltip { max-width: calc(100vw - 28px); }
   .context-dialog-head, .context-dialog-body { padding-left: 16px; padding-right: 16px; }
@@ -2433,3 +2427,76 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 }
 .prefs-note { display: block; font-size: 0.68rem; color: var(--ink-faint); line-height: 1.4; }
 @media (max-width: 520px) { .prefs-menu { min-width: min(252px, calc(100vw - 28px)); } }
+
+
+/* ---------- the two ends of the story ----------
+   They read as book names and carry the verse on hover. Both charts live in the DOM and CSS
+   picks one, so these rules must outrank `.hero-scroll svg` and sit after it. */
+.hero-scroll .hero-svg-v { display: none; }
+.hero-scroll .hero-svg-h { display: block; }
+.chart-corner .ref-link {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+/* These are labels now, not coordinates floating over the drawing, so they get their own strip
+   above and below it. The inherited 10px/14px padding made the box 40px tall, which reached back
+   up into the era row even when the text itself cleared it. */
+.hero-scroll { padding-top: 22px; padding-bottom: 26px; }
+.hero-scroll .chart-corner { padding: 0; }
+.hero-scroll .chart-corner.tl { top: 0; bottom: auto; left: 0; right: auto; }
+.hero-scroll .chart-corner.br { top: auto; bottom: 0; right: 0; left: auto; }
+
+@media (max-width: 720px) {
+  /* Portrait: the fan runs down the screen the way the page scrolls, and the two ends of the
+     story sit centred above and below it rather than in opposite corners. */
+  .hero-scroll .hero-svg-h { display: none; }
+  .hero-scroll .hero-svg-v { display: block; }
+  .hero-scroll { padding-top: 24px; padding-bottom: 26px; }
+  .hero-scroll .chart-corner.tl { top: 0; left: 50%; right: auto; transform: translateX(-50%); padding: 0 6px; }
+  .hero-scroll .chart-corner.br { bottom: 0; left: 50%; right: auto; transform: translateX(-50%); padding: 0 6px; }
+}
+
+
+/* ---------- diagram rails ----------
+   Three diagrams drew themselves on canvases 900 units wide. Shrunk to a 325px phone that put
+   their labels at 2–3px — present, unreadable, and each one solved it differently (one clipped,
+   one shrank, one scrolled). They now share one behaviour: below the width where the type stays
+   legible they scroll sideways, with the edges faded so it is obvious there is more to see. */
+.journey-scroll, .tabernacle-graphic-container, .feast-arc-panel {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--thread) 45%, var(--line)) transparent;
+  overscroll-behavior-x: contain;
+}
+/* Rather than enlarge the type — which collided on the desktop diorama — the diagram itself
+   stays big enough to read on a phone and pans. Desktop is untouched. */
+@media (max-width: 880px) {
+  .journey-scroll > svg { min-width: 1000px; }
+  .tabernacle-svg { min-width: 940px; }
+  .feast-arc-panel > svg { min-width: 1000px; }
+}
+.diagram-hint {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  margin: 8px 0 0;
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.diagram-hint svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+@media (max-width: 880px) {
+  .journey-scroll, .tabernacle-graphic-container, .feast-arc-panel {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+  }
+  .diagram-hint { display: flex; }
+}

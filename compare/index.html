@@ -216,7 +216,7 @@ p { margin: 0; }
   <div class="stats">
     <div class="stat">
       <span class="label">Gate assertions</span>
-      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">76</span> / 76</div>
+      <div class="val"><span class="was">9</span><span class="arrow">→</span><span class="now">91</span> / 91</div>
       <p class="note">Measured with the audit harness against a local server. The two still failing both need
       bolls.life, which this build environment blocks at the proxy.</p>
     </div>
@@ -306,6 +306,12 @@ p { margin: 0; }
 /* ---------------- the ledger ---------------- */
 var LEDGER = [
   { kind: 'added', title: 'Added', items: [
+    { what: 'A portrait chart for phones',
+      why: 'The landscape chart had to shrink to about 345px wide, which squeezed thirteen routes into a third of the height they need. The phone now gets a chart built for portrait: the routes fan across the top, converge on the cross, and the gold line continues down to Revelation — the story running the same direction the page scrolls. Both charts are in the markup and CSS shows one.',
+      finding: 'Follow-up — reader request', to: 'start' },
+    { what: 'A swipe hint on diagrams that pan',
+      why: 'Two of the three diagrams used to shrink or clip instead of scrolling, so there was no way to tell you were seeing part of a map. Each now says so, and only where it actually pans.',
+      finding: 'Follow-up — reader request', to: 'pattern' },
     { what: 'A reading settings panel',
       why: 'The sun/moon button could only answer a third of “how does this read to me”. The same button now opens a panel with colours (system, light, dark), typeface (the Iowan serif or a clean sans) and line height (snug, normal, roomy). Choices are kept on the device.',
       finding: 'Follow-up — reader request', to: 'start' },
@@ -385,6 +391,12 @@ var LEDGER = [
       finding: 'Finding 9', to: 'library' }
   ]},
   { kind: 'updated', title: 'Updated', items: [
+    { what: 'The chart is labelled Genesis and Revelation',
+      why: 'The two ends were "Gen 1:1" and "Rev 22:21" set in the corners, where the lower one landed on top of the era ruler. They read as book names now, in their own strip above and below the drawing, and hovering either still opens the verse.',
+      finding: 'Follow-up — reader request', to: 'start' },
+    { what: 'Diagram labels are legible on a phone',
+      why: 'The journey, tabernacle and feast diagrams draw on canvases about 900 units wide. Shrunk to a phone that put their smallest labels at 2.3px — present, unreadable — and each solved it differently: one clipped, one shrank, one scrolled. They share one behaviour now, staying large enough to read (smallest label 7.1px) and panning sideways, with faded edges. Enlarging the type instead was tried and reverted: at 1.35x the wilderness slab captions collided on desktop.',
+      finding: 'Follow-up — reader request', to: 'pattern' },
     { what: 'The pill strip follows the route you touch',
       why: 'On a phone the thirteen pills scroll sideways, so the name of the route you just touched was usually off-screen. Choosing a route now scrolls its pill into the middle of the strip, the same courtesy the nav strip pays the active section.',
       finding: 'Follow-up — reader report', to: 'start' },

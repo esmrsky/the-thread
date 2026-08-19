@@ -113,6 +113,11 @@ function singleRefLink(r) {
   return '<a class="ref-link" target="_blank" rel="noopener" href="' + BG + encodeURIComponent(r) + '" data-ref="' + r + '">' + r + '</a>';
 }
 
+/* Reads as the book, still carries the verse: hovering it opens the same pop-up as any reference. */
+function namedRefLink(ref, label) {
+  return '<a class="ref-link" target="_blank" rel="noopener" href="' + BG + encodeURIComponent(ref) + '" data-ref="' + ref + '">' + label + '</a>';
+}
+
 function refLink(r) {
   return splitReferenceGroup(r).map(singleRefLink).join('<span class="ref-separator">; </span>');
 }
@@ -190,6 +195,34 @@ const NAV = [
 ];
 
 /* ================= hero thread chart ================= */
+/* On a phone the landscape chart had to shrink to about 345px wide, which put its labels at
+   roughly 3px and squeezed thirteen routes into a third of the height they need. Portrait gives
+   the fan the long axis of the screen instead. Both are rendered; CSS shows one. */
+function buildHeroChartVertical() {
+  const ths = THREADS.slice();
+  const n = ths.length, X_L = 26, X_R = 334, Y0 = 76, CX = 180, CY = 470, YE = 600;
+  let paths = '';
+  ths.forEach((t, i) => {
+    const x0 = X_L + (X_R - X_L) * (i / (n - 1));
+    const midX = x0 + (CX - x0) * 0.42 + (i % 2 ? 8 : -8);
+    const d = 'M' + x0 + ' ' + Y0 +
+      ' C ' + x0 + ' 200, ' + midX + ' 250, ' + midX + ' 330' +
+      ' S ' + CX + ' 452, ' + CX + ' ' + CY;
+    paths += '<path class="hero-thread" data-thread="' + t.id + '" style="--i:' + i + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.4" stroke-linecap="round"></path>';
+    paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="18" stroke-linecap="round"></path>';
+  });
+  return '<svg class="hero-svg hero-svg-v" viewBox="0 0 360 640" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
+    paths +
+    '<path class="hero-spur hero-spur-glow" d="M' + CX + ' ' + CY + ' V' + YE + '" stroke="var(--gold)" stroke-width="11" stroke-linecap="round" opacity="0.14"/>' +
+    '<path class="hero-spur" d="M' + CX + ' ' + CY + ' V' + YE + '" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round" opacity="0.9"/>' +
+    '<circle class="hero-node-halo" cx="' + CX + '" cy="' + CY + '" r="6" fill="none" stroke="var(--gold)" stroke-width="1.8"/>' +
+    '<circle class="hero-node" cx="' + CX + '" cy="' + CY + '" r="6" fill="var(--gold)"/>' +
+    '<path class="hero-cross" d="M' + CX + ' 430 v-26 M' + (CX - 9) + ' 413 h18" stroke="var(--gold)" stroke-width="3.2" stroke-linecap="round"/>' +
+    '<line class="hero-drop" x1="' + CX + '" y1="436" x2="' + CX + '" y2="' + (CY - 9) + '" stroke="var(--gold)" stroke-width="1.6" stroke-dasharray="2 3" opacity="0.8"/>' +
+    '<text class="hero-jesus-v" x="' + (CX + 16) + '" y="' + (CY + 34) + '" text-anchor="start" font-size="13" letter-spacing="3" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
+    '</svg>';
+}
+
 function buildHeroChart() {
   /* the chart's row order is the legend's order — they used to disagree on Garment */
   const ths = THREADS.slice();
@@ -215,7 +248,7 @@ function buildHeroChart() {
     ticks += '<line class="hero-era" x1="' + x + '" y1="288" x2="' + x + '" y2="294" stroke="var(--line)" stroke-width="1.5"/>' +
       '<text class="hero-era" x="' + x + '" y="306" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
   });
-  return '<svg class="hero-svg" viewBox="0 0 720 316" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
+  return '<svg class="hero-svg hero-svg-h" viewBox="0 0 720 316" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
     labels + paths +
     '<path class="hero-spur hero-spur-glow" d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
     '<path class="hero-spur" d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
@@ -224,7 +257,6 @@ function buildHeroChart() {
     '<path class="hero-cross" d="M' + CX + ' 118 v-26 M' + (CX - 9) + ' 101 h18" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>' +
     '<line class="hero-drop" x1="' + CX + '" y1="124" x2="' + CX + '" y2="' + (CY - 8) + '" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>' +
     '<text class="hero-jesus" x="' + CX + '" y="82" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
-    '<text class="hero-mobile-testaments" x="' + CX + '" y="82" text-anchor="middle" font-size="8.5" letter-spacing="1.4" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">OLD TESTAMENT / NEW TESTAMENT</text>' +
     ticks +
     '</svg>';
 }
@@ -233,18 +265,18 @@ function buildHeroChart() {
    so nothing is hidden until the measurement actually succeeded — if this never runs,
    the chart simply renders finished. */
 function initHeroChart() {
-  const svg = document.querySelector('.hero-scroll .hero-svg');
-  if (!svg || svg.classList.contains('hero-anim')) return;
+  const svgs = document.querySelectorAll('.hero-scroll .hero-svg');
+  if (!svgs.length) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  try {
-    svg.querySelectorAll('.hero-thread').forEach(p => {
-      p.style.setProperty('--len', Math.ceil(p.getTotalLength()));
-    });
-    svg.querySelectorAll('.hero-spur').forEach(p => {
-      p.style.setProperty('--len', Math.ceil(p.getTotalLength()));
-    });
-  } catch (e) { return; }
-  svg.classList.add('hero-anim');
+  svgs.forEach(svg => {
+    if (svg.classList.contains('hero-anim')) return;
+    try {
+      svg.querySelectorAll('.hero-thread, .hero-spur').forEach(p => {
+        p.style.setProperty('--len', Math.ceil(p.getTotalLength()));
+      });
+    } catch (e) { return; }
+    svg.classList.add('hero-anim');
+  });
 }
 
 /* ================= journey diorama (pattern) — isometric 3-tier scene ================= */
@@ -536,6 +568,14 @@ function buildFeastArc() {
 }
 
 /* ================= view renderers ================= */
+/* Shown only where a diagram has to pan, so nobody scrolls past half a map assuming that is all. */
+function diagramHint(label) {
+  return '<p class="diagram-hint">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M3 12h18"/><path d="m8 7-5 5 5 5"/><path d="m16 7 5 5-5 5"/></svg>' +
+    '<span>Swipe to see the whole ' + label + '</span></p>';
+}
+
 function head(navItem, h2, lede) {
   return '<div class="section-head" style="--c:var(' + navItem.cvar + ')">' +
     '<div class="eyebrow">' + icon(navItem.icon) + navItem.label + '</div>' +
@@ -587,7 +627,10 @@ function vStart() {
     '    </div>' +
     '  </div>' +
     '  <div class="chart-main">' +
-    '    <div class="hero-scroll"><span class="chart-corner tl">' + refLink('Gen 1:1') + '</span><span class="chart-corner br">' + refLink('Rev 22:21') + '</span>' + buildHeroChart() + '</div>' +
+    '    <div class="hero-scroll">' +
+    '      <span class="chart-corner tl">' + namedRefLink('Gen 1:1', 'Genesis') + '</span>' +
+    '      <span class="chart-corner br">' + namedRefLink('Rev 22:21', 'Revelation') + '</span>' +
+    buildHeroChart() + buildHeroChartVertical() + '</div>' +
     '    <div class="hero-legend">' + legend + '</div>' +
     '  </div>' +
     '</div>' +
@@ -629,7 +672,7 @@ function vPattern() {
   return '<div class="view">' + head(n, 'Egypt → Wilderness → Promised Land', PATTERN.intro) +
     '<div class="chart-panel journey-panel">' +
     '<span class="chart-corner tl">' + refLink('Gen 15:13') + '</span><span class="chart-corner br">' + refLink('Josh 21:45') + '</span>' +
-    '<div class="journey-scroll">' + buildJourneySVG() + '</div>' +
+    '<div class="journey-scroll">' + buildJourneySVG() + '</div>' + diagramHint('journey') +
     '<div class="journey-caps">' +
     '<div class="journey-cap" style="--c:var(--s-egypt)"><b>Egypt says</b><span>' + linkRefs('“You are what you produce.” Worth measured in bricks per day (Ex 5:13-14).') + '</span></div>' +
     '<div class="journey-cap" style="--c:var(--s-desert)"><b>The wilderness hears</b><span>' + linkRefs('“You are my son” — identity spoken before performance (Ex 4:22; Deut 8:2-3).') + '</span></div>' +
@@ -720,9 +763,9 @@ function vCodes() {
     '<div class="table-scroll"><table class="map-table"><thead><tr><th>The claim</th><th>Promised</th><th>Lands</th><th>Reading</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
     '<p class="note">' + linkRefs(CODES.prophecyNote) + '</p></div>' +
     '<div class="tabpane" data-pane="types" hidden><p class="lede" style="margin-bottom:18px">' + linkRefs(CODES.typesNote) + '</p><div class="grid grid-2">' + types + '</div></div>' +
-    '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container" style="margin-bottom:30px">' + buildTabernacleSVG() + '</div>' + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
+    '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container">' + buildTabernacleSVG() + '</div>' + diagramHint('tabernacle') + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
     '<div class="tabpane" data-pane="feasts" hidden>' +
-    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + refLink('Lev 23:2') + '</span><span class="chart-corner br">' + refLink('Col 2:16-17') + '</span>' + buildFeastArc() + '</div>' +
+    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + namedRefLink('Lev 23:2', 'Leviticus') + '</span><span class="chart-corner br">' + namedRefLink('Col 2:16-17', 'Colossians') + '</span>' + buildFeastArc() + '</div>' + diagramHint('year') +
     '<div class="feast-groups">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
     '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
     '</div>';
@@ -929,13 +972,11 @@ let selectedPreviewThreadId = null;
    so there is nothing left to measure. */
 function syncMobileStickyOffsets() {
   const heroChart = document.querySelector('.hero-chart');
-  const heroSvg = heroChart && heroChart.querySelector('.hero-svg');
+  if (!heroChart) return;
   // The route labels are drawn to the left of x=0, so above 1100 the viewBox opens a gutter for
   // them. Padding the container instead put them off-canvas as soon as the chart got wider.
-  if (heroSvg) {
-    const w = window.innerWidth;
-    heroSvg.setAttribute('viewBox', w <= 720 ? '28 0 664 316' : w < 1100 ? '0 0 720 316' : '-150 0 870 316');
-  }
+  const heroSvgH = heroChart.querySelector('.hero-svg-h');
+  if (heroSvgH) heroSvgH.setAttribute('viewBox', window.innerWidth < 1100 ? '0 0 720 316' : '-150 0 870 316');
 }
 
 /* Where the pills scroll sideways (phones), touching a route brings its name into view — the
@@ -1044,22 +1085,18 @@ function wireAllSections() {
   // Wire legend chips hover and click
   document.querySelectorAll('.legend-chip[data-thread]').forEach(chip => {
     const threadId = chip.dataset.thread;
-    const pathEl = () => document.querySelector('.hero-thread[data-thread="' + threadId + '"]');
+    const pathEls = () => document.querySelectorAll('.hero-thread[data-thread="' + threadId + '"]');
 
     const showPreview = () => {
       cancelPreviewReset();
       chip.classList.add('hot');
-      const p = pathEl();
-      if (p) {
-        p.classList.add('hot');
-      }
+      pathEls().forEach(p => p.classList.add('hot'));
       updateThreadPreview(threadId);
     };
 
     const clearPreviewHotState = () => {
       chip.classList.remove('hot');
-      const p = pathEl();
-      if (p) p.classList.remove('hot');
+      pathEls().forEach(p => p.classList.remove('hot'));
       queuePreviewReset();
     };
 
@@ -1080,19 +1117,19 @@ function wireAllSections() {
   // Wire hero thread paths hover and click (using thicker trigger overlay)
   document.querySelectorAll('.hero-thread-trigger, .hero-line-label').forEach(trigger => {
     const threadId = trigger.dataset.thread;
-    const path = document.querySelector('.hero-thread[data-thread="' + threadId + '"]');
+    const paths = document.querySelectorAll('.hero-thread[data-thread="' + threadId + '"]');
     const chipEl = () => document.querySelector('.legend-chip[data-thread="' + threadId + '"]');
 
     const showPreview = () => {
       cancelPreviewReset();
-      if (path) path.classList.add('hot');
+      paths.forEach(p => p.classList.add('hot'));
       const c = chipEl();
       if (c) c.classList.add('hot');
       updateThreadPreview(threadId);
     };
 
     const clearPreviewHotState = () => {
-      if (path) path.classList.remove('hot');
+      paths.forEach(p => p.classList.remove('hot'));
       const c = chipEl();
       if (c) c.classList.remove('hot');
       queuePreviewReset();

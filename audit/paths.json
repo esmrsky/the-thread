@@ -868,7 +868,8 @@
      "name": "the pill strip scrolls sideways on a phone"
     },
     {
-     "click": ".hero-thread-trigger[data-thread=garment]"
+     "clickPoint": "(() => { const p=document.querySelector('.hero-svg-v .hero-thread-trigger[data-thread=garment]'); const pt=p.getPointAtLength(p.getTotalLength()*0.12); const q=new DOMPoint(pt.x, pt.y).matrixTransform(p.getScreenCTM()); return {x:q.x, y:q.y}; })()",
+     "name": "touch the Garment route"
     },
     {
      "wait": 800
@@ -914,6 +915,104 @@
     {
      "assert": "getComputedStyle(document.getElementById('thread-preview').firstElementChild).animationName === 'swap-fade'",
      "name": "the text fades rather than sliding in"
+    }
+   ]
+  },
+  {
+   "name": "story-ends-read-as-books",
+   "width": 1280,
+   "steps": [
+    {
+     "assert": "document.querySelector('.hero-scroll .chart-corner.tl').textContent.trim() === 'Genesis' && document.querySelector('.hero-scroll .chart-corner.br').textContent.trim() === 'Revelation'",
+     "name": "the chart's ends are named as books"
+    },
+    {
+     "assert": "document.querySelector('.hero-scroll .chart-corner.tl .ref-link').dataset.ref === 'Gen 1:1' && document.querySelector('.hero-scroll .chart-corner.br .ref-link').dataset.ref === 'Rev 22:21'",
+     "name": "each still carries its verse for the hover pop-up"
+    },
+    {
+     "assert": "(() => { const c=document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); const eras=[...document.querySelectorAll('.hero-svg-h .hero-era')].map(e=>e.getBoundingClientRect()); return eras.every(e => c.left >= e.right || c.right <= e.left || c.top >= e.bottom || c.bottom <= e.top); })()",
+     "name": "the end label clears every era label"
+    },
+    {
+     "assert": "(() => { const a=document.querySelector('.hero-scroll .chart-corner.tl').getBoundingClientRect(), b=document.querySelector('.hero-scroll .chart-corner.br').getBoundingClientRect(); return a.bottom <= b.top; })()",
+     "name": "Genesis sits well above Revelation"
+    }
+   ]
+  },
+  {
+   "name": "portrait-chart-on-a-phone",
+   "width": 375,
+   "steps": [
+    {
+     "assert": "getComputedStyle(document.querySelector('.hero-svg-v')).display === 'block' && getComputedStyle(document.querySelector('.hero-svg-h')).display === 'none'",
+     "name": "the phone gets the portrait chart, not the landscape one"
+    },
+    {
+     "assert": "document.querySelectorAll('.hero-svg-v .hero-thread').length === 13",
+     "name": "all thirteen routes are drawn"
+    },
+    {
+     "assert": "(() => { const r=document.querySelector('.hero-svg-v').getBoundingClientRect(); return r.height > r.width; })()",
+     "name": "it really is portrait"
+    },
+    {
+     "assert": "(() => { const v=document.querySelector('.hero-svg-v').getBoundingClientRect(); const g=document.querySelector('.chart-corner.tl').getBoundingClientRect(); const r=document.querySelector('.chart-corner.br').getBoundingClientRect(); return g.bottom <= v.top + 2 && r.top >= v.bottom - 2; })()",
+     "name": "Genesis sits above the fan and Revelation below it"
+    },
+    {
+     "clickPoint": "(() => { const p=document.querySelector('.hero-svg-v .hero-thread-trigger[data-thread=bread]'); const pt=p.getPointAtLength(p.getTotalLength()*0.12); const q=new DOMPoint(pt.x, pt.y).matrixTransform(p.getScreenCTM()); return {x:q.x, y:q.y}; })()",
+     "name": "touch the Bread route"
+    },
+    {
+     "wait": 500
+    },
+    {
+     "assert": "document.getElementById('thread-preview').textContent.includes('Bread')",
+     "name": "touching a route in the portrait chart still selects it"
+    }
+   ]
+  },
+  {
+   "name": "diagrams-stay-legible-on-a-phone",
+   "width": 375,
+   "steps": [
+    {
+     "eval": "document.querySelector('.subtab[data-tab=tabernacle]').click()",
+     "print": false
+    },
+    {
+     "wait": 300
+    },
+    {
+     "assert": "(() => { const px=(sel,vb)=>{const e=document.querySelector(sel);const sc=e.getBoundingClientRect().width/vb;const z=[...e.querySelectorAll('text')].map(t=>parseFloat(t.getAttribute('font-size')||'0')).filter(Boolean);return Math.min(...z)*sc;}; window.__px=[px('.journey-scroll svg',900), px('.tabernacle-svg',900)]; return window.__px.every(v => v >= 6.5); })()",
+     "name": "the smallest diagram label is at least 6.5px (was 2.3px)"
+    },
+    {
+     "assert": "['.journey-scroll','.tabernacle-graphic-container'].every(s => { const e=document.querySelector(s); return e.scrollWidth > e.clientWidth + 4; })",
+     "name": "diagrams pan sideways instead of shrinking away"
+    },
+    {
+     "assert": "[...document.querySelectorAll('.diagram-hint')].every(h => getComputedStyle(h).display !== 'none')",
+     "name": "each panning diagram says so"
+    },
+    {
+     "assert": "document.documentElement.scrollWidth <= innerWidth + 1",
+     "name": "and the page itself still does not scroll sideways"
+    }
+   ]
+  },
+  {
+   "name": "diagrams-untouched-on-desktop",
+   "width": 1280,
+   "steps": [
+    {
+     "assert": "!(() => { const e=document.querySelector('.journey-scroll'); return e.scrollWidth > e.clientWidth + 4; })()",
+     "name": "the journey does not pan on desktop"
+    },
+    {
+     "assert": "[...document.querySelectorAll('.diagram-hint')].every(h => getComputedStyle(h).display === 'none')",
+     "name": "and the swipe hint stays out of the way"
     }
    ]
   }

@@ -16,7 +16,7 @@
 //                           {"key": "Escape"}, {"wait": 300},
 //                           {"assert": "!document.querySelector('.verse-tooltip').classList.contains('open')", "name": "Escape closes"},
 //                           {"shot": "after-escape"} ] } ] }
-// step kinds: click, hover, dblclick, type, key, scroll (y or selector), drag {from,to,steps}, wheel {selector,dx,dy}, eval, assert, wait, waitFor {expr,timeout}, shot, reload
+// step kinds: click, clickPoint (expr -> {x,y}), hover, dblclick, type, key, scroll (y or selector), drag {from,to,steps}, wheel {selector,dx,dy}, eval, assert, wait, waitFor {expr,timeout}, shot, reload
 // Every step may carry "name". Assertions are JS expressions evaluated in-page; truthy = pass. Console errors + failed requests are collected per path.
 
 import { spawn } from 'node:child_process';
@@ -81,7 +81,8 @@ async function openPage(b, { width = 1280, height = 800, theme = 'light', reduce
   const type = async (text) => { for (const ch of text) await s('Input.dispatchKeyEvent', { type: 'char', text: ch }); };
   const drag = async ({ from, to, steps = 12, x, y, dx = 0, dy = 0 }) => { const a = from ? await center(from) : { x, y }; const b = to ? await center(to) : { x: a.x + dx, y: a.y + dy }; await mouse('mouseMoved', a.x, a.y); await mouse('mousePressed', a.x, a.y); for (let i = 1; i <= steps; i++) { await mouse('mouseMoved', a.x + (b.x - a.x) * i / steps, a.y + (b.y - a.y) * i / steps); await sleep(16); } await mouse('mouseReleased', b.x, b.y); };
   const wheel = async ({ selector, dx = 0, dy = 0 }) => { const c = selector ? await center(selector) : { x: width / 2, y: height / 2 }; await s('Input.dispatchMouseEvent', { type: 'mouseWheel', x: c.x, y: c.y, deltaX: dx, deltaY: dy }); };
-  return { s, ev, nav, shot, click, hover, key, type, drag, wheel, log, mobile };
+  const clickAt = async (x, y) => { await mouse('mouseMoved', x, y); await mouse('mousePressed', x, y, { clickCount: 1 }); await mouse('mouseReleased', x, y, { clickCount: 1 }); };
+  return { s, ev, nav, shot, click, hover, key, type, drag, wheel, clickAt, log, mobile };
 }
 
 const themes = String(flag('themes', 'light')).split(',').filter(Boolean);
@@ -147,6 +148,13 @@ if (cmd === 'paths') {
             else if ('wheel' in step) await p.wheel(step.wheel);
             else if ('eval' in step) { const v = await p.ev(step.eval); if (step.print !== false) res.notes.push((step.name || 'eval') + ' → ' + JSON.stringify(v).slice(0, 400)); }
             else if ('assert' in step) { const v = await p.ev(step.assert); res.asserts.push({ name: step.name || step.assert.slice(0, 80), passed: !!v, value: JSON.stringify(v).slice(0, 200) }); }
+            else if ('clickPoint' in step) {
+              // A curved SVG path's bounding-box centre is usually empty space; this clicks a point
+              // that is actually on the stroke, so hit-testing is exercised rather than assumed.
+              const pt = await p.ev(step.clickPoint);
+              if (!pt || typeof pt.x !== 'number') throw new Error('clickPoint returned no {x,y}');
+              await p.clickAt(pt.x, pt.y);
+            }
             else if ('wait' in step) await sleep(step.wait);
             else if ('waitFor' in step) {
               // Poll rather than guess. Fixed waits are the main source of false failures:
@@ -164,7 +172,7 @@ if (cmd === 'paths') {
       } catch (e) { res.errors.push('path aborted: ' + e.message); }
       res.console = p.log.console.slice(0, 10); res.failedRequests = p.log.failed.slice(0, 10);
       results.push(res);
-      await sleep(+flag('pace', 400)); // paths share third-party APIs; back-to-back runs throttle them
+      await sleep(+flag('pace', 900)); // paths share third-party APIs; back-to-back runs throttle them
       const passed = res.asserts.filter(a => a.passed).length;
       console.log(`${res.asserts.length && passed === res.asserts.length && !res.errors.length ? 'PASS' : 'FAIL'}  ${path.name}  (${passed}/${res.asserts.length} asserts, ${width}px ${res.theme})`);
       res.asserts.filter(a => !a.passed).forEach(a => console.log(`      ✗ ${a.name}  → ${a.value}`));
