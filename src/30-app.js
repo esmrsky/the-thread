@@ -583,13 +583,12 @@ function vStart() {
     '    <div class="preview-placeholder">' +
     '      <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
     '      <h3>The Story Map</h3>' +
-    '      <p>Hover over a thread to preview it, or select one to keep its route highlighted.</p>' +
+    '      <p>Choose a route to see its waypoints and where it lands.<span class="hint-hover"> Hover to peek, click to keep it.</span></p>' +
     '    </div>' +
     '  </div>' +
     '  <div class="chart-main">' +
     '    <div class="hero-scroll"><span class="chart-corner tl">' + refLink('Gen 1:1') + '</span><span class="chart-corner br">' + refLink('Rev 22:21') + '</span>' + buildHeroChart() + '</div>' +
     '    <div class="hero-legend">' + legend + '</div>' +
-    '    <div class="mobile-preview-header" id="mobile-preview-header" hidden aria-live="polite"></div>' +
     '  </div>' +
     '</div>' +
     '<p class="hero-verse">' + START.heroVerse.text + '<span class="vref">— ' + refLink(START.heroVerse.ref) + ' · the Emmaus road</span></p>' +
@@ -949,12 +948,6 @@ function updateThreadPreview(threadId) {
   if (!previewEl) return;
 
   setHTML(previewEl, buildThreadPreviewContent(t));
-  const mobileHeader = document.getElementById('mobile-preview-header');
-  if (mobileHeader) {
-    mobileHeader.hidden = false;
-    mobileHeader.style.setProperty('--c', 'var(' + t.cvar + ')');
-    mobileHeader.innerHTML = buildThreadPreviewHeader(t);
-  }
   activePreviewThreadId = threadId;
 }
 
@@ -962,16 +955,11 @@ function resetThreadPreview() {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
   activePreviewThreadId = null;
-  const mobileHeader = document.getElementById('mobile-preview-header');
-  if (mobileHeader) {
-    mobileHeader.hidden = true;
-    mobileHeader.innerHTML = '';
-  }
   previewEl.innerHTML = 
     '  <div class="preview-placeholder">' +
     '    <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
     '    <h3>The Story Map</h3>' +
-    '    <p>Hover over a thread to preview it, or select one to keep its route highlighted.</p>' +
+    '    <p>Choose a route to see its waypoints and where it lands.<span class="hint-hover"> Hover to peek, click to keep it.</span></p>' +
     '  </div>';
   flashSwap(previewEl);
 }
