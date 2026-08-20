@@ -62,7 +62,18 @@ const CODES = {
     { name: 'Tree of life, tree of death, tree of life', refs: 'Gen 2:9; 3:22-24 → Gal 3:13; Rev 22:2', badge: 'classical', body: 'The story opens with a tree of life forfeited and guarded by a sword. The New Testament then insists on calling the cross “the TREE” (Gal 3:13; 1 Pet 2:24; Acts 5:30) — a deliberate word choice: a tree of death absorbing the curse. And the story closes with the tree of life back, un-guarded, “for the healing of the nations.” Three trees, one arc: paradise lost, purchased, restored.' },
     { name: 'The rock: struck once, then spoken to', refs: 'Ex 17:6; Num 20:8-12 → Heb 7:25; 10:12', badge: 'loose', body: 'First wilderness stop: God says STRIKE the rock, and water flows (Paul says the Rock was Christ, 1 Cor 10:4). Decades later: God says SPEAK to it — but Moses strikes it again, and it costs him the land. The old preachers saw the offense: Christ is struck ONCE, for all time; after that, you don’t re-crucify — you ask. A homiletic reading, held loosely — but it preaches the once-for-all beautifully.' }
   ],
-  typesNote: 'The New Testament has its own vocabulary for all this: <i>typos</i> — pattern, mold (Rom 5:14; 1 Cor 10:6,11); <i>skia</i> — shadow (Col 2:16-17; Heb 10:1); <i>antitypos</i> — the reality a pattern pointed to (1 Pet 3:21); <i>hypodeigma</i> — copy (Heb 8:5). A shadow isn’t the person — but it’s shaped exactly like the person, which is why you can learn Jesus’s silhouette in Genesis before you meet His face in John. The badges tell you who is drawing each connection: the NT itself, the church’s classic reading, or a devotional observation to enjoy loosely.',
+  typesLede: 'A shadow isn’t the person — but it’s shaped exactly like the person, which is why you can learn Jesus’s silhouette in Genesis before you meet His face in John.',
+  /* The New Testament's four words for this, in the order they actually run: something presses
+     a shape, the shape falls as a shadow, the shadow gets built as a working copy, and then the
+     thing itself walks in. Four terms buried in one paragraph read as jargon; laid out in order
+     they read as a sequence. */
+  typesVocab: [
+    { g: 'typos', t: 'Pattern', d: 'The stamp — the thing that presses a shape into what comes after it.', x: 'Rom 5:14; 1 Cor 10:6,11' },
+    { g: 'skia', t: 'Shadow', d: 'The shape itself, cast by something real standing just out of frame.', x: 'Col 2:16-17; Heb 10:1' },
+    { g: 'hypodeigma', t: 'Copy', d: 'A working model, built to scale, of a thing that exists elsewhere.', x: 'Heb 8:5' },
+    { g: 'antitypos', t: 'The reality', d: 'What the pattern was a pattern of. The person the shadow was shaped like.', x: '1 Pet 3:21' }
+  ],
+  typesBadgeNote: 'The badges tell you who is drawing each connection: the NT itself, the church’s classic reading, or a devotional observation to enjoy loosely.',
   tabernacle: {
     intro: 'The tabernacle wasn’t random furniture — it’s a walkable diagram of approach to God, and every station is Jesus (Heb 8:5; 10:19-22). Walk it east to west:',
     stations: [

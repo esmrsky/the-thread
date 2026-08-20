@@ -76,10 +76,13 @@ body { margin: 0; }
 
   /* One line-height dial. Everything that is prose derives from it, so Snug and Roomy are
      felt across the whole page rather than on body copy alone. */
-  --lh: 1.75;
-  --lh-tight: calc(var(--lh) - 0.3);
-  --lh-ui: calc(var(--lh) - 0.2);
-  --lh-wide: calc(var(--lh) + 0.15);
+  /* The three derived leadings used to be flat offsets from --lh, which worked while --lh sat
+     at 1.75 and broke the moment it moved: at 2.4 a "tight" heading came out at 2.1. They scale
+     with the dial now, so the relationship between prose, small print and headings holds
+     wherever the reader puts it. */
+  --lh-tight: calc(var(--lh) * 0.56);
+  --lh-ui: calc(var(--lh) * 0.86);
+  --lh-wide: calc(var(--lh) * 1.06);
 
   --r: 10px;
   --r-lg: 16px;
@@ -283,11 +286,12 @@ p, li { text-wrap: pretty; }
   --fs-theme: 0.97;
 }
 
-/* Snug used to sit 0.13 under Normal and Roomy 0.20 over it — close enough that the three
-   read as one setting. Roomy at 2.12 was still doing the same thing: two clicks apart and
-   the page barely moved. It is now far enough out that the choice is obvious at a glance. */
-:root[data-lh="snug"] { --lh: 1.5; }
-:root[data-lh="roomy"] { --lh: 2.4; }
+/* The whole ladder moved up a rung. What used to be Normal is now Snug, what used to be Roomy
+   is Normal, and Roomy goes further out than either had. Scripture set at 1.75 was tighter than
+   it wanted to be — especially in the passage dialog, which is nothing but text. */
+:root { --lh: 2.4; }
+:root[data-lh="snug"] { --lh: 1.75; }
+:root[data-lh="roomy"] { --lh: 2.8; }
 
 /* ---------- how a reading setting changes ----------
    Every setting in the panel changes layout, and layout is the one thing a page this size
@@ -301,12 +305,14 @@ p, li { text-wrap: pretty; }
    it was. Opacity is a compositor property, so the fade itself holds 60fps on any device,
    and all four settings get the same calm behaviour. The topbar is left out of it so the
    panel you are clicking in stays crisp. */
-/* Nothing here hides the change and nothing animates it either. Both were tried: the column
-   used to fade to 0.08, drop the new layout in while it was invisible and come back, which is
-   the blink. Registering --fs and --lh with @property and easing them does interpolate, but
-   every frame is a full re-layout of a 40,000px document — measured at five or six frames over
-   50ms per change, worst 151ms, so the "smooth" version arrives in three visible lurches.
-   One reflow, in the open, with the reader's line pinned is both the calmest and the fastest. */
+/* Text size and leading land in one step, and the reason is worth writing down because the
+   obvious fix keeps suggesting itself. 96 Promises eases font-size and line-height over 0.15s
+   and it is lovely — but it eases them on one card, the only thing on screen. Here the same
+   two properties are on the root of a 40,000px document, so every interpolated frame is a full
+   re-layout: 0.32s measured five or six frames over 50ms, 0.15s four, and content-visibility
+   on the sections made it five while collapsing the rail's dots onto estimated offsets. One
+   reflow measures at two or three. What was actually wrong was never the step — it was the
+   blink that hid it, and the chrome that lurched around it. Both are gone; see holdScroll. */
 
 /* ---------- changing the palette ----------
    The other three reading settings re-lay the page, so they fade the column down and back.
@@ -315,16 +321,23 @@ p, li { text-wrap: pretty; }
    drive it — every painted colour interpolates to its new value together. The class is on
    for the length of the crossfade and no longer, because a permanent transition on `*` makes
    every hover on the page feel like it is dragging. */
-:root.theme-shift, :root.theme-shift *, :root.theme-shift *::before, :root.theme-shift *::after {
-  transition: background-color 0.34s ease, background-image 0.34s ease, color 0.34s ease,
-              border-color 0.34s ease, outline-color 0.34s ease, box-shadow 0.34s ease,
-              fill 0.34s ease, stroke 0.34s ease !important;
+/* This used to say `.theme-shift *`, which on this page is five thousand elements, several of
+   them transitioning box-shadow — the most expensive property in the list. It cross-faded, and
+   it dragged. What actually carries a palette change is the field behind the words: the paper,
+   the card surfaces, the ink. Those cross-fade; the rest lands at once, under a change nobody
+   is looking at the edges of. */
+:root.theme-shift body,
+:root.theme-shift .chart-panel,
+:root.theme-shift .card,
+:root.theme-shift .topbar,
+:root.theme-shift .site-foot {
+  transition: background-color 0.3s ease, background-image 0.3s ease,
+              color 0.3s ease, border-color 0.3s ease !important;
   transition-delay: 0s !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  :root.theme-shift, :root.theme-shift *, :root.theme-shift *::before, :root.theme-shift *::after {
-    transition: none !important;
-  }
+  :root.theme-shift body, :root.theme-shift .chart-panel, :root.theme-shift .card,
+  :root.theme-shift .topbar, :root.theme-shift .site-foot { transition: none !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   :root { transition: none; }
@@ -841,6 +854,18 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   text-align: left; color: var(--ink-faint);
   padding: 12px 14px; border-bottom: 1px solid var(--line);
 }
+/* A mark per claim, in the column's own ink, sized to sit on the first line of the text
+   rather than floating beside a wrapped paragraph. */
+.map-table .claim { display: flex; align-items: flex-start; gap: 10px; }
+.map-table .claim-ic {
+  flex: 0 0 22px; width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border-radius: 7px;
+  color: var(--c-codes);
+  background: color-mix(in srgb, var(--c-codes) 12%, transparent);
+  margin-top: -1px;
+}
+.map-table .claim-ic svg { width: 14px; height: 14px; }
 .map-table td { padding: 10px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; line-height: var(--lh-ui); }
 .map-table tr:last-child td { border-bottom: none; }
 .map-table td:first-child { font-weight: 700; }
@@ -1560,6 +1585,51 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .rail-dot:hover { transform: translateY(-50%) scale(1.35); border-color: var(--c); }
 @media (max-width: 1199px) { #rail { display: none; } }
 
+/* ---------- the four words, as a sequence ----------
+   They were four italicised Greek terms inside one paragraph, which reads as a glossary
+   someone dropped mid-sentence. Numbered and laid side by side they read as what they are:
+   a pattern presses a shape, the shape falls as a shadow, the shadow is built as a copy,
+   and the reality walks in. */
+.vocab-card { margin-bottom: clamp(22px, 3vw, 30px); }
+.vocab-head {
+  display: flex; align-items: center; gap: 9px; margin-bottom: 16px;
+  font-family: var(--font-label); font-size: 0.64rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-faint);
+}
+.vocab-head svg { width: 15px; height: 15px; color: var(--c); flex-shrink: 0; }
+.vocab-steps {
+  display: grid; gap: 14px; margin: 0; padding: 0; list-style: none;
+  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+}
+.vocab-step {
+  position: relative;
+  padding: 14px 14px 13px;
+  border: 1px solid var(--line-soft);
+  border-top: 2px solid color-mix(in srgb, var(--c) 55%, transparent);
+  border-radius: var(--r);
+  background: var(--card-2);
+}
+.vocab-num {
+  position: absolute; top: -1px; right: 10px;
+  font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
+  color: color-mix(in srgb, var(--c) 70%, var(--ink-faint));
+}
+.vocab-greek {
+  display: block; font-style: italic; font-size: 0.95rem;
+  color: var(--c); line-height: 1.2; margin-bottom: 2px;
+}
+.vocab-term {
+  display: block; font-family: var(--font-label); font-size: 0.64rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); margin-bottom: 7px;
+}
+.vocab-gloss { font-size: 0.9rem; color: var(--ink-soft); line-height: var(--lh-ui); margin: 0 0 9px; }
+.vocab-refs { font-size: 0.82rem; color: var(--ink-faint); }
+.vocab-note {
+  margin: 16px 0 0; padding-top: 13px;
+  border-top: 1px dashed var(--line-soft);
+  font-size: 0.9rem; color: var(--ink-soft); line-height: var(--lh-ui);
+}
+
 /* ---------- feast arc ---------- */
 /* The panel no longer scrolls — the arc inside it does. The two book names are pinned to the
    panel, so panning the year no longer drags Colossians across the legend under it, and the
@@ -1603,7 +1673,19 @@ footer.site-foot {
   color: var(--ink-soft);
   font-size: 0.92rem;
 }
-footer.site-foot .foot-verse { font-style: italic; max-width: 58ch; margin: 0 auto 10px; }
+footer.site-foot .foot-verse { font-style: italic; max-width: 58ch; margin: 0 auto 14px; }
+/* The last thing on the page, and it was set at the same size and colour as the small print
+   under it. It is the point of the whole site, so it reads like it. */
+footer.site-foot .foot-creed {
+  max-width: 30ch;
+  margin: 0 auto;
+  font-family: var(--font-head);
+  font-size: clamp(1.24rem, 2.6vw, 1.62rem);
+  font-weight: 700;
+  line-height: 1.32;
+  color: var(--thread);
+  text-wrap: balance;
+}
 footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: block; }
 
 /* hero thread interactions */
@@ -1802,6 +1884,18 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   color: var(--ink-faint);
 }
 .tooltip-actions { display: flex; margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+/* On a pointing device the pop-up is a read-out, not a place to go: it never takes the cursor,
+   so a list of references can be skimmed straight down without the box parking itself over the
+   next one. The way to the passage is the reference itself, which is already under the hand. */
+@media (hover: hover) and (pointer: fine) {
+  .verse-tooltip { pointer-events: none; }
+}
+.tooltip-actions.is-hint {
+  display: block;
+  font-family: var(--font-label); font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.11em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
 .tooltip-context-button {
   border: 1px solid color-mix(in srgb, var(--thread) 35%, var(--line));
   border-radius: 999px;
@@ -1815,8 +1909,12 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   text-transform: uppercase;
 }
 .verse-context-dialog {
-  width: min(1000px, calc(100% - 28px));
-  max-height: min(82dvh, 760px);
+  width: min(1180px, calc(100% - 40px));
+  /* Tall enough to be a reading surface rather than a tooltip, but still sized to its passage:
+     a fixed height left Genesis 1 — ten unusually terse verses — floating in half a screen of
+     nothing. The floor is what stops it collapsing; the ceiling is what it grows into. */
+  min-height: min(600px, 74dvh);
+  max-height: min(88dvh, 940px);
   padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -1837,13 +1935,17 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .context-dialog-body.is-refreshing { opacity: 0.4; }
 .context-dialog-body { transition: opacity 0.18s ease; }
 .verse-context-dialog::backdrop { background: color-mix(in srgb, var(--paper) 22%, rgba(0,0,0,.72)); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
-.context-dialog-inner { display: flex; flex-direction: column; max-height: min(82dvh, 760px); }
+.context-dialog-inner { display: flex; flex-direction: column; height: 100%; }
 .context-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 22px 15px; border-bottom: 1px solid var(--line); }
 .context-dialog-head .label { display: block; color: var(--thread); margin-bottom: 4px; }
 .context-dialog-head h3 { font-size: clamp(1.28rem, 3vw, 1.7rem); }
 .context-dialog-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .context-verpick { z-index: 3; }
-.context-verpick .verpick-menu { min-width: 250px; max-height: min(52dvh, 390px); overflow-y: auto; }
+/* Both header menus hang from a header that sits near the top of a dialog which is itself
+   near the top of the screen — so the room under them is what is left of the dialog, not what
+   is left of the window. On a short screen the translation list used to run past the dialog's
+   own edge and the last few versions were unreachable. */
+.context-verpick .verpick-menu { min-width: 250px; max-height: calc(88dvh - 190px); overflow-y: auto; }
 /* The pill's own 9px left padding sat the book tight against the border while the caret had
    the whole gap on the right. Here the row is short enough for the difference to show. */
 .context-verpick .verpick-btn { padding-left: 13px; }
@@ -1859,7 +1961,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .context-prefs-btn { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: var(--card-2); }
 .context-prefs-btn svg { width: 16px; height: 16px; display: block; }
 .context-prefs-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
-.context-prefs .prefs-menu { max-height: min(52dvh, 300px); overflow-y: auto; }
+.context-prefs .prefs-menu { max-height: calc(88dvh - 190px); overflow-y: auto; }
 .context-prefs .prefs-menu .prefs-head:first-child { margin-top: 0; }
 /* The dialog is exactly as tall as its passage and clips what it cannot hold, so a short
    passage cut the settings panel off at the line-height row. While the panel is open the
@@ -1892,6 +1994,14 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
    passage is one flowing paragraph; the breaks are stripped where the text is built. */
 .context-passage { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: var(--lh-wide); }
 .context-fallback-note { margin: 12px 0 0; }
+/* A translation's own section heading, given the line it was written to have. */
+.context-heading {
+  display: block; margin: 1.1em 0 0.35em;
+  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint);
+  line-height: 1.3;
+}
+.context-passage > .context-heading:first-child { margin-top: 0; }
 .context-verse, .context-block { display: inline; }
 .context-verse + .context-verse::before, .context-block + .context-block::before { content: " "; }
 .context-verse-number { margin-right: 0.3em; color: var(--ink-faint); font-family: var(--font-label); font-size: 0.62rem; font-weight: 700; }
@@ -2024,7 +2134,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   }
   .thread-preview-card .preview-header { grid-column: 1; }
   .thread-preview-card .preview-tag { grid-column: 1; border-bottom: none; padding-bottom: 0; margin-bottom: 14px; }
-  .thread-preview-card .preview-more { grid-column: 1; margin-top: 4px; padding-top: 0; }
+  .thread-preview-card .preview-foot { grid-column: 1; margin-top: 4px; padding-top: 0; }
   .thread-preview-card .preview-body { grid-column: 2; grid-row: 1 / span 3; }
 }
 @media (min-width: 1180px) {
@@ -2054,6 +2164,38 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 .preview-more::after { content: ' →'; margin-left: 5px; transition: transform .2s ease; }
 .preview-more:hover::after { transform: translateX(3px); }
+
+/* The way further in, and under it the way sideways. Stacked rather than side by side because
+   on the desktop grid this footer lives in the narrow left column, and on a phone the card is
+   one column anyway — either way a row would have put the arrows in a corner. */
+.preview-foot {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 12px; margin-top: auto; padding-top: 16px;
+}
+.preview-foot .preview-more { margin-top: 0; padding-top: 0; }
+.preview-stepper { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.preview-step {
+  width: 30px; height: 30px; flex: 0 0 30px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 50%;
+  background: var(--card-2); color: var(--ink-soft);
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+.preview-step svg { width: 15px; height: 15px; }
+.preview-step:hover { color: var(--c); border-color: color-mix(in srgb, var(--c) 50%, var(--line)); background: var(--card); }
+.preview-count {
+  min-width: 4.4em; text-align: center;
+  font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.08em; color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.preview-count b { color: var(--c); font-weight: 700; }
+/* Every interactive thing on this site clears 44px where the input is a finger. */
+@media (pointer: coarse) {
+  .preview-step { width: 44px; height: 44px; flex: 0 0 44px; }
+  .preview-step svg { width: 18px; height: 18px; }
+}
+
 
 @media (max-width: 720px) {
   .table-scroll {

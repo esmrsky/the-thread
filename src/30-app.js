@@ -497,14 +497,18 @@ function buildFeastArc() {
     (1 - t) * (1 - t) * P0[1] + 2 * (1 - t) * t * C[1] + t * t * P2[1]
   ];
   const iconAt = (name, x, y, s, color) => (ICONS[name] || '').replace('<svg ', '<svg x="' + (x - s / 2) + '" y="' + (y - s / 2) + '" width="' + s + '" height="' + s + '" style="color:' + color + '" ');
+  /* Three of the spring feasts fall within a fortnight of each other, so on an arc of the whole
+     year their marks sit almost on top of one another — and so did their labels, in a diagonal
+     pile. `lead` is how far each label stands off its own mark, which fans the cluster into a
+     ladder that reads top to bottom while every mark stays where the calendar actually puts it. */
   const FEASTS = [
-    { t: 0.07, name: 'PASSOVER', to: 'THE CROSS · 1 COR 5:7', ic: 'lamb', done: true },
-    { t: 0.13, name: 'UNLEAVENED BREAD', to: 'THE BURIAL', ic: 'bread', done: true },
-    { t: 0.19, name: 'FIRSTFRUITS', to: 'RESURRECTION · 1 COR 15:20', ic: 'grapes', done: true },
-    { t: 0.40, name: 'PENTECOST', to: 'THE SPIRIT · ACTS 2:1', ic: 'wind', done: true },
-    { t: 0.70, name: 'TRUMPETS', to: 'THE RETURN · 1 THESS 4:16', ic: 'music', done: false },
-    { t: 0.78, name: 'ATONEMENT', to: 'THEY LOOK ON HIM · ZECH 12:10', ic: 'gate', done: false },
-    { t: 0.87, name: 'TABERNACLES', to: 'GOD WITH MAN · REV 21:3', ic: 'temple', done: false }
+    { t: 0.07, name: 'PASSOVER', to: 'THE CROSS · 1 COR 5:7', ic: 'lamb', done: true, lead: 60 },
+    { t: 0.13, name: 'UNLEAVENED BREAD', to: 'THE BURIAL', ic: 'bread', done: true, lead: 104 },
+    { t: 0.19, name: 'FIRSTFRUITS', to: 'RESURRECTION · 1 COR 15:20', ic: 'grapes', done: true, lead: 148 },
+    { t: 0.40, name: 'PENTECOST', to: 'THE SPIRIT · ACTS 2:1', ic: 'wind', done: true, lead: 66 },
+    { t: 0.70, name: 'TRUMPETS', to: 'THE RETURN · 1 THESS 4:16', ic: 'music', done: false, lead: 150 },
+    { t: 0.78, name: 'ATONEMENT', to: 'THEY LOOK ON HIM · ZECH 12:10', ic: 'gate', done: false, lead: 104 },
+    { t: 0.87, name: 'TABERNACLES', to: 'GOD WITH MAN · REV 21:3', ic: 'temple', done: false, lead: 60 }
   ];
   let marks = '';
   FEASTS.forEach(f => {
@@ -513,29 +517,30 @@ function buildFeastArc() {
     const len = Math.hypot(d[0], d[1]);
     const dir = [d[0] / len, d[1] / len];
     const at = k => [Math.round(p[0] + dir[0] * k), Math.round(p[1] + dir[1] * k)];
-    const L = at(52), I = at(22), l1 = at(9), l2 = at(44);
+    const lead = f.lead || 60;
+    const L = at(lead), I = at(lead - 30), l1 = at(9), l2 = at(lead - 44);
     const anchor = f.t < 0.32 ? 'end' : (f.t <= 0.55 ? 'middle' : 'start');
     const cMain = f.done ? 'var(--ink)' : 'var(--ink-soft)';
     const cSub = f.done ? 'var(--c-walk)' : 'var(--c-detour)';
     marks +=
       '<line x1="' + l1[0] + '" y1="' + l1[1] + '" x2="' + l2[0] + '" y2="' + l2[1] + '" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="2 3" opacity="0.55"/>' +
-      iconAt(f.ic, I[0], I[1], 13, f.done ? 'var(--gold)' : 'var(--c-detour)') +
+      iconAt(f.ic, I[0], I[1], 17, f.done ? 'var(--gold)' : 'var(--c-detour)') +
       (f.done
         ? '<circle cx="' + Math.round(p[0]) + '" cy="' + Math.round(p[1]) + '" r="5.5" fill="var(--gold)" stroke="var(--card)" stroke-width="1.5"/>'
         : '<circle cx="' + Math.round(p[0]) + '" cy="' + Math.round(p[1]) + '" r="5.5" fill="var(--card)" stroke="var(--c-detour)" stroke-width="2" stroke-dasharray="2.5 2"/>') +
-      '<text x="' + L[0] + '" y="' + L[1] + '" text-anchor="' + anchor + '" font-size="7.6" letter-spacing="0.8" fill="' + cMain + '" style="font-family:var(--font-label);font-weight:700">' + f.name + '</text>' +
-      '<text x="' + L[0] + '" y="' + (L[1] + 10) + '" text-anchor="' + anchor + '" font-size="6.4" letter-spacing="0.6" fill="' + cSub + '" style="font-family:var(--font-label);font-weight:700">' + f.to + '</text>';
+      '<text x="' + L[0] + '" y="' + L[1] + '" text-anchor="' + anchor + '" font-size="11" letter-spacing="1" fill="' + cMain + '" style="font-family:var(--font-label);font-weight:700">' + f.name + '</text>' +
+      '<text x="' + L[0] + '" y="' + (L[1] + 14) + '" text-anchor="' + anchor + '" font-size="8.6" letter-spacing="0.6" fill="' + cSub + '" style="font-family:var(--font-label);font-weight:700">' + f.to + '</text>';
   });
-  return '<svg viewBox="0 60 900 250" role="img" aria-label="The seven feasts of Israel on the arc of the sacred year — spring fulfilled at the first coming, fall still ahead">' +
+  return '<svg viewBox="-58 8 978 322" role="img" aria-label="The seven feasts of Israel on the arc of the sacred year — spring fulfilled at the first coming, fall still ahead">' +
     '<path d="M60 240 Q450 40 840 240" fill="none" stroke="var(--ink-faint)" stroke-width="1.6" opacity="0.45"/>' +
     '<path d="M60 240 Q235.5 150 411 141" fill="none" stroke="var(--gold)" stroke-width="2.6" opacity="0.85"/>' +
     marks +
-    '<text x="185" y="268" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="var(--c-walk)" style="font-family:var(--font-label);font-weight:700">SPRING · FULFILLED TO THE DAY</text>' +
-    '<text x="700" y="268" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="var(--c-detour)" style="font-family:var(--font-label);font-weight:700">FALL · STILL AHEAD</text>' +
-    '<circle cx="330" cy="291" r="4" fill="var(--gold)"/>' +
-    '<text x="340" y="294" font-size="7" letter-spacing="0.8" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">FULFILLED</text>' +
-    '<circle cx="425" cy="291" r="4" fill="var(--card)" stroke="var(--c-detour)" stroke-width="1.6" stroke-dasharray="2 2"/>' +
-    '<text x="435" y="294" font-size="7" letter-spacing="0.8" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">AHEAD — HOLD DATES LOOSELY (ACTS 1:7)</text>' +
+    '<text x="150" y="286" text-anchor="middle" font-size="11" letter-spacing="1.8" fill="var(--c-walk)" style="font-family:var(--font-label);font-weight:700">SPRING · FULFILLED TO THE DAY</text>' +
+    '<text x="742" y="286" text-anchor="middle" font-size="11" letter-spacing="1.8" fill="var(--c-detour)" style="font-family:var(--font-label);font-weight:700">FALL · STILL AHEAD</text>' +
+    '<circle cx="318" cy="316" r="4.5" fill="var(--gold)"/>' +
+    '<text x="330" y="320" font-size="9" letter-spacing="0.9" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">FULFILLED</text>' +
+    '<circle cx="432" cy="316" r="4.5" fill="var(--card)" stroke="var(--c-detour)" stroke-width="1.8" stroke-dasharray="2 2"/>' +
+    '<text x="444" y="320" font-size="9" letter-spacing="0.9" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">AHEAD · DATES HELD LOOSELY (ACTS 1:7)</text>' +
     '</svg>';
 }
 
@@ -691,8 +696,13 @@ function vCodes() {
   const kindBadge = k => k === 'direct'
     ? '<span class="badge explicit" title="A stated prediction with an explicit New Testament fulfillment">Direct</span>'
     : '<span class="badge classical" title="A pattern the NT or the church reads as fulfilled typologically">Pattern</span>';
-  const rows = CODES.prophecies.map(p =>
-    '<tr><td data-label="The claim">' + p.what + '</td><td data-label="Promised">' + refLink(p.ot) + '</td><td data-label="Lands">' + refLink(p.nt) + '</td><td data-label="Reading">' + kindBadge(p.kind) + '</td></tr>').join('');
+  /* Twenty rows of near-identical text is a wall to scan. A mark per claim gives the eye
+     something to land on and, more usefully, something to remember a row by. */
+  const PROPHECY_ICONS = ['bolt', 'globe', 'king', 'star', 'bread', 'pyramid', 'dune', 'light',
+    'heart', 'gate', 'fork', 'ban', 'mic', 'cross', 'garment', 'lamb', 'search', 'rest', 'walk', 'temple'];
+  const rows = CODES.prophecies.map((p, i) =>
+    '<tr><td data-label="The claim"><span class="claim"><span class="claim-ic">' +
+      icon(PROPHECY_ICONS[i % PROPHECY_ICONS.length]) + '</span>' + p.what + '</span></td><td data-label="Promised">' + refLink(p.ot) + '</td><td data-label="Lands">' + refLink(p.nt) + '</td><td data-label="Reading">' + kindBadge(p.kind) + '</td></tr>').join('');
   const types = CODES.types.map(t =>
     '<div class="card type-card" style="--c:var(--c-codes)"><h3>' + t.name + ' ' + badge(t.badge) + '</h3>' +
     '<div class="type-refs">' + linkRefs(t.refs) + '</div><p>' + linkRefs(t.body) + '</p></div>').join('');
@@ -734,7 +744,20 @@ function vCodes() {
     '<div class="tabpane" data-pane="prophecies">' +
     '<div class="table-scroll"><table class="map-table"><thead><tr><th>The claim</th><th>Promised</th><th>Lands</th><th>Reading</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
     '<p class="note">' + linkRefs(CODES.prophecyNote) + '</p></div>' +
-    '<div class="tabpane" data-pane="types" hidden><p class="lede" style="margin-bottom:18px">' + linkRefs(CODES.typesNote) + '</p><div class="grid grid-2">' + types + '</div></div>' +
+    '<div class="tabpane" data-pane="types" hidden>' +
+    '<p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.typesLede) + '</p>' +
+    '<div class="card vocab-card" style="--c:var(--c-codes)">' +
+    '<div class="vocab-head">' + icon('scroll') + '<span>The New Testament\u2019s own four words for it</span></div>' +
+    '<ol class="vocab-steps">' + CODES.typesVocab.map((v, i) =>
+      '<li class="vocab-step"><span class="vocab-num">' + (i + 1) + '</span>' +
+      '<span class="vocab-greek">' + v.g + '</span>' +
+      '<b class="vocab-term">' + v.t + '</b>' +
+      '<p class="vocab-gloss">' + v.d + '</p>' +
+      '<span class="vocab-refs">' + linkRefs(v.x) + '</span></li>').join('') +
+    '</ol>' +
+    '<p class="vocab-note">' + linkRefs(CODES.typesBadgeNote) + '</p>' +
+    '</div>' +
+    '<div class="grid grid-2">' + types + '</div></div>' +
     '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container">' + buildTabernacleSVG() + '</div>' + diagramHint('tabernacle') + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
     '<div class="tabpane" data-pane="feasts" hidden>' +
     '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + namedRefLink('Lev 23:2', 'Leviticus') + '</span><span class="chart-corner br">' + namedRefLink('Col 2:16-17', 'Colossians') + '</span>' +
@@ -940,9 +963,29 @@ function buildThreadPreviewContent(t) {
     '      <p>' + linkRefs(t.landsOn) + '</p>' +
     '    </div>' +
     '  </div>' +
-    '  <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
+    '  <div class="preview-foot">' +
+    '    <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
+    '<div class="preview-stepper">' + previewStepperHtml(t) + '</div>' +
+    '  </div>' +
     '</div>'
   );
+}
+
+/* Thirteen routes, and the only ways in were a pill strip that scrolls sideways on a phone and
+   thirteen 2px lines to aim at. A pair of arrows walks the whole set in order, so the card can
+   be read straight through without ever going back to the chart to pick the next one. It wraps,
+   because stopping at Garment with no way on is a dead end for the one reader doing this. */
+function previewStepperHtml(t) {
+  const i = THREADS.findIndex(x => x.id === t.id);
+  const at = n => THREADS[(n + THREADS.length) % THREADS.length];
+  const arrow = (dir, d) =>
+    '<button class="preview-step" type="button" data-step-thread="' + at(i + dir).id + '" data-dir="' + dir + '"' +
+    ' aria-label="' + (dir < 0 ? 'Previous' : 'Next') + ' thread: ' + at(i + dir).name + '"' +
+    ' title="' + at(i + dir).name + '">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg></button>';
+  return arrow(-1, 'm14.5 6-6 6 6 6') +
+    '<span class="preview-count"><b>' + (i + 1) + '</b>\u2009/\u2009' + THREADS.length + '</span>' +
+    arrow(1, 'm9.5 6 6 6-6 6');
 }
 
 let activePreviewThreadId = null;
@@ -1040,6 +1083,11 @@ function updateThreadPreview(threadId) {
   patchPart(content.querySelector('.preview-lands p'), linkRefs(t.landsOn));
   const more = content.querySelector('.preview-more');
   if (more) { more.setAttribute('href', '#t-' + t.id); more.dataset.threadMore = t.id; }
+  /* The card is patched in place rather than rebuilt, so the stepper has to be repointed too:
+     its arrows carry the neighbouring routes and its readout the position in the thirteen.
+     Missed, the arrows keep pointing at whatever they pointed at when the card was built and
+     the second press goes nowhere. */
+  patchPart(content.querySelector('.preview-stepper'), previewStepperHtml(t));
 
   previewEl.style.height = '';
   const end = previewEl.offsetHeight;
@@ -1199,6 +1247,18 @@ function wireAllSections() {
   const previewEl = document.getElementById('thread-preview');
   if (previewEl) {
     previewEl.addEventListener('click', ev => {
+      const step = ev.target.closest('[data-step-thread]');
+      if (step) {
+        ev.preventDefault();
+        cancelPreviewReset();
+        selectPreviewThread(step.dataset.stepThread);
+        /* The card is rebuilt for the new route, so the button just pressed no longer exists.
+           Put focus back on the arrow in the same seat — otherwise a keyboard reader is dropped
+           to the top of the document on every single step. */
+        const seat = previewEl.querySelector('.preview-step[data-dir="' + step.dataset.dir + '"]');
+        if (seat) seat.focus({ preventScroll: true });
+        return;
+      }
       const more = ev.target.closest('[data-thread-more]');
       if (!more) return;
       ev.preventDefault();
@@ -1283,7 +1343,7 @@ function setupScrollspy() {
       if (entry.isIntersecting) visibleTops.set(entry.target.id, entry.boundingClientRect.top);
       else visibleTops.delete(entry.target.id);
     });
-    if (isScrollingNav || visibleTops.size === 0) return;
+    if (isScrollingNav || scrollQuiet || visibleTops.size === 0) return;
     let bestId = null, bestDist = Infinity;
     visibleTops.forEach((top, id) => {
       const dist = Math.abs(top);
@@ -1419,39 +1479,69 @@ let currentFsIndex = 2;
    Every setting in this panel re-lays the whole column, so the sentence being read slides
    out from under the eye and the page appears to jump. Pin whatever block sits just under
    the top of the viewport and hold it there for as long as the change takes to settle. */
+/* The block the reader is actually looking at — which is emphatically not whatever
+   `elementFromPoint` hands back first. That returns the topmost *painted* thing, and when the
+   probe lands in a section's own padding rather than on a word, the topmost thing is the
+   section: a 6,000px container whose top sits far above the screen. Pinning that pins nothing,
+   and a leading change slid the whole viewport by ~550px while the anchor sat there "held".
+   So take the deepest hit at the probe point instead, and refuse anything taller than a couple
+   of screens — those are containers, never the line being read. */
 function topAnchorEl() {
   if (window.scrollY < 4) return null; /* already at the top — staying there *is* the anchor */
   const bar = document.querySelector('.topbar');
   const y = Math.round((bar ? bar.getBoundingClientRect().bottom : 0) + 8);
+  const tooTall = window.innerHeight * 2;
+  const usable = el => {
+    if (!el || !el.closest) return false;
+    const scope = el.closest('#view, .site-foot');
+    if (!scope || el === scope) return false;
+    return el.getBoundingClientRect().height <= tooTall;
+  };
   const fracs = [0.5, 0.28, 0.72];
   for (let i = 0; i < fracs.length; i++) {
-    const el = document.elementFromPoint(Math.round(window.innerWidth * fracs[i]), y);
-    if (!el || !el.closest) continue;
-    const scope = el.closest('#view, .site-foot');
-    if (scope && el !== scope) return el; /* a real block, not the container or a gap */
+    const x = Math.round(window.innerWidth * fracs[i]);
+    /* deepest first: elementsFromPoint is ordered front-to-back, so the last usable entry is
+       the innermost box under the cursor rather than the outermost container painted over it */
+    const stack = document.elementsFromPoint(x, y);
+    for (let j = 0; j < stack.length; j++) {
+      if (usable(stack[j])) return stack[j];
+    }
   }
-  /* the three probes all landed in padding: fall back to the first block still on screen */
+  /* the probes all landed in padding: fall back to the smallest block still crossing the line */
   const kids = document.querySelectorAll('#view .view > *, .site-foot > *');
   for (let i = 0; i < kids.length; i++) {
-    if (kids[i].getBoundingClientRect().bottom > y) return kids[i];
+    const r = kids[i].getBoundingClientRect();
+    if (r.bottom > y && r.height <= tooTall) return kids[i];
   }
   return null;
 }
+/* Holding the reader's line means scrolling the document, sometimes by a couple of thousand
+   pixels, because everything above them re-flowed. Scroll-driven chrome should not read that
+   as the reader having moved, and the section offsets the rail is drawn from are stale until
+   the new layout exists — so both are held until it settles, then told the answer once. */
+let scrollQuiet = false;
+function settleScrollDrivenUI() {
+  scrollQuiet = false;
+  layoutRail();               /* the sections sit at new offsets now */
+  window.dispatchEvent(new Event('scroll'));
+}
 function holdScroll(ms, mutate) {
+  scrollQuiet = true;
   const el = topAnchorEl();
   const top0 = el ? el.getBoundingClientRect().top : 0;
   mutate();
-  if (!el) return;
+  if (!el) { settleScrollDrivenUI(); return; }
   const correct = () => {
     const drift = el.getBoundingClientRect().top - top0;
     if (Math.abs(drift) > 0.5) window.scrollBy(0, drift);
   };
   correct(); /* whatever the change did instantly */
-  if (ms <= 0 || REDUCED_MOTION) return;
+  if (ms <= 0 || REDUCED_MOTION) { settleScrollDrivenUI(); return; }
   const until = performance.now() + ms;
-  const tick = () => { /* ...and again each frame while the dials interpolate */
+  const tick = () => { /* ...and again each frame while the layout settles */
     correct();
     if (performance.now() < until) requestAnimationFrame(tick);
+    else settleScrollDrivenUI();
   };
   requestAnimationFrame(tick);
 }
@@ -1700,6 +1790,9 @@ let tooltipPinned = false;
 let tooltipRequestId = 0;
 let tooltipLink = null;
 let tooltipRef = '';
+/* The dialog holds a fixed share of the screen rather than shrinking to fit, so four verses
+   either side left most of it empty. Nine fills it, and more context is the whole point. */
+const CONTEXT_RADIUS = 9;
 let contextDialogEl = null;
 let contextRequestId = 0;
 let contextVersionPicker = null;
@@ -1788,6 +1881,23 @@ function cleanBollsText(text) {
    hover pop-up keeps its own breaks; this is only for the dialog. */
 function flowText(text) {
   return String(text).replace(/\s*\n+\s*/g, ' ').trim();
+}
+
+/* Some translations post a section heading inside the first verse it belongs to, separated by a
+   <br/> — "The Beginning" ahead of Genesis 1:1. Folded into the prose it reads as three stray
+   words glued to the front of the sentence. A heading only ever leads a verse, is short, and
+   does not end in sentence punctuation; anything else that happens to be on its own line is
+   poetry, and poetry flows. */
+function splitHeading(text) {
+  const nl = text.indexOf('\n');
+  if (nl < 1) return { heading: '', body: flowText(text) };
+  const head = text.slice(0, nl).trim();
+  const rest = text.slice(nl + 1);
+  const plain = head.replace(/<[^>]*>/g, '').trim();
+  if (!plain || plain.length > 64 || /[.!?;:,\u2014]$/.test(plain) || !rest.trim()) {
+    return { heading: '', body: flowText(text) };
+  }
+  return { heading: head, body: flowText(rest) };
 }
 
 async function fetchTptFromYouVersion(ref) {
@@ -1924,10 +2034,11 @@ async function loadBollsContext(parsed, version, radius) {
 
   return '<p class="context-passage">' + rows.map(v => {
     const selected = v.chapter === parsed.chapter && v.verse >= selectedStart && v.verse <= selectedEnd;
-    const text = flowText(cleanBollsText(v.text));
+    const parts = splitHeading(cleanBollsText(v.text));
     const num = v.chapter === parsed.chapter ? String(v.verse) : v.chapter + ':' + v.verse;
-    return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num +
-      '</sup><span class="ctx-t">' + text + '</span></span>';
+    return (parts.heading ? '<b class="context-heading">' + parts.heading + '</b>' : '') +
+      '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num +
+      '</sup><span class="ctx-t">' + parts.body + '</span></span>';
   }).join(' ') + '</p>';
 }
 
@@ -2002,10 +2113,16 @@ function initTooltip() {
     ? (document.documentElement.dataset.type || PREFS.type.def)
     : (document.documentElement.dataset.lh || PREFS.lh.def)));
 
-  tooltipEl.addEventListener('mouseenter', () => {
-    if (tooltipTimer) clearTimeout(tooltipTimer);
-  });
-  tooltipEl.addEventListener('mouseleave', () => hideTooltip());
+  /* On a pointing device the pop-up is inert — CSS gives it pointer-events: none — so there is
+     nothing to keep alive and, more to the point, nothing standing between one reference and
+     the next one below it. That was the whole problem: skimming a list meant dragging the
+     cursor through a box that had parked itself over the very thing being reached for. */
+  if (!HOVER_CAPABLE) {
+    tooltipEl.addEventListener('mouseenter', () => {
+      if (tooltipTimer) clearTimeout(tooltipTimer);
+    });
+    tooltipEl.addEventListener('mouseleave', () => hideTooltip());
+  }
 
   document.body.addEventListener('mouseover', ev => {
     if (tooltipPinned) return;
@@ -2027,7 +2144,11 @@ function initTooltip() {
     if (link) {
       ev.preventDefault();
       const ref = link.dataset.ref || link.textContent;
-      if (ref) showTooltip(link, ref, true);
+      if (!ref) return;
+      /* The hover pop-up already showed the verse, so the click is asking for the next thing
+         up: the passage around it. On touch there was no hover, so the click is the pop-up. */
+      if (HOVER_CAPABLE) { openVerseContext(ref, getVersion()); hideTooltip(true); }
+      else showTooltip(link, ref, true);
       return;
     }
 
@@ -2059,7 +2180,7 @@ function initTooltip() {
 
   contextDialogEl.querySelector('.context-dialog-close').addEventListener('click', () => contextDialogEl.close());
   contextDialogEl.querySelector('.context-more-button').addEventListener('click', () => {
-    contextDialogEl.dataset.radius = String((parseInt(contextDialogEl.dataset.radius, 10) || 4) + 6);
+    contextDialogEl.dataset.radius = String((parseInt(contextDialogEl.dataset.radius, 10) || CONTEXT_RADIUS) + 8);
     refreshVerseContext(true);
   });
   contextDialogEl.addEventListener('close', () => {
@@ -2118,6 +2239,18 @@ function fillTooltip(ref, version, requestId) {
   });
 }
 
+/* Two different devices want two different things here. A pointer wants to skim: run down a
+   list of references and read each one as it passes, without a click or a journey into the
+   pop-up. So on a pointing device the pop-up is a read-out — it never takes the cursor, and
+   the way to the full passage is to click the reference itself, which is already under the
+   hand. A touchscreen has no hover at all: there the first tap opens the pop-up and the
+   button inside it is the second tap. */
+function tooltipActionHtml(ref, version) {
+  if (HOVER_CAPABLE) return '<div class="tooltip-actions is-hint">Click the reference to read it in context</div>';
+  return '<div class="tooltip-actions"><button class="tooltip-context-button" type="button" data-ref="' +
+    escapeScriptureText(ref) + '" data-version="' + version + '">See in context</button></div>';
+}
+
 function showTooltip(link, ref, pinned) {
   if (tooltipTimer) clearTimeout(tooltipTimer);
   tooltipPinned = Boolean(pinned);
@@ -2130,7 +2263,7 @@ function showTooltip(link, ref, pinned) {
   tooltipEl.innerHTML =
     '<span class="tooltip-ref">' + escapeScriptureText(ref) + ' (' + version + ')</span>' +
     '<div class="tooltip-text is-loading">Reading…</div>' +
-    '<div class="tooltip-actions"><button class="tooltip-context-button" type="button" data-ref="' + escapeScriptureText(ref) + '" data-version="' + version + '">See in context</button></div>';
+    tooltipActionHtml(ref, version);
   tooltipEl.classList.toggle('is-pinned', tooltipPinned);
   tooltipEl.classList.add('open');
   fillTooltip(ref, version, requestId);
@@ -2138,18 +2271,21 @@ function showTooltip(link, ref, pinned) {
 
 function hideTooltip(force) {
   if (tooltipPinned && !force) return;
+  /* 200ms of grace existed so the cursor could cross the gap into the pop-up. Nothing crosses
+     into it any more on a pointing device, and the wait is felt as lag when the next reference
+     is two words away. */
   tooltipTimer = setTimeout(() => {
     tooltipPinned = false;
     tooltipEl.classList.remove('open');
     tooltipEl.classList.remove('is-pinned');
-  }, 200);
+  }, HOVER_CAPABLE ? 60 : 200);
 }
 
 function refreshVerseContext(preserveSelection) {
   if (!contextDialogEl) return;
   const ref = contextDialogEl.dataset.ref;
   const version = contextDialogEl.dataset.version || getVersion();
-  const radius = parseInt(contextDialogEl.dataset.radius, 10) || 4;
+  const radius = parseInt(contextDialogEl.dataset.radius, 10) || CONTEXT_RADIUS;
   if (!ref) return;
   const requestId = ++contextRequestId;
   const body = contextDialogEl.querySelector('.context-dialog-body');
@@ -2188,7 +2324,7 @@ function openVerseContext(ref, version) {
   version = version || getVersion();
   contextDialogEl.dataset.ref = ref;
   contextDialogEl.dataset.version = version;
-  contextDialogEl.dataset.radius = '4';
+  contextDialogEl.dataset.radius = String(CONTEXT_RADIUS);
   contextDialogEl.querySelector('h3').textContent = formatReferenceTitle(ref);
   applyVersion(version);
   const body = contextDialogEl.querySelector('.context-dialog-body');
@@ -2407,7 +2543,7 @@ function initRail() {
   });
   let ticking = false;
   const onScroll = () => {
-    if (ticking) return;
+    if (ticking || scrollQuiet) return;
     ticking = true;
     requestAnimationFrame(() => {
       ticking = false;
@@ -2471,6 +2607,7 @@ function initBackToTop() {
   let ticking = false;
   const update = () => {
     ticking = false;
+    if (scrollQuiet) return;
     button.classList.toggle('visible', window.scrollY > Math.max(520, window.innerHeight * 0.75));
   };
   window.addEventListener('scroll', () => {

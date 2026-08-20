@@ -88,10 +88,13 @@ body { margin: 0; }
 
   /* One line-height dial. Everything that is prose derives from it, so Snug and Roomy are
      felt across the whole page rather than on body copy alone. */
-  --lh: 1.75;
-  --lh-tight: calc(var(--lh) - 0.3);
-  --lh-ui: calc(var(--lh) - 0.2);
-  --lh-wide: calc(var(--lh) + 0.15);
+  /* The three derived leadings used to be flat offsets from --lh, which worked while --lh sat
+     at 1.75 and broke the moment it moved: at 2.4 a "tight" heading came out at 2.1. They scale
+     with the dial now, so the relationship between prose, small print and headings holds
+     wherever the reader puts it. */
+  --lh-tight: calc(var(--lh) * 0.56);
+  --lh-ui: calc(var(--lh) * 0.86);
+  --lh-wide: calc(var(--lh) * 1.06);
 
   --r: 10px;
   --r-lg: 16px;
@@ -295,11 +298,12 @@ p, li { text-wrap: pretty; }
   --fs-theme: 0.97;
 }
 
-/* Snug used to sit 0.13 under Normal and Roomy 0.20 over it — close enough that the three
-   read as one setting. Roomy at 2.12 was still doing the same thing: two clicks apart and
-   the page barely moved. It is now far enough out that the choice is obvious at a glance. */
-:root[data-lh="snug"] { --lh: 1.5; }
-:root[data-lh="roomy"] { --lh: 2.4; }
+/* The whole ladder moved up a rung. What used to be Normal is now Snug, what used to be Roomy
+   is Normal, and Roomy goes further out than either had. Scripture set at 1.75 was tighter than
+   it wanted to be — especially in the passage dialog, which is nothing but text. */
+:root { --lh: 2.4; }
+:root[data-lh="snug"] { --lh: 1.75; }
+:root[data-lh="roomy"] { --lh: 2.8; }
 
 /* ---------- how a reading setting changes ----------
    Every setting in the panel changes layout, and layout is the one thing a page this size
@@ -313,12 +317,14 @@ p, li { text-wrap: pretty; }
    it was. Opacity is a compositor property, so the fade itself holds 60fps on any device,
    and all four settings get the same calm behaviour. The topbar is left out of it so the
    panel you are clicking in stays crisp. */
-/* Nothing here hides the change and nothing animates it either. Both were tried: the column
-   used to fade to 0.08, drop the new layout in while it was invisible and come back, which is
-   the blink. Registering --fs and --lh with @property and easing them does interpolate, but
-   every frame is a full re-layout of a 40,000px document — measured at five or six frames over
-   50ms per change, worst 151ms, so the "smooth" version arrives in three visible lurches.
-   One reflow, in the open, with the reader's line pinned is both the calmest and the fastest. */
+/* Text size and leading land in one step, and the reason is worth writing down because the
+   obvious fix keeps suggesting itself. 96 Promises eases font-size and line-height over 0.15s
+   and it is lovely — but it eases them on one card, the only thing on screen. Here the same
+   two properties are on the root of a 40,000px document, so every interpolated frame is a full
+   re-layout: 0.32s measured five or six frames over 50ms, 0.15s four, and content-visibility
+   on the sections made it five while collapsing the rail's dots onto estimated offsets. One
+   reflow measures at two or three. What was actually wrong was never the step — it was the
+   blink that hid it, and the chrome that lurched around it. Both are gone; see holdScroll. */
 
 /* ---------- changing the palette ----------
    The other three reading settings re-lay the page, so they fade the column down and back.
@@ -327,16 +333,23 @@ p, li { text-wrap: pretty; }
    drive it — every painted colour interpolates to its new value together. The class is on
    for the length of the crossfade and no longer, because a permanent transition on `*` makes
    every hover on the page feel like it is dragging. */
-:root.theme-shift, :root.theme-shift *, :root.theme-shift *::before, :root.theme-shift *::after {
-  transition: background-color 0.34s ease, background-image 0.34s ease, color 0.34s ease,
-              border-color 0.34s ease, outline-color 0.34s ease, box-shadow 0.34s ease,
-              fill 0.34s ease, stroke 0.34s ease !important;
+/* This used to say `.theme-shift *`, which on this page is five thousand elements, several of
+   them transitioning box-shadow — the most expensive property in the list. It cross-faded, and
+   it dragged. What actually carries a palette change is the field behind the words: the paper,
+   the card surfaces, the ink. Those cross-fade; the rest lands at once, under a change nobody
+   is looking at the edges of. */
+:root.theme-shift body,
+:root.theme-shift .chart-panel,
+:root.theme-shift .card,
+:root.theme-shift .topbar,
+:root.theme-shift .site-foot {
+  transition: background-color 0.3s ease, background-image 0.3s ease,
+              color 0.3s ease, border-color 0.3s ease !important;
   transition-delay: 0s !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  :root.theme-shift, :root.theme-shift *, :root.theme-shift *::before, :root.theme-shift *::after {
-    transition: none !important;
-  }
+  :root.theme-shift body, :root.theme-shift .chart-panel, :root.theme-shift .card,
+  :root.theme-shift .topbar, :root.theme-shift .site-foot { transition: none !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   :root { transition: none; }
@@ -853,6 +866,18 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   text-align: left; color: var(--ink-faint);
   padding: 12px 14px; border-bottom: 1px solid var(--line);
 }
+/* A mark per claim, in the column's own ink, sized to sit on the first line of the text
+   rather than floating beside a wrapped paragraph. */
+.map-table .claim { display: flex; align-items: flex-start; gap: 10px; }
+.map-table .claim-ic {
+  flex: 0 0 22px; width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border-radius: 7px;
+  color: var(--c-codes);
+  background: color-mix(in srgb, var(--c-codes) 12%, transparent);
+  margin-top: -1px;
+}
+.map-table .claim-ic svg { width: 14px; height: 14px; }
 .map-table td { padding: 10px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; line-height: var(--lh-ui); }
 .map-table tr:last-child td { border-bottom: none; }
 .map-table td:first-child { font-weight: 700; }
@@ -1572,6 +1597,51 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .rail-dot:hover { transform: translateY(-50%) scale(1.35); border-color: var(--c); }
 @media (max-width: 1199px) { #rail { display: none; } }
 
+/* ---------- the four words, as a sequence ----------
+   They were four italicised Greek terms inside one paragraph, which reads as a glossary
+   someone dropped mid-sentence. Numbered and laid side by side they read as what they are:
+   a pattern presses a shape, the shape falls as a shadow, the shadow is built as a copy,
+   and the reality walks in. */
+.vocab-card { margin-bottom: clamp(22px, 3vw, 30px); }
+.vocab-head {
+  display: flex; align-items: center; gap: 9px; margin-bottom: 16px;
+  font-family: var(--font-label); font-size: 0.64rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-faint);
+}
+.vocab-head svg { width: 15px; height: 15px; color: var(--c); flex-shrink: 0; }
+.vocab-steps {
+  display: grid; gap: 14px; margin: 0; padding: 0; list-style: none;
+  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+}
+.vocab-step {
+  position: relative;
+  padding: 14px 14px 13px;
+  border: 1px solid var(--line-soft);
+  border-top: 2px solid color-mix(in srgb, var(--c) 55%, transparent);
+  border-radius: var(--r);
+  background: var(--card-2);
+}
+.vocab-num {
+  position: absolute; top: -1px; right: 10px;
+  font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
+  color: color-mix(in srgb, var(--c) 70%, var(--ink-faint));
+}
+.vocab-greek {
+  display: block; font-style: italic; font-size: 0.95rem;
+  color: var(--c); line-height: 1.2; margin-bottom: 2px;
+}
+.vocab-term {
+  display: block; font-family: var(--font-label); font-size: 0.64rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); margin-bottom: 7px;
+}
+.vocab-gloss { font-size: 0.9rem; color: var(--ink-soft); line-height: var(--lh-ui); margin: 0 0 9px; }
+.vocab-refs { font-size: 0.82rem; color: var(--ink-faint); }
+.vocab-note {
+  margin: 16px 0 0; padding-top: 13px;
+  border-top: 1px dashed var(--line-soft);
+  font-size: 0.9rem; color: var(--ink-soft); line-height: var(--lh-ui);
+}
+
 /* ---------- feast arc ---------- */
 /* The panel no longer scrolls — the arc inside it does. The two book names are pinned to the
    panel, so panning the year no longer drags Colossians across the legend under it, and the
@@ -1615,7 +1685,19 @@ footer.site-foot {
   color: var(--ink-soft);
   font-size: 0.92rem;
 }
-footer.site-foot .foot-verse { font-style: italic; max-width: 58ch; margin: 0 auto 10px; }
+footer.site-foot .foot-verse { font-style: italic; max-width: 58ch; margin: 0 auto 14px; }
+/* The last thing on the page, and it was set at the same size and colour as the small print
+   under it. It is the point of the whole site, so it reads like it. */
+footer.site-foot .foot-creed {
+  max-width: 30ch;
+  margin: 0 auto;
+  font-family: var(--font-head);
+  font-size: clamp(1.24rem, 2.6vw, 1.62rem);
+  font-weight: 700;
+  line-height: 1.32;
+  color: var(--thread);
+  text-wrap: balance;
+}
 footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: block; }
 
 /* hero thread interactions */
@@ -1814,6 +1896,18 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   color: var(--ink-faint);
 }
 .tooltip-actions { display: flex; margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+/* On a pointing device the pop-up is a read-out, not a place to go: it never takes the cursor,
+   so a list of references can be skimmed straight down without the box parking itself over the
+   next one. The way to the passage is the reference itself, which is already under the hand. */
+@media (hover: hover) and (pointer: fine) {
+  .verse-tooltip { pointer-events: none; }
+}
+.tooltip-actions.is-hint {
+  display: block;
+  font-family: var(--font-label); font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.11em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
 .tooltip-context-button {
   border: 1px solid color-mix(in srgb, var(--thread) 35%, var(--line));
   border-radius: 999px;
@@ -1827,8 +1921,12 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   text-transform: uppercase;
 }
 .verse-context-dialog {
-  width: min(1000px, calc(100% - 28px));
-  max-height: min(82dvh, 760px);
+  width: min(1180px, calc(100% - 40px));
+  /* Tall enough to be a reading surface rather than a tooltip, but still sized to its passage:
+     a fixed height left Genesis 1 — ten unusually terse verses — floating in half a screen of
+     nothing. The floor is what stops it collapsing; the ceiling is what it grows into. */
+  min-height: min(600px, 74dvh);
+  max-height: min(88dvh, 940px);
   padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -1849,13 +1947,17 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .context-dialog-body.is-refreshing { opacity: 0.4; }
 .context-dialog-body { transition: opacity 0.18s ease; }
 .verse-context-dialog::backdrop { background: color-mix(in srgb, var(--paper) 22%, rgba(0,0,0,.72)); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
-.context-dialog-inner { display: flex; flex-direction: column; max-height: min(82dvh, 760px); }
+.context-dialog-inner { display: flex; flex-direction: column; height: 100%; }
 .context-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 22px 15px; border-bottom: 1px solid var(--line); }
 .context-dialog-head .label { display: block; color: var(--thread); margin-bottom: 4px; }
 .context-dialog-head h3 { font-size: clamp(1.28rem, 3vw, 1.7rem); }
 .context-dialog-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .context-verpick { z-index: 3; }
-.context-verpick .verpick-menu { min-width: 250px; max-height: min(52dvh, 390px); overflow-y: auto; }
+/* Both header menus hang from a header that sits near the top of a dialog which is itself
+   near the top of the screen — so the room under them is what is left of the dialog, not what
+   is left of the window. On a short screen the translation list used to run past the dialog's
+   own edge and the last few versions were unreachable. */
+.context-verpick .verpick-menu { min-width: 250px; max-height: calc(88dvh - 190px); overflow-y: auto; }
 /* The pill's own 9px left padding sat the book tight against the border while the caret had
    the whole gap on the right. Here the row is short enough for the difference to show. */
 .context-verpick .verpick-btn { padding-left: 13px; }
@@ -1871,7 +1973,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .context-prefs-btn { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: var(--card-2); }
 .context-prefs-btn svg { width: 16px; height: 16px; display: block; }
 .context-prefs-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
-.context-prefs .prefs-menu { max-height: min(52dvh, 300px); overflow-y: auto; }
+.context-prefs .prefs-menu { max-height: calc(88dvh - 190px); overflow-y: auto; }
 .context-prefs .prefs-menu .prefs-head:first-child { margin-top: 0; }
 /* The dialog is exactly as tall as its passage and clips what it cannot hold, so a short
    passage cut the settings panel off at the line-height row. While the panel is open the
@@ -1904,6 +2006,14 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
    passage is one flowing paragraph; the breaks are stripped where the text is built. */
 .context-passage { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: var(--lh-wide); }
 .context-fallback-note { margin: 12px 0 0; }
+/* A translation's own section heading, given the line it was written to have. */
+.context-heading {
+  display: block; margin: 1.1em 0 0.35em;
+  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint);
+  line-height: 1.3;
+}
+.context-passage > .context-heading:first-child { margin-top: 0; }
 .context-verse, .context-block { display: inline; }
 .context-verse + .context-verse::before, .context-block + .context-block::before { content: " "; }
 .context-verse-number { margin-right: 0.3em; color: var(--ink-faint); font-family: var(--font-label); font-size: 0.62rem; font-weight: 700; }
@@ -2036,7 +2146,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   }
   .thread-preview-card .preview-header { grid-column: 1; }
   .thread-preview-card .preview-tag { grid-column: 1; border-bottom: none; padding-bottom: 0; margin-bottom: 14px; }
-  .thread-preview-card .preview-more { grid-column: 1; margin-top: 4px; padding-top: 0; }
+  .thread-preview-card .preview-foot { grid-column: 1; margin-top: 4px; padding-top: 0; }
   .thread-preview-card .preview-body { grid-column: 2; grid-row: 1 / span 3; }
 }
 @media (min-width: 1180px) {
@@ -2066,6 +2176,38 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 .preview-more::after { content: ' →'; margin-left: 5px; transition: transform .2s ease; }
 .preview-more:hover::after { transform: translateX(3px); }
+
+/* The way further in, and under it the way sideways. Stacked rather than side by side because
+   on the desktop grid this footer lives in the narrow left column, and on a phone the card is
+   one column anyway — either way a row would have put the arrows in a corner. */
+.preview-foot {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 12px; margin-top: auto; padding-top: 16px;
+}
+.preview-foot .preview-more { margin-top: 0; padding-top: 0; }
+.preview-stepper { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.preview-step {
+  width: 30px; height: 30px; flex: 0 0 30px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 50%;
+  background: var(--card-2); color: var(--ink-soft);
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+.preview-step svg { width: 15px; height: 15px; }
+.preview-step:hover { color: var(--c); border-color: color-mix(in srgb, var(--c) 50%, var(--line)); background: var(--card); }
+.preview-count {
+  min-width: 4.4em; text-align: center;
+  font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.08em; color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.preview-count b { color: var(--c); font-weight: 700; }
+/* Every interactive thing on this site clears 44px where the input is a finger. */
+@media (pointer: coarse) {
+  .preview-step { width: 44px; height: 44px; flex: 0 0 44px; }
+  .preview-step svg { width: 18px; height: 18px; }
+}
+
 
 @media (max-width: 720px) {
   .table-scroll {
@@ -2941,7 +3083,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 
 <footer class="site-foot wrap">
   <p class="foot-verse">“You search the Scriptures because you think that in them you have eternal life; and it is they that bear witness about me — yet you refuse to come to me that you may have life.” <span class="nowrap">— <a class="ref-link" target="_blank" rel="noopener" href="https://www.biblegateway.com/passage/?search=John+5%3A39-40" data-ref="John 5:39-40">John 5:39–40</a></span></p>
-  <p>This site is a map, not the territory. The goal was never the map. The goal is Him.</p>
+  <p class="foot-creed">This site is a map, not the territory. The goal was never the map. The goal is Him.</p>
   <span class="label">The Thread · a field manual to the Bible</span>
 </footer>
 
@@ -3346,7 +3488,18 @@ const CODES = {
     { name: 'Tree of life, tree of death, tree of life', refs: 'Gen 2:9; 3:22-24 → Gal 3:13; Rev 22:2', badge: 'classical', body: 'The story opens with a tree of life forfeited and guarded by a sword. The New Testament then insists on calling the cross “the TREE” (Gal 3:13; 1 Pet 2:24; Acts 5:30) — a deliberate word choice: a tree of death absorbing the curse. And the story closes with the tree of life back, un-guarded, “for the healing of the nations.” Three trees, one arc: paradise lost, purchased, restored.' },
     { name: 'The rock: struck once, then spoken to', refs: 'Ex 17:6; Num 20:8-12 → Heb 7:25; 10:12', badge: 'loose', body: 'First wilderness stop: God says STRIKE the rock, and water flows (Paul says the Rock was Christ, 1 Cor 10:4). Decades later: God says SPEAK to it — but Moses strikes it again, and it costs him the land. The old preachers saw the offense: Christ is struck ONCE, for all time; after that, you don’t re-crucify — you ask. A homiletic reading, held loosely — but it preaches the once-for-all beautifully.' }
   ],
-  typesNote: 'The New Testament has its own vocabulary for all this: <i>typos</i> — pattern, mold (Rom 5:14; 1 Cor 10:6,11); <i>skia</i> — shadow (Col 2:16-17; Heb 10:1); <i>antitypos</i> — the reality a pattern pointed to (1 Pet 3:21); <i>hypodeigma</i> — copy (Heb 8:5). A shadow isn’t the person — but it’s shaped exactly like the person, which is why you can learn Jesus’s silhouette in Genesis before you meet His face in John. The badges tell you who is drawing each connection: the NT itself, the church’s classic reading, or a devotional observation to enjoy loosely.',
+  typesLede: 'A shadow isn’t the person — but it’s shaped exactly like the person, which is why you can learn Jesus’s silhouette in Genesis before you meet His face in John.',
+  /* The New Testament's four words for this, in the order they actually run: something presses
+     a shape, the shape falls as a shadow, the shadow gets built as a working copy, and then the
+     thing itself walks in. Four terms buried in one paragraph read as jargon; laid out in order
+     they read as a sequence. */
+  typesVocab: [
+    { g: 'typos', t: 'Pattern', d: 'The stamp — the thing that presses a shape into what comes after it.', x: 'Rom 5:14; 1 Cor 10:6,11' },
+    { g: 'skia', t: 'Shadow', d: 'The shape itself, cast by something real standing just out of frame.', x: 'Col 2:16-17; Heb 10:1' },
+    { g: 'hypodeigma', t: 'Copy', d: 'A working model, built to scale, of a thing that exists elsewhere.', x: 'Heb 8:5' },
+    { g: 'antitypos', t: 'The reality', d: 'What the pattern was a pattern of. The person the shadow was shaped like.', x: '1 Pet 3:21' }
+  ],
+  typesBadgeNote: 'The badges tell you who is drawing each connection: the NT itself, the church’s classic reading, or a devotional observation to enjoy loosely.',
   tabernacle: {
     intro: 'The tabernacle wasn’t random furniture — it’s a walkable diagram of approach to God, and every station is Jesus (Heb 8:5; 10:19-22). Walk it east to west:',
     stations: [
@@ -4323,14 +4476,18 @@ function buildFeastArc() {
     (1 - t) * (1 - t) * P0[1] + 2 * (1 - t) * t * C[1] + t * t * P2[1]
   ];
   const iconAt = (name, x, y, s, color) => (ICONS[name] || '').replace('<svg ', '<svg x="' + (x - s / 2) + '" y="' + (y - s / 2) + '" width="' + s + '" height="' + s + '" style="color:' + color + '" ');
+  /* Three of the spring feasts fall within a fortnight of each other, so on an arc of the whole
+     year their marks sit almost on top of one another — and so did their labels, in a diagonal
+     pile. `lead` is how far each label stands off its own mark, which fans the cluster into a
+     ladder that reads top to bottom while every mark stays where the calendar actually puts it. */
   const FEASTS = [
-    { t: 0.07, name: 'PASSOVER', to: 'THE CROSS · 1 COR 5:7', ic: 'lamb', done: true },
-    { t: 0.13, name: 'UNLEAVENED BREAD', to: 'THE BURIAL', ic: 'bread', done: true },
-    { t: 0.19, name: 'FIRSTFRUITS', to: 'RESURRECTION · 1 COR 15:20', ic: 'grapes', done: true },
-    { t: 0.40, name: 'PENTECOST', to: 'THE SPIRIT · ACTS 2:1', ic: 'wind', done: true },
-    { t: 0.70, name: 'TRUMPETS', to: 'THE RETURN · 1 THESS 4:16', ic: 'music', done: false },
-    { t: 0.78, name: 'ATONEMENT', to: 'THEY LOOK ON HIM · ZECH 12:10', ic: 'gate', done: false },
-    { t: 0.87, name: 'TABERNACLES', to: 'GOD WITH MAN · REV 21:3', ic: 'temple', done: false }
+    { t: 0.07, name: 'PASSOVER', to: 'THE CROSS · 1 COR 5:7', ic: 'lamb', done: true, lead: 60 },
+    { t: 0.13, name: 'UNLEAVENED BREAD', to: 'THE BURIAL', ic: 'bread', done: true, lead: 104 },
+    { t: 0.19, name: 'FIRSTFRUITS', to: 'RESURRECTION · 1 COR 15:20', ic: 'grapes', done: true, lead: 148 },
+    { t: 0.40, name: 'PENTECOST', to: 'THE SPIRIT · ACTS 2:1', ic: 'wind', done: true, lead: 66 },
+    { t: 0.70, name: 'TRUMPETS', to: 'THE RETURN · 1 THESS 4:16', ic: 'music', done: false, lead: 150 },
+    { t: 0.78, name: 'ATONEMENT', to: 'THEY LOOK ON HIM · ZECH 12:10', ic: 'gate', done: false, lead: 104 },
+    { t: 0.87, name: 'TABERNACLES', to: 'GOD WITH MAN · REV 21:3', ic: 'temple', done: false, lead: 60 }
   ];
   let marks = '';
   FEASTS.forEach(f => {
@@ -4339,29 +4496,30 @@ function buildFeastArc() {
     const len = Math.hypot(d[0], d[1]);
     const dir = [d[0] / len, d[1] / len];
     const at = k => [Math.round(p[0] + dir[0] * k), Math.round(p[1] + dir[1] * k)];
-    const L = at(52), I = at(22), l1 = at(9), l2 = at(44);
+    const lead = f.lead || 60;
+    const L = at(lead), I = at(lead - 30), l1 = at(9), l2 = at(lead - 44);
     const anchor = f.t < 0.32 ? 'end' : (f.t <= 0.55 ? 'middle' : 'start');
     const cMain = f.done ? 'var(--ink)' : 'var(--ink-soft)';
     const cSub = f.done ? 'var(--c-walk)' : 'var(--c-detour)';
     marks +=
       '<line x1="' + l1[0] + '" y1="' + l1[1] + '" x2="' + l2[0] + '" y2="' + l2[1] + '" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="2 3" opacity="0.55"/>' +
-      iconAt(f.ic, I[0], I[1], 13, f.done ? 'var(--gold)' : 'var(--c-detour)') +
+      iconAt(f.ic, I[0], I[1], 17, f.done ? 'var(--gold)' : 'var(--c-detour)') +
       (f.done
         ? '<circle cx="' + Math.round(p[0]) + '" cy="' + Math.round(p[1]) + '" r="5.5" fill="var(--gold)" stroke="var(--card)" stroke-width="1.5"/>'
         : '<circle cx="' + Math.round(p[0]) + '" cy="' + Math.round(p[1]) + '" r="5.5" fill="var(--card)" stroke="var(--c-detour)" stroke-width="2" stroke-dasharray="2.5 2"/>') +
-      '<text x="' + L[0] + '" y="' + L[1] + '" text-anchor="' + anchor + '" font-size="7.6" letter-spacing="0.8" fill="' + cMain + '" style="font-family:var(--font-label);font-weight:700">' + f.name + '</text>' +
-      '<text x="' + L[0] + '" y="' + (L[1] + 10) + '" text-anchor="' + anchor + '" font-size="6.4" letter-spacing="0.6" fill="' + cSub + '" style="font-family:var(--font-label);font-weight:700">' + f.to + '</text>';
+      '<text x="' + L[0] + '" y="' + L[1] + '" text-anchor="' + anchor + '" font-size="11" letter-spacing="1" fill="' + cMain + '" style="font-family:var(--font-label);font-weight:700">' + f.name + '</text>' +
+      '<text x="' + L[0] + '" y="' + (L[1] + 14) + '" text-anchor="' + anchor + '" font-size="8.6" letter-spacing="0.6" fill="' + cSub + '" style="font-family:var(--font-label);font-weight:700">' + f.to + '</text>';
   });
-  return '<svg viewBox="0 60 900 250" role="img" aria-label="The seven feasts of Israel on the arc of the sacred year — spring fulfilled at the first coming, fall still ahead">' +
+  return '<svg viewBox="-58 8 978 322" role="img" aria-label="The seven feasts of Israel on the arc of the sacred year — spring fulfilled at the first coming, fall still ahead">' +
     '<path d="M60 240 Q450 40 840 240" fill="none" stroke="var(--ink-faint)" stroke-width="1.6" opacity="0.45"/>' +
     '<path d="M60 240 Q235.5 150 411 141" fill="none" stroke="var(--gold)" stroke-width="2.6" opacity="0.85"/>' +
     marks +
-    '<text x="185" y="268" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="var(--c-walk)" style="font-family:var(--font-label);font-weight:700">SPRING · FULFILLED TO THE DAY</text>' +
-    '<text x="700" y="268" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="var(--c-detour)" style="font-family:var(--font-label);font-weight:700">FALL · STILL AHEAD</text>' +
-    '<circle cx="330" cy="291" r="4" fill="var(--gold)"/>' +
-    '<text x="340" y="294" font-size="7" letter-spacing="0.8" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">FULFILLED</text>' +
-    '<circle cx="425" cy="291" r="4" fill="var(--card)" stroke="var(--c-detour)" stroke-width="1.6" stroke-dasharray="2 2"/>' +
-    '<text x="435" y="294" font-size="7" letter-spacing="0.8" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">AHEAD — HOLD DATES LOOSELY (ACTS 1:7)</text>' +
+    '<text x="150" y="286" text-anchor="middle" font-size="11" letter-spacing="1.8" fill="var(--c-walk)" style="font-family:var(--font-label);font-weight:700">SPRING · FULFILLED TO THE DAY</text>' +
+    '<text x="742" y="286" text-anchor="middle" font-size="11" letter-spacing="1.8" fill="var(--c-detour)" style="font-family:var(--font-label);font-weight:700">FALL · STILL AHEAD</text>' +
+    '<circle cx="318" cy="316" r="4.5" fill="var(--gold)"/>' +
+    '<text x="330" y="320" font-size="9" letter-spacing="0.9" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">FULFILLED</text>' +
+    '<circle cx="432" cy="316" r="4.5" fill="var(--card)" stroke="var(--c-detour)" stroke-width="1.8" stroke-dasharray="2 2"/>' +
+    '<text x="444" y="320" font-size="9" letter-spacing="0.9" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">AHEAD · DATES HELD LOOSELY (ACTS 1:7)</text>' +
     '</svg>';
 }
 
@@ -4517,8 +4675,13 @@ function vCodes() {
   const kindBadge = k => k === 'direct'
     ? '<span class="badge explicit" title="A stated prediction with an explicit New Testament fulfillment">Direct</span>'
     : '<span class="badge classical" title="A pattern the NT or the church reads as fulfilled typologically">Pattern</span>';
-  const rows = CODES.prophecies.map(p =>
-    '<tr><td data-label="The claim">' + p.what + '</td><td data-label="Promised">' + refLink(p.ot) + '</td><td data-label="Lands">' + refLink(p.nt) + '</td><td data-label="Reading">' + kindBadge(p.kind) + '</td></tr>').join('');
+  /* Twenty rows of near-identical text is a wall to scan. A mark per claim gives the eye
+     something to land on and, more usefully, something to remember a row by. */
+  const PROPHECY_ICONS = ['bolt', 'globe', 'king', 'star', 'bread', 'pyramid', 'dune', 'light',
+    'heart', 'gate', 'fork', 'ban', 'mic', 'cross', 'garment', 'lamb', 'search', 'rest', 'walk', 'temple'];
+  const rows = CODES.prophecies.map((p, i) =>
+    '<tr><td data-label="The claim"><span class="claim"><span class="claim-ic">' +
+      icon(PROPHECY_ICONS[i % PROPHECY_ICONS.length]) + '</span>' + p.what + '</span></td><td data-label="Promised">' + refLink(p.ot) + '</td><td data-label="Lands">' + refLink(p.nt) + '</td><td data-label="Reading">' + kindBadge(p.kind) + '</td></tr>').join('');
   const types = CODES.types.map(t =>
     '<div class="card type-card" style="--c:var(--c-codes)"><h3>' + t.name + ' ' + badge(t.badge) + '</h3>' +
     '<div class="type-refs">' + linkRefs(t.refs) + '</div><p>' + linkRefs(t.body) + '</p></div>').join('');
@@ -4560,7 +4723,20 @@ function vCodes() {
     '<div class="tabpane" data-pane="prophecies">' +
     '<div class="table-scroll"><table class="map-table"><thead><tr><th>The claim</th><th>Promised</th><th>Lands</th><th>Reading</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
     '<p class="note">' + linkRefs(CODES.prophecyNote) + '</p></div>' +
-    '<div class="tabpane" data-pane="types" hidden><p class="lede" style="margin-bottom:18px">' + linkRefs(CODES.typesNote) + '</p><div class="grid grid-2">' + types + '</div></div>' +
+    '<div class="tabpane" data-pane="types" hidden>' +
+    '<p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.typesLede) + '</p>' +
+    '<div class="card vocab-card" style="--c:var(--c-codes)">' +
+    '<div class="vocab-head">' + icon('scroll') + '<span>The New Testament\u2019s own four words for it</span></div>' +
+    '<ol class="vocab-steps">' + CODES.typesVocab.map((v, i) =>
+      '<li class="vocab-step"><span class="vocab-num">' + (i + 1) + '</span>' +
+      '<span class="vocab-greek">' + v.g + '</span>' +
+      '<b class="vocab-term">' + v.t + '</b>' +
+      '<p class="vocab-gloss">' + v.d + '</p>' +
+      '<span class="vocab-refs">' + linkRefs(v.x) + '</span></li>').join('') +
+    '</ol>' +
+    '<p class="vocab-note">' + linkRefs(CODES.typesBadgeNote) + '</p>' +
+    '</div>' +
+    '<div class="grid grid-2">' + types + '</div></div>' +
     '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container">' + buildTabernacleSVG() + '</div>' + diagramHint('tabernacle') + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
     '<div class="tabpane" data-pane="feasts" hidden>' +
     '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + namedRefLink('Lev 23:2', 'Leviticus') + '</span><span class="chart-corner br">' + namedRefLink('Col 2:16-17', 'Colossians') + '</span>' +
@@ -4766,9 +4942,29 @@ function buildThreadPreviewContent(t) {
     '      <p>' + linkRefs(t.landsOn) + '</p>' +
     '    </div>' +
     '  </div>' +
-    '  <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
+    '  <div class="preview-foot">' +
+    '    <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
+    '<div class="preview-stepper">' + previewStepperHtml(t) + '</div>' +
+    '  </div>' +
     '</div>'
   );
+}
+
+/* Thirteen routes, and the only ways in were a pill strip that scrolls sideways on a phone and
+   thirteen 2px lines to aim at. A pair of arrows walks the whole set in order, so the card can
+   be read straight through without ever going back to the chart to pick the next one. It wraps,
+   because stopping at Garment with no way on is a dead end for the one reader doing this. */
+function previewStepperHtml(t) {
+  const i = THREADS.findIndex(x => x.id === t.id);
+  const at = n => THREADS[(n + THREADS.length) % THREADS.length];
+  const arrow = (dir, d) =>
+    '<button class="preview-step" type="button" data-step-thread="' + at(i + dir).id + '" data-dir="' + dir + '"' +
+    ' aria-label="' + (dir < 0 ? 'Previous' : 'Next') + ' thread: ' + at(i + dir).name + '"' +
+    ' title="' + at(i + dir).name + '">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg></button>';
+  return arrow(-1, 'm14.5 6-6 6 6 6') +
+    '<span class="preview-count"><b>' + (i + 1) + '</b>\u2009/\u2009' + THREADS.length + '</span>' +
+    arrow(1, 'm9.5 6 6 6-6 6');
 }
 
 let activePreviewThreadId = null;
@@ -4866,6 +5062,11 @@ function updateThreadPreview(threadId) {
   patchPart(content.querySelector('.preview-lands p'), linkRefs(t.landsOn));
   const more = content.querySelector('.preview-more');
   if (more) { more.setAttribute('href', '#t-' + t.id); more.dataset.threadMore = t.id; }
+  /* The card is patched in place rather than rebuilt, so the stepper has to be repointed too:
+     its arrows carry the neighbouring routes and its readout the position in the thirteen.
+     Missed, the arrows keep pointing at whatever they pointed at when the card was built and
+     the second press goes nowhere. */
+  patchPart(content.querySelector('.preview-stepper'), previewStepperHtml(t));
 
   previewEl.style.height = '';
   const end = previewEl.offsetHeight;
@@ -5025,6 +5226,18 @@ function wireAllSections() {
   const previewEl = document.getElementById('thread-preview');
   if (previewEl) {
     previewEl.addEventListener('click', ev => {
+      const step = ev.target.closest('[data-step-thread]');
+      if (step) {
+        ev.preventDefault();
+        cancelPreviewReset();
+        selectPreviewThread(step.dataset.stepThread);
+        /* The card is rebuilt for the new route, so the button just pressed no longer exists.
+           Put focus back on the arrow in the same seat — otherwise a keyboard reader is dropped
+           to the top of the document on every single step. */
+        const seat = previewEl.querySelector('.preview-step[data-dir="' + step.dataset.dir + '"]');
+        if (seat) seat.focus({ preventScroll: true });
+        return;
+      }
       const more = ev.target.closest('[data-thread-more]');
       if (!more) return;
       ev.preventDefault();
@@ -5109,7 +5322,7 @@ function setupScrollspy() {
       if (entry.isIntersecting) visibleTops.set(entry.target.id, entry.boundingClientRect.top);
       else visibleTops.delete(entry.target.id);
     });
-    if (isScrollingNav || visibleTops.size === 0) return;
+    if (isScrollingNav || scrollQuiet || visibleTops.size === 0) return;
     let bestId = null, bestDist = Infinity;
     visibleTops.forEach((top, id) => {
       const dist = Math.abs(top);
@@ -5245,39 +5458,69 @@ let currentFsIndex = 2;
    Every setting in this panel re-lays the whole column, so the sentence being read slides
    out from under the eye and the page appears to jump. Pin whatever block sits just under
    the top of the viewport and hold it there for as long as the change takes to settle. */
+/* The block the reader is actually looking at — which is emphatically not whatever
+   `elementFromPoint` hands back first. That returns the topmost *painted* thing, and when the
+   probe lands in a section's own padding rather than on a word, the topmost thing is the
+   section: a 6,000px container whose top sits far above the screen. Pinning that pins nothing,
+   and a leading change slid the whole viewport by ~550px while the anchor sat there "held".
+   So take the deepest hit at the probe point instead, and refuse anything taller than a couple
+   of screens — those are containers, never the line being read. */
 function topAnchorEl() {
   if (window.scrollY < 4) return null; /* already at the top — staying there *is* the anchor */
   const bar = document.querySelector('.topbar');
   const y = Math.round((bar ? bar.getBoundingClientRect().bottom : 0) + 8);
+  const tooTall = window.innerHeight * 2;
+  const usable = el => {
+    if (!el || !el.closest) return false;
+    const scope = el.closest('#view, .site-foot');
+    if (!scope || el === scope) return false;
+    return el.getBoundingClientRect().height <= tooTall;
+  };
   const fracs = [0.5, 0.28, 0.72];
   for (let i = 0; i < fracs.length; i++) {
-    const el = document.elementFromPoint(Math.round(window.innerWidth * fracs[i]), y);
-    if (!el || !el.closest) continue;
-    const scope = el.closest('#view, .site-foot');
-    if (scope && el !== scope) return el; /* a real block, not the container or a gap */
+    const x = Math.round(window.innerWidth * fracs[i]);
+    /* deepest first: elementsFromPoint is ordered front-to-back, so the last usable entry is
+       the innermost box under the cursor rather than the outermost container painted over it */
+    const stack = document.elementsFromPoint(x, y);
+    for (let j = 0; j < stack.length; j++) {
+      if (usable(stack[j])) return stack[j];
+    }
   }
-  /* the three probes all landed in padding: fall back to the first block still on screen */
+  /* the probes all landed in padding: fall back to the smallest block still crossing the line */
   const kids = document.querySelectorAll('#view .view > *, .site-foot > *');
   for (let i = 0; i < kids.length; i++) {
-    if (kids[i].getBoundingClientRect().bottom > y) return kids[i];
+    const r = kids[i].getBoundingClientRect();
+    if (r.bottom > y && r.height <= tooTall) return kids[i];
   }
   return null;
 }
+/* Holding the reader's line means scrolling the document, sometimes by a couple of thousand
+   pixels, because everything above them re-flowed. Scroll-driven chrome should not read that
+   as the reader having moved, and the section offsets the rail is drawn from are stale until
+   the new layout exists — so both are held until it settles, then told the answer once. */
+let scrollQuiet = false;
+function settleScrollDrivenUI() {
+  scrollQuiet = false;
+  layoutRail();               /* the sections sit at new offsets now */
+  window.dispatchEvent(new Event('scroll'));
+}
 function holdScroll(ms, mutate) {
+  scrollQuiet = true;
   const el = topAnchorEl();
   const top0 = el ? el.getBoundingClientRect().top : 0;
   mutate();
-  if (!el) return;
+  if (!el) { settleScrollDrivenUI(); return; }
   const correct = () => {
     const drift = el.getBoundingClientRect().top - top0;
     if (Math.abs(drift) > 0.5) window.scrollBy(0, drift);
   };
   correct(); /* whatever the change did instantly */
-  if (ms <= 0 || REDUCED_MOTION) return;
+  if (ms <= 0 || REDUCED_MOTION) { settleScrollDrivenUI(); return; }
   const until = performance.now() + ms;
-  const tick = () => { /* ...and again each frame while the dials interpolate */
+  const tick = () => { /* ...and again each frame while the layout settles */
     correct();
     if (performance.now() < until) requestAnimationFrame(tick);
+    else settleScrollDrivenUI();
   };
   requestAnimationFrame(tick);
 }
@@ -5526,6 +5769,9 @@ let tooltipPinned = false;
 let tooltipRequestId = 0;
 let tooltipLink = null;
 let tooltipRef = '';
+/* The dialog holds a fixed share of the screen rather than shrinking to fit, so four verses
+   either side left most of it empty. Nine fills it, and more context is the whole point. */
+const CONTEXT_RADIUS = 9;
 let contextDialogEl = null;
 let contextRequestId = 0;
 let contextVersionPicker = null;
@@ -5614,6 +5860,23 @@ function cleanBollsText(text) {
    hover pop-up keeps its own breaks; this is only for the dialog. */
 function flowText(text) {
   return String(text).replace(/\s*\n+\s*/g, ' ').trim();
+}
+
+/* Some translations post a section heading inside the first verse it belongs to, separated by a
+   <br/> — "The Beginning" ahead of Genesis 1:1. Folded into the prose it reads as three stray
+   words glued to the front of the sentence. A heading only ever leads a verse, is short, and
+   does not end in sentence punctuation; anything else that happens to be on its own line is
+   poetry, and poetry flows. */
+function splitHeading(text) {
+  const nl = text.indexOf('\n');
+  if (nl < 1) return { heading: '', body: flowText(text) };
+  const head = text.slice(0, nl).trim();
+  const rest = text.slice(nl + 1);
+  const plain = head.replace(/<[^>]*>/g, '').trim();
+  if (!plain || plain.length > 64 || /[.!?;:,\u2014]$/.test(plain) || !rest.trim()) {
+    return { heading: '', body: flowText(text) };
+  }
+  return { heading: head, body: flowText(rest) };
 }
 
 async function fetchTptFromYouVersion(ref) {
@@ -5750,10 +6013,11 @@ async function loadBollsContext(parsed, version, radius) {
 
   return '<p class="context-passage">' + rows.map(v => {
     const selected = v.chapter === parsed.chapter && v.verse >= selectedStart && v.verse <= selectedEnd;
-    const text = flowText(cleanBollsText(v.text));
+    const parts = splitHeading(cleanBollsText(v.text));
     const num = v.chapter === parsed.chapter ? String(v.verse) : v.chapter + ':' + v.verse;
-    return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num +
-      '</sup><span class="ctx-t">' + text + '</span></span>';
+    return (parts.heading ? '<b class="context-heading">' + parts.heading + '</b>' : '') +
+      '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num +
+      '</sup><span class="ctx-t">' + parts.body + '</span></span>';
   }).join(' ') + '</p>';
 }
 
@@ -5828,10 +6092,16 @@ function initTooltip() {
     ? (document.documentElement.dataset.type || PREFS.type.def)
     : (document.documentElement.dataset.lh || PREFS.lh.def)));
 
-  tooltipEl.addEventListener('mouseenter', () => {
-    if (tooltipTimer) clearTimeout(tooltipTimer);
-  });
-  tooltipEl.addEventListener('mouseleave', () => hideTooltip());
+  /* On a pointing device the pop-up is inert — CSS gives it pointer-events: none — so there is
+     nothing to keep alive and, more to the point, nothing standing between one reference and
+     the next one below it. That was the whole problem: skimming a list meant dragging the
+     cursor through a box that had parked itself over the very thing being reached for. */
+  if (!HOVER_CAPABLE) {
+    tooltipEl.addEventListener('mouseenter', () => {
+      if (tooltipTimer) clearTimeout(tooltipTimer);
+    });
+    tooltipEl.addEventListener('mouseleave', () => hideTooltip());
+  }
 
   document.body.addEventListener('mouseover', ev => {
     if (tooltipPinned) return;
@@ -5853,7 +6123,11 @@ function initTooltip() {
     if (link) {
       ev.preventDefault();
       const ref = link.dataset.ref || link.textContent;
-      if (ref) showTooltip(link, ref, true);
+      if (!ref) return;
+      /* The hover pop-up already showed the verse, so the click is asking for the next thing
+         up: the passage around it. On touch there was no hover, so the click is the pop-up. */
+      if (HOVER_CAPABLE) { openVerseContext(ref, getVersion()); hideTooltip(true); }
+      else showTooltip(link, ref, true);
       return;
     }
 
@@ -5885,7 +6159,7 @@ function initTooltip() {
 
   contextDialogEl.querySelector('.context-dialog-close').addEventListener('click', () => contextDialogEl.close());
   contextDialogEl.querySelector('.context-more-button').addEventListener('click', () => {
-    contextDialogEl.dataset.radius = String((parseInt(contextDialogEl.dataset.radius, 10) || 4) + 6);
+    contextDialogEl.dataset.radius = String((parseInt(contextDialogEl.dataset.radius, 10) || CONTEXT_RADIUS) + 8);
     refreshVerseContext(true);
   });
   contextDialogEl.addEventListener('close', () => {
@@ -5944,6 +6218,18 @@ function fillTooltip(ref, version, requestId) {
   });
 }
 
+/* Two different devices want two different things here. A pointer wants to skim: run down a
+   list of references and read each one as it passes, without a click or a journey into the
+   pop-up. So on a pointing device the pop-up is a read-out — it never takes the cursor, and
+   the way to the full passage is to click the reference itself, which is already under the
+   hand. A touchscreen has no hover at all: there the first tap opens the pop-up and the
+   button inside it is the second tap. */
+function tooltipActionHtml(ref, version) {
+  if (HOVER_CAPABLE) return '<div class="tooltip-actions is-hint">Click the reference to read it in context</div>';
+  return '<div class="tooltip-actions"><button class="tooltip-context-button" type="button" data-ref="' +
+    escapeScriptureText(ref) + '" data-version="' + version + '">See in context</button></div>';
+}
+
 function showTooltip(link, ref, pinned) {
   if (tooltipTimer) clearTimeout(tooltipTimer);
   tooltipPinned = Boolean(pinned);
@@ -5956,7 +6242,7 @@ function showTooltip(link, ref, pinned) {
   tooltipEl.innerHTML =
     '<span class="tooltip-ref">' + escapeScriptureText(ref) + ' (' + version + ')</span>' +
     '<div class="tooltip-text is-loading">Reading…</div>' +
-    '<div class="tooltip-actions"><button class="tooltip-context-button" type="button" data-ref="' + escapeScriptureText(ref) + '" data-version="' + version + '">See in context</button></div>';
+    tooltipActionHtml(ref, version);
   tooltipEl.classList.toggle('is-pinned', tooltipPinned);
   tooltipEl.classList.add('open');
   fillTooltip(ref, version, requestId);
@@ -5964,18 +6250,21 @@ function showTooltip(link, ref, pinned) {
 
 function hideTooltip(force) {
   if (tooltipPinned && !force) return;
+  /* 200ms of grace existed so the cursor could cross the gap into the pop-up. Nothing crosses
+     into it any more on a pointing device, and the wait is felt as lag when the next reference
+     is two words away. */
   tooltipTimer = setTimeout(() => {
     tooltipPinned = false;
     tooltipEl.classList.remove('open');
     tooltipEl.classList.remove('is-pinned');
-  }, 200);
+  }, HOVER_CAPABLE ? 60 : 200);
 }
 
 function refreshVerseContext(preserveSelection) {
   if (!contextDialogEl) return;
   const ref = contextDialogEl.dataset.ref;
   const version = contextDialogEl.dataset.version || getVersion();
-  const radius = parseInt(contextDialogEl.dataset.radius, 10) || 4;
+  const radius = parseInt(contextDialogEl.dataset.radius, 10) || CONTEXT_RADIUS;
   if (!ref) return;
   const requestId = ++contextRequestId;
   const body = contextDialogEl.querySelector('.context-dialog-body');
@@ -6014,7 +6303,7 @@ function openVerseContext(ref, version) {
   version = version || getVersion();
   contextDialogEl.dataset.ref = ref;
   contextDialogEl.dataset.version = version;
-  contextDialogEl.dataset.radius = '4';
+  contextDialogEl.dataset.radius = String(CONTEXT_RADIUS);
   contextDialogEl.querySelector('h3').textContent = formatReferenceTitle(ref);
   applyVersion(version);
   const body = contextDialogEl.querySelector('.context-dialog-body');
@@ -6233,7 +6522,7 @@ function initRail() {
   });
   let ticking = false;
   const onScroll = () => {
-    if (ticking) return;
+    if (ticking || scrollQuiet) return;
     ticking = true;
     requestAnimationFrame(() => {
       ticking = false;
@@ -6297,6 +6586,7 @@ function initBackToTop() {
   let ticking = false;
   const update = () => {
     ticking = false;
+    if (scrollQuiet) return;
     button.classList.toggle('visible', window.scrollY > Math.max(520, window.innerHeight * 0.75));
   };
   window.addEventListener('scroll', () => {
