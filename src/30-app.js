@@ -1664,16 +1664,35 @@ function setTextSize(index, instant) {
   applySmooth(apply);
 }
 
-/* `instant` is the first paint, where there is nothing to cross-fade from. `persist` is false
-   while the choice is still the system's rather than the reader's, so a machine that flips to
-   dark in the evening is still followed. */
+/* `instant` is the first paint, where there is nothing to move from. `persist` is false while
+   the choice is still the system's rather than the reader's, so a machine that flips to dark in
+   the evening is still followed.
+
+   Colour does not go through applySmooth. The type dials have to be cross-faded because they
+   re-lay the document; a palette changes no geometry at all, so the stylesheet interpolates the
+   theme tokens themselves and the page walks from one palette to the other — paper, ink, rules
+   and all thirteen route colours easing together — rather than dissolving into a photograph of
+   itself. The class is added on the first change and left on: a transition list costs nothing
+   while none of its properties are moving, and there is no timer to get wrong. The forced
+   reflow between the two is what makes the first press ease as well; established in the same
+   style pass as the value it is meant to carry, the transition has nothing to start from. */
+let themeEases = false;
 function setTheme(value, instant, persist) {
   const root = document.documentElement;
-  const apply = () => { root.dataset.theme = value; };
   if (persist !== false) lsSet(PREFS.theme.key, value);
   markPrefButtons('theme', value);
-  if (instant) { apply(); return; }
-  applySmooth(apply);
+  if (instant) {
+    /* Instant has to mean instant even after the ease is switched on — the reset button snaps
+       the palette inside the one view transition it shares with the three type dials, and a
+       340ms colour ease running underneath that would land the cross-fade on the old palette. */
+    const eased = root.classList.contains('theme-eases');
+    if (eased) root.classList.remove('theme-eases');
+    root.dataset.theme = value;
+    if (eased) { void root.offsetWidth; root.classList.add('theme-eases'); }
+    return;
+  }
+  if (!themeEases) { themeEases = true; root.classList.add('theme-eases'); void root.offsetWidth; }
+  root.dataset.theme = value;
 }
 
 /* The dialog's own dials. They write attributes on the dialog rather than the root, which is

@@ -101,6 +101,100 @@ body { margin: 0; }
    Lamplight rather than daylight: the same sepia ink on a paper that has sat in the sun.
    It is a third choice, not a variant of light, so the dark media query below has to let
    it through untouched — hence the second :not() on that guard. */
+/* ---------- the palette eases from one theme to the next ----------
+   Colour is the one site-wide setting that costs no layout, so it does not need the view
+   transition the type dials depend on — it can be interpolated for real. A custom property is
+   an untyped string to the browser until it is registered; declared as a <color> with
+   @property, every token below becomes a value it knows how to walk from one end to the other.
+   One transition list on :root then carries the whole palette across, and nothing else has to
+   declare anything: every rule already reading var(--paper) or var(--t-water) simply follows.
+
+   The list is switched on by a class rather than left standing, because the first paint sets
+   data-theme too — left standing, every visit would open by fading into its own palette.
+   Registration is not optional here: without it these transitions silently do nothing. */
+@property --paper { syntax: "<color>"; inherits: true; initial-value: #f1f0e6; }
+@property --paper-deep { syntax: "<color>"; inherits: true; initial-value: #e9e7d7; }
+@property --card { syntax: "<color>"; inherits: true; initial-value: #faf9f2; }
+@property --card-2 { syntax: "<color>"; inherits: true; initial-value: #f4f3e8; }
+@property --ink { syntax: "<color>"; inherits: true; initial-value: #2b2620; }
+@property --ink-soft { syntax: "<color>"; inherits: true; initial-value: #675f4e; }
+@property --ink-faint { syntax: "<color>"; inherits: true; initial-value: #6f6957; }
+@property --line { syntax: "<color>"; inherits: true; initial-value: #d7d3c0; }
+@property --line-soft { syntax: "<color>"; inherits: true; initial-value: #e5e2d2; }
+@property --grat { syntax: "<color>"; inherits: true; initial-value: rgba(43, 38, 32, 0.055); }
+@property --thread { syntax: "<color>"; inherits: true; initial-value: #b3242f; }
+@property --gold { syntax: "<color>"; inherits: true; initial-value: #a1791f; }
+@property --c-start { syntax: "<color>"; inherits: true; initial-value: #b3242f; }
+@property --c-pattern { syntax: "<color>"; inherits: true; initial-value: #a06b1e; }
+@property --c-threads { syntax: "<color>"; inherits: true; initial-value: #b3242f; }
+@property --c-codes { syntax: "<color>"; inherits: true; initial-value: #8f6c12; }
+@property --c-triune { syntax: "<color>"; inherits: true; initial-value: #4d679b; }
+@property --c-walk { syntax: "<color>"; inherits: true; initial-value: #3f7a44; }
+@property --c-detour { syntax: "<color>"; inherits: true; initial-value: #a8502f; }
+@property --c-mind { syntax: "<color>"; inherits: true; initial-value: #5b5a93; }
+@property --c-library { syntax: "<color>"; inherits: true; initial-value: #2f6f8c; }
+@property --t-lamb { syntax: "<color>"; inherits: true; initial-value: #b3242f; }
+@property --t-bread { syntax: "<color>"; inherits: true; initial-value: #a97b23; }
+@property --t-water { syntax: "<color>"; inherits: true; initial-value: #2e6f8e; }
+@property --t-light { syntax: "<color>"; inherits: true; initial-value: #a8851c; }
+@property --t-shepherd { syntax: "<color>"; inherits: true; initial-value: #4a7c46; }
+@property --t-king { syntax: "<color>"; inherits: true; initial-value: #6f4d8f; }
+@property --t-temple { syntax: "<color>"; inherits: true; initial-value: #2f7a70; }
+@property --t-rest { syntax: "<color>"; inherits: true; initial-value: #55648c; }
+@property --t-covenant { syntax: "<color>"; inherits: true; initial-value: #8a5a2b; }
+@property --t-bride { syntax: "<color>"; inherits: true; initial-value: #b0506e; }
+@property --t-exile { syntax: "<color>"; inherits: true; initial-value: #5a6472; }
+@property --t-name { syntax: "<color>"; inherits: true; initial-value: #bf5b22; }
+@property --t-garment { syntax: "<color>"; inherits: true; initial-value: #9e4b86; }
+@property --s-egypt { syntax: "<color>"; inherits: true; initial-value: #5a6472; }
+@property --s-desert { syntax: "<color>"; inherits: true; initial-value: #a06b1e; }
+@property --s-land { syntax: "<color>"; inherits: true; initial-value: #3f7a44; }
+
+:root { --theme-ease: 340ms cubic-bezier(.2, .7, .3, 1); }
+:root.theme-eases {
+  transition:
+    --paper var(--theme-ease),
+    --paper-deep var(--theme-ease),
+    --card var(--theme-ease),
+    --card-2 var(--theme-ease),
+    --ink var(--theme-ease),
+    --ink-soft var(--theme-ease),
+    --ink-faint var(--theme-ease),
+    --line var(--theme-ease),
+    --line-soft var(--theme-ease),
+    --grat var(--theme-ease),
+    --thread var(--theme-ease),
+    --gold var(--theme-ease),
+    --c-start var(--theme-ease),
+    --c-pattern var(--theme-ease),
+    --c-threads var(--theme-ease),
+    --c-codes var(--theme-ease),
+    --c-triune var(--theme-ease),
+    --c-walk var(--theme-ease),
+    --c-detour var(--theme-ease),
+    --c-mind var(--theme-ease),
+    --c-library var(--theme-ease),
+    --t-lamb var(--theme-ease),
+    --t-bread var(--theme-ease),
+    --t-water var(--theme-ease),
+    --t-light var(--theme-ease),
+    --t-shepherd var(--theme-ease),
+    --t-king var(--theme-ease),
+    --t-temple var(--theme-ease),
+    --t-rest var(--theme-ease),
+    --t-covenant var(--theme-ease),
+    --t-bride var(--theme-ease),
+    --t-exile var(--theme-ease),
+    --t-name var(--theme-ease),
+    --t-garment var(--theme-ease),
+    --s-egypt var(--theme-ease),
+    --s-desert var(--theme-ease),
+    --s-land var(--theme-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root.theme-eases { transition: none; }
+}
+
 :root[data-theme="warm"] {
   --paper: #f5e9d5;
   --paper-deep: #eddcc2;
@@ -2368,7 +2462,16 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 /* ---------- the phone's route stepper ----------
    Two arrows and the name of the route between them, floating at the bottom of the screen for
    as long as the chart is on it. It is centred rather than cornered, and narrow enough that it
-   never reaches the back-to-top button on the smallest phone. */
+   never reaches the back-to-top button on the smallest phone.
+
+   The width is fixed, not fitted. Sized to its contents the bar was as wide as whichever name
+   was in it, so the arrows walked outwards for "The Lamb & the Blood" and back in for "Bread" —
+   and a thumb parked on Next found itself pressing nothing on the third tap. A fixed box keeps
+   both arrows at the same two points on the glass for all thirteen, and the name takes whatever
+   is left in the middle. Getting all thirteen names into that middle needs the full width of
+   the screen, which is why the back-to-top button stands down while this is up: two floating
+   controls at the bottom of a phone were squeezing the bar into ellipsing its own labels, and
+   the way back to the top of the page is a tap away in the header anyway. */
 .thread-fab {
   position: fixed;
   left: 50%;
@@ -2379,7 +2482,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   align-items: center;
   gap: 2px;
   padding: 4px;
-  max-width: min(330px, calc(100vw - 116px));
+  width: min(346px, calc(100vw - 40px));
   border: 1px solid color-mix(in srgb, var(--thread) 32%, var(--line));
   border-radius: 999px;
   background: color-mix(in srgb, var(--card) 92%, transparent);
@@ -2436,6 +2539,8 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   transition: opacity .18s ease, visibility .18s ease, transform .18s ease, background-color .18s ease;
 }
 .back-to-top.visible { opacity: 1; visibility: visible; transform: none; }
+/* the route stepper owns the bottom of the screen for as long as it is there */
+body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
 .back-to-top:hover { background: var(--card); }
 .back-to-top svg { width: 19px; height: 19px; }
 
@@ -5797,16 +5902,35 @@ function setTextSize(index, instant) {
   applySmooth(apply);
 }
 
-/* `instant` is the first paint, where there is nothing to cross-fade from. `persist` is false
-   while the choice is still the system's rather than the reader's, so a machine that flips to
-   dark in the evening is still followed. */
+/* `instant` is the first paint, where there is nothing to move from. `persist` is false while
+   the choice is still the system's rather than the reader's, so a machine that flips to dark in
+   the evening is still followed.
+
+   Colour does not go through applySmooth. The type dials have to be cross-faded because they
+   re-lay the document; a palette changes no geometry at all, so the stylesheet interpolates the
+   theme tokens themselves and the page walks from one palette to the other — paper, ink, rules
+   and all thirteen route colours easing together — rather than dissolving into a photograph of
+   itself. The class is added on the first change and left on: a transition list costs nothing
+   while none of its properties are moving, and there is no timer to get wrong. The forced
+   reflow between the two is what makes the first press ease as well; established in the same
+   style pass as the value it is meant to carry, the transition has nothing to start from. */
+let themeEases = false;
 function setTheme(value, instant, persist) {
   const root = document.documentElement;
-  const apply = () => { root.dataset.theme = value; };
   if (persist !== false) lsSet(PREFS.theme.key, value);
   markPrefButtons('theme', value);
-  if (instant) { apply(); return; }
-  applySmooth(apply);
+  if (instant) {
+    /* Instant has to mean instant even after the ease is switched on — the reset button snaps
+       the palette inside the one view transition it shares with the three type dials, and a
+       340ms colour ease running underneath that would land the cross-fade on the old palette. */
+    const eased = root.classList.contains('theme-eases');
+    if (eased) root.classList.remove('theme-eases');
+    root.dataset.theme = value;
+    if (eased) { void root.offsetWidth; root.classList.add('theme-eases'); }
+    return;
+  }
+  if (!themeEases) { themeEases = true; root.classList.add('theme-eases'); void root.offsetWidth; }
+  root.dataset.theme = value;
 }
 
 /* The dialog's own dials. They write attributes on the dialog rather than the root, which is
