@@ -2425,7 +2425,11 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   }
   .thread-preview-card {
     padding: 18px;
-    overflow: visible;
+    /* Clip, not visible: the card slides its own contents under a thumb now, and with nothing
+       to cut them off they crossed the dashed frame and sat on the page beside it. `clip`
+       rather than `hidden` because this must not become a scroll container — the swipe reads
+       its own gesture and the page keeps the vertical. */
+    overflow: clip;
   }
   /* Not sticky on a phone: once a preview loaded, the pinned panel grew by the height of
      the mobile header and covered the first milestone of the thing it was previewing. */
