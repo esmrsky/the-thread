@@ -127,6 +127,7 @@ function linkRefs(html) { return html.replace(REF_RE, (m) => refLink(m)); }
    used to take boot() down with it — leaving a page with a header and no content. */
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* preferences just won't persist */ } }
+function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* nothing stored to clear */ } }
 
 /* Swapped content fades in; without this every verse, preview and passage replaces itself mid-read. */
 function flashSwap(el) {
@@ -945,8 +946,17 @@ function cancelPreviewReset() {
   if (previewResetTimer) clearTimeout(previewResetTimer);
 }
 
+/* The name is stacked on top of all thirteen names, each of the other twelve hidden. They all
+   share one grid cell, so the box is exactly as tall as the longest route *at the width it is
+   being read at* — one line on a wide screen, two on a narrow one — instead of the flat
+   two-line reservation it used to carry, which parked the arrows a whole empty line below
+   every short name. Nothing below it moves when the route changes, and there is no measuring
+   pass and no resize listener to keep in step. */
 function buildThreadPreviewHeader(t) {
-  return '<span class="preview-icon">' + icon(t.icon) + '</span><h3>' + t.name + '</h3>';
+  return '<span class="preview-icon">' + icon(t.icon) + '</span>' +
+    '<h3 class="preview-title"><span class="pt-live">' + t.name + '</span>' +
+    THREADS.map(x => '<span class="pt-ghost" aria-hidden="true">' + x.name + '</span>').join('') +
+    '</h3>';
 }
 
 function buildThreadPreviewContent(t) {
@@ -993,8 +1003,7 @@ function previewStepperHtml(t) {
     ' aria-label="' + (dir < 0 ? 'Previous' : 'Next') + ' thread: ' + at(i + dir).name + '"' +
     ' title="' + at(i + dir).name + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg></button>';
-  return arrow(-1, 'm14.5 6-6 6 6 6') + arrow(1, 'm9.5 6 6 6-6 6') +
-    '<span class="preview-count"><b>' + (i + 1) + '</b>\u2009/\u2009' + THREADS.length + '</span>';
+  return arrow(-1, 'm14.5 6-6 6 6 6') + arrow(1, 'm9.5 6 6 6-6 6');
 }
 
 let activePreviewThreadId = null;
@@ -1080,6 +1089,7 @@ function updateThreadPreview(threadId) {
   if (!content) {
     swapPreviewContent(previewEl, buildThreadPreviewContent(t));
     activePreviewThreadId = threadId;
+    syncThreadFabName(t.name);
     return;
   }
 
@@ -1093,9 +1103,8 @@ function updateThreadPreview(threadId) {
   const more = content.querySelector('.preview-more');
   if (more) { more.setAttribute('href', '#t-' + t.id); more.dataset.threadMore = t.id; }
   /* The card is patched in place rather than rebuilt, so the stepper has to be repointed too:
-     its arrows carry the neighbouring routes and its readout the position in the thirteen.
-     Missed, the arrows keep pointing at whatever they pointed at when the card was built and
-     the second press goes nowhere. */
+     its two arrows carry the neighbouring routes. Missed, they keep pointing at whatever they
+     pointed at when the card was built and the second press goes nowhere. */
   patchPart(content.querySelector('.preview-stepper'), previewStepperHtml(t));
 
   previewEl.style.height = '';
@@ -1107,12 +1116,14 @@ function updateThreadPreview(threadId) {
     setTimeout(() => { if (token === previewSwapToken) previewEl.style.height = ''; }, 280);
   }
   activePreviewThreadId = threadId;
+  syncThreadFabName(t.name);
 }
 
 function resetThreadPreview() {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
   activePreviewThreadId = null;
+  syncThreadFabName(null);
   swapPreviewContent(previewEl,
     '  <div class="preview-placeholder">' +
     '    <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
@@ -1391,12 +1402,17 @@ function applyVersion(code) {
   document.querySelectorAll('.verpick-opt').forEach(o => o.setAttribute('aria-selected', String(o.dataset.v === code)));
 }
 
+/* Codes only. Eight full names made the menu a 262px-wide paragraph list for a choice that is
+   really eight three-letter tokens — and the codes are what the button shows and what a reader
+   of this site already thinks in. The full name is kept on `title`/`aria-label`, so it is still
+   there for a hover and still read out, just not taking up the column. */
 function versionMenuHtml(heading) {
   return '<span class="verpick-head">' + heading + '</span>' +
     VERSIONS.map(v =>
       '<button class="verpick-opt" type="button" role="option" data-v="' + v.code + '"' +
+      ' title="' + v.full + '" aria-label="' + v.full + '"' +
       ' aria-selected="' + (v.code === ACTIVE_VERSION) + '">' +
-      '<span class="code">' + v.code + '</span><span class="full">' + v.full + '</span></button>').join('');
+      '<span class="code">' + v.code + '</span></button>').join('');
 }
 
 function wireVersionPicker(wrap, onChoose) {
@@ -1471,6 +1487,7 @@ const THEMES = ['warm', 'light', 'dark'];
 const PREFS = {
   ctxType: { key: 'thread-ctx-type', def: 'literata' },
   ctxLh: { key: 'thread-ctx-lh', def: 'normal' },
+  ctxFs: { key: 'thread-ctx-fs', def: '2' },
   theme: { key: 'thread-theme', def: 'light' },
   type: { key: 'thread-type', def: 'literata' },
   lh: { key: 'thread-lh', def: 'normal' },
@@ -1489,6 +1506,7 @@ const TYPE_THEMES = {
 const FS_STEPS = [0.86, 0.93, 1, 1.08, 1.16, 1.26, 1.36];
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let currentFsIndex = 2;
+let currentCtxFsIndex = 2;
 
 /* ---------- keeping the reader's place ----------
    Every setting in this panel re-lays the whole column, so the sentence being read slides
@@ -1658,9 +1676,16 @@ function setTheme(value, instant, persist) {
   applySmooth(apply);
 }
 
-/* The dialog's own two dials. They write attributes on the dialog rather than the root, which
-   is all it takes: --lh and the font variables are inherited, so redeclaring them there stops
-   at its edge. */
+/* The dialog's own dials. They write attributes on the dialog rather than the root, which is
+   all it takes: --lh and the font variables are inherited, so redeclaring them there stops at
+   its edge.
+
+   Line height and text size here are *not* run through applySmooth. The site-wide pair have to
+   be, because they change the root font-size and re-lay a 40,000px document; this pair changes
+   one paragraph inside a dialog, so the stylesheet can simply transition `line-height` and
+   `font-size` the way it would transition any other animatable property, and the passage opens
+   up under the eye instead of the page being photographed and cross-faded. A typeface still
+   goes through applySmooth: there is nothing to interpolate between two faces. */
 function setContextPref(which, value, instant) {
   const key = which === 'type' ? PREFS.ctxType : PREFS.ctxLh;
   const valid = which === 'type' ? !!TYPE_THEMES[value] : ['snug', 'normal', 'roomy'].indexOf(value) >= 0;
@@ -1678,9 +1703,48 @@ function setContextPref(which, value, instant) {
     if (which === 'type') contextDialogEl.dataset.ctxType = v;
     else contextDialogEl.dataset.ctxLh = v;
   };
-  if (instant) { apply(); if (which === 'type') loadFaces(TYPE_THEMES[v]); return; }
-  if (which === 'type') loadFaces(TYPE_THEMES[v]).then(() => applySmooth(apply));
-  else applySmooth(apply);
+  if (which !== 'type') { apply(); return; }
+  if (instant) { apply(); loadFaces(TYPE_THEMES[v]); return; }
+  loadFaces(TYPE_THEMES[v]).then(() => applySmooth(apply));
+}
+
+/* The same ladder the site-wide stepper walks, on the same +/- control, but written as a
+   multiplier on the dialog rather than on :root — so it moves the passage and nothing else. */
+function setContextTextSize(index) {
+  const i = Math.max(0, Math.min(FS_STEPS.length - 1, isNaN(index) ? parseInt(PREFS.ctxFs.def, 10) : index));
+  currentCtxFsIndex = i;
+  lsSet(PREFS.ctxFs.key, String(i));
+  document.querySelectorAll('.context-prefs .ctx-fs-val').forEach(el => {
+    el.textContent = Math.round(FS_STEPS[i] * 100) + '%';
+  });
+  document.querySelectorAll('[data-pref="ctx-fs"] button[data-step]').forEach(b => {
+    const dir = +b.dataset.step;
+    b.disabled = (dir < 0 && i === 0) || (dir > 0 && i === FS_STEPS.length - 1);
+  });
+  if (contextDialogEl) contextDialogEl.style.setProperty('--ctx-fs', String(FS_STEPS[i]));
+}
+
+/* "Reset to defaults" means the two panels' own settings, each in its own scope: the passage
+   dialog's button puts the passage back, the topbar's puts the site back. Colour is the one
+   that does not go to a fixed value — before anyone chooses, the site follows the machine, so
+   unchoosing has to hand it back rather than pin it to Light. */
+function resetPrefs(scope) {
+  if (scope === 'ctx') {
+    setContextPref('type', PREFS.ctxType.def);
+    setContextPref('lh', PREFS.ctxLh.def);
+    setContextTextSize(parseInt(PREFS.ctxFs.def, 10));
+    return;
+  }
+  lsDel(PREFS.theme.key);
+  const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  /* All four under one view transition. Called one after another, each would start a
+     transition that cancelled the one before it and the page would snap three times. */
+  applySmooth(() => {
+    setTheme(system, true, false);
+    setTypeTheme(PREFS.type.def, true);
+    setLineHeight(PREFS.lh.def, true);
+    setTextSize(parseInt(PREFS.fs.def, 10), true);
+  });
 }
 
 function applyPref(name, value, instant) {
@@ -1688,6 +1752,8 @@ function applyPref(name, value, instant) {
     setContextPref('type', value, instant);
   } else if (name === 'ctx-lh') {
     setContextPref('lh', value, instant);
+  } else if (name === 'ctx-fs') {
+    setContextTextSize(parseInt(value, 10));
   } else if (name === 'theme') {
     setTheme(value, instant);
   } else if (name === 'type') {
@@ -1745,7 +1811,14 @@ function readingPanelHtml() {
     '<div class="seg" data-pref="ctx-lh">' +
     ['snug', 'normal', 'roomy'].map(v => '<button type="button" data-v="' + v + '">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>').join('') +
     '</div>' +
-    '<span class="prefs-note">Applies to this passage view.</span>';
+    '<span class="prefs-head">Text size</span>' +
+    '<div class="stepper" data-pref="ctx-fs">' +
+    '<button type="button" data-step="-1" aria-label="Smaller passage text">\u2212</button>' +
+    '<span class="stepper-val ctx-fs-val" role="status" aria-live="polite">100%</span>' +
+    '<button type="button" data-step="1" aria-label="Larger passage text">+</button>' +
+    '</div>' +
+    '<span class="prefs-note">Applies to this passage view.</span>' +
+    '<div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="ctx">Reset to defaults</button></div>';
 }
 
 /* The topbar panel and the one in the passage dialog are the same panel twice: the same
@@ -1788,8 +1861,17 @@ function wirePrefsPanel(wrap, opts) {
   btn.addEventListener('click', ev => { ev.stopPropagation(); menu.hidden ? open() : close(); });
   menu.addEventListener('click', ev => {
     ev.stopPropagation();
-    const step = ev.target.closest('[data-pref="fs"] button[data-step]');
-    if (step) { setTextSize(currentFsIndex + (+step.dataset.step)); return; }
+    const reset = ev.target.closest('[data-prefs-reset]');
+    if (reset) { resetPrefs(reset.dataset.prefsReset); return; }
+    /* Two steppers now — the site's and the passage's — so which ladder a press walks comes
+       from the group it was pressed in, not from a hard-coded name. */
+    const step = ev.target.closest('[data-pref] button[data-step]');
+    if (step) {
+      const which = step.closest('[data-pref]').dataset.pref;
+      if (which === 'ctx-fs') setContextTextSize(currentCtxFsIndex + (+step.dataset.step));
+      else setTextSize(currentFsIndex + (+step.dataset.step));
+      return;
+    }
     const b = ev.target.closest('[data-pref] button[data-v]');
     if (!b) return;
     applyPref(b.closest('[data-pref]').dataset.pref, b.dataset.v);
@@ -2174,6 +2256,8 @@ function initTooltip() {
   contextPrefsPanel = wirePrefsPanel(contextDialogEl.querySelector('.context-prefs'));
   setContextPref('type', lsGet(PREFS.ctxType.key) || PREFS.ctxType.def, true);
   setContextPref('lh', lsGet(PREFS.ctxLh.key) || PREFS.ctxLh.def, true);
+  const ctxFsSaved = parseInt(lsGet(PREFS.ctxFs.key), 10);
+  setContextTextSize(ctxFsSaved >= 0 && ctxFsSaved < FS_STEPS.length ? ctxFsSaved : parseInt(PREFS.ctxFs.def, 10));
 
   /* On a pointing device the pop-up is inert — CSS gives it pointer-events: none — so there is
      nothing to keep alive and, more to the point, nothing standing between one reference and
@@ -2673,6 +2757,58 @@ function paintRail(rail, stops) {
 }
 window.addEventListener('resize', () => setTimeout(layoutRail, 200));
 
+/* ---------- the phone's route stepper ----------
+   The two arrows inside the preview card are the desktop control; at phone width the card's
+   header is hidden and the card is a scrolled panel, so the same pair rides the bottom of the
+   screen instead. It is on screen for exactly as long as the chart is, and gone the moment you
+   scroll past it — there is nothing to step through anywhere else on the page. */
+function syncThreadFabName(name) {
+  const el = document.getElementById('thread-fab-name');
+  if (el) el.textContent = name || 'The Story Map';
+}
+
+function initThreadFab() {
+  const fab = document.getElementById('thread-fab');
+  if (!fab) return;
+  const phone = window.matchMedia('(max-width: 720px)');
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const panel = document.querySelector('.hero-chart');
+    let show = false;
+    if (phone.matches && panel) {
+      const r = panel.getBoundingClientRect();
+      /* "On screen" has to mean being read, not technically intersecting: the panel is tall
+         enough to show 40px of itself at the very top of the page, and a bar that appears there
+         is a bar over the hero. It arrives when the panel has reached the middle of the screen
+         and leaves when there is less than a bar's height of it left. */
+      show = r.top < window.innerHeight * 0.55 && r.bottom > 120;
+    }
+    fab.classList.toggle('visible', show);
+  };
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }, { passive: true });
+  window.addEventListener('resize', update);
+  if (phone.addEventListener) phone.addEventListener('change', update);
+
+  fab.addEventListener('click', ev => {
+    const b = ev.target.closest('[data-fab-dir]');
+    if (!b) return;
+    const dir = +b.dataset.fabDir;
+    const current = selectedPreviewThreadId || activePreviewThreadId;
+    /* With nothing chosen yet, Next opens the first route and Previous the last — pressing an
+       arrow on an empty card should start the walk, not do nothing. */
+    const from = current ? THREADS.findIndex(x => x.id === current) : (dir > 0 ? -1 : 0);
+    const next = THREADS[((from + dir) % THREADS.length + THREADS.length) % THREADS.length];
+    cancelPreviewReset();
+    selectPreviewThread(next.id);
+  });
+  update();
+}
+
 function initBackToTop() {
   const button = document.getElementById('back-to-top');
   if (!button) return;
@@ -2727,6 +2863,8 @@ function boot() {
 
   initRail();
   renderSections();
+  /* after the sections exist — its first read looks for the chart panel */
+  initThreadFab();
 
   // Wire events, then handle the initial route before enabling scrollspy.
   initTooltip();

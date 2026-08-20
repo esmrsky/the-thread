@@ -1611,7 +1611,9 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 }
 /* It was absolutely positioned at top:-1px, which put it on the 2px border rather than inside
    the card. It reads as the step it is, on the line with the word it numbers. */
-.vocab-top { display: flex; align-items: baseline; gap: 9px; margin-bottom: 2px; }
+/* The Greek word and the English term underneath it were 2px apart, which read as one
+   two-line heading rather than a word and its translation. */
+.vocab-top { display: flex; align-items: baseline; gap: 9px; margin-bottom: 9px; }
 .vocab-num {
   flex: 0 0 auto;
   width: 19px; height: 19px;
@@ -1788,7 +1790,8 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 
 .verpick-menu {
   position: absolute; top: calc(100% + 8px); right: 0; z-index: var(--z-menu);
-  min-width: 262px;
+  /* The options are codes now, so the column is as wide as the heading over it and no wider. */
+  min-width: 180px;
   padding: 6px;
   background: var(--card);
   border: 1px solid var(--line);
@@ -1808,16 +1811,15 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   border-bottom: 1px dashed var(--line-soft); margin-bottom: 5px;
 }
 .verpick-opt {
-  display: flex; align-items: baseline; gap: 9px; width: 100%;
-  padding: 6px 9px; border-radius: 7px;
+  display: flex; align-items: center; width: 100%;
+  padding: 8px 9px; border-radius: 7px;
   background: none; border: 0; text-align: left; cursor: pointer;
   color: var(--ink-soft);
 }
 .verpick-opt .code {
-  font-family: var(--font-label); font-size: 0.66em; font-weight: 700;
-  letter-spacing: 0.1em; color: var(--ink); width: 40px; flex-shrink: 0;
+  font-family: var(--font-label); font-size: 0.72em; font-weight: 700;
+  letter-spacing: 0.1em; color: var(--ink);
 }
-.verpick-opt .full { font-size: 0.82em; line-height: 1.3; }
 .verpick-opt:hover, .verpick-opt.cursor { background: var(--card-2); color: var(--ink); }
 .verpick-opt[aria-selected="true"] { background: color-mix(in srgb, var(--gold) 12%, transparent); }
 .verpick-opt[aria-selected="true"] .code { color: var(--gold); }
@@ -1924,7 +1926,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 /* --font-body is re-read here on purpose: font-family computes to a concrete stack on <body>,
    and the dialog inherits that computed value, so redeclaring the variable alone changed the
    heading (which asks for --font-head itself) and left the passage in the old face. */
-.verse-context-dialog { --lh: 2.15; font-family: var(--font-body); }
+.verse-context-dialog { --lh: 2.15; --ctx-fs: 1; font-family: var(--font-body); }
 .verse-context-dialog[data-ctx-lh="snug"] { --lh: 1.85; }
 .verse-context-dialog[data-ctx-lh="roomy"] { --lh: 2.55; }
 .verse-context-dialog[data-ctx-type="source-serif"] {
@@ -1939,8 +1941,22 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   --font-head: "Atkinson Hyperlegible Next", var(--fb-sans);
   --font-body: "Atkinson Hyperlegible Next", var(--fb-sans);
 }
-/* the passage is the thing the dial is for, so it reads at --lh rather than a derived value */
-.verse-context-dialog .context-passage { line-height: var(--lh); }
+/* The passage is the thing the dials are for, so it reads at --lh and --ctx-fs directly rather
+   than at values derived from them.
+
+   And both of them ease, because here they can. A dial on :root re-lays the whole 40,000px
+   document, which is why the site-wide pair are cross-faded through a view transition instead
+   of animated. This one moves a single paragraph inside a dialog, so a frame of it costs one
+   small reflow and `font-size` and `line-height` — both animatable, both interpolable numbers —
+   can simply be transitioned. The type grows and the lines open up under the eye. */
+.verse-context-dialog .context-passage {
+  line-height: var(--lh);
+  font-size: calc(1rem * var(--ctx-fs));
+  transition: font-size 0.22s cubic-bezier(.2, .7, .3, 1), line-height 0.22s cubic-bezier(.2, .7, .3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .verse-context-dialog .context-passage { transition: none; }
+}
 .verse-context-dialog .context-dialog-head h3,
 .verse-context-dialog .context-heading { line-height: 1.22; }
 
@@ -1990,7 +2006,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
    near the top of the screen — so the room under them is what is left of the dialog, not what
    is left of the window. On a short screen the translation list used to run past the dialog's
    own edge and the last few versions were unreachable. */
-.context-verpick .verpick-menu { min-width: 250px; max-height: calc(88dvh - 190px); overflow-y: auto; }
+.context-verpick .verpick-menu { min-width: 180px; max-height: calc(88dvh - 190px); overflow-y: auto; }
 /* The pill's own 9px left padding sat the book tight against the border while the caret had
    the whole gap on the right. Here the row is short enough for the difference to show. */
 .context-verpick .verpick-btn { padding-left: 13px; }
@@ -2040,16 +2056,17 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .context-passage { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: var(--lh); }
 .context-fallback-note { margin: 12px 0 0; }
 /* A translation's own section heading, given the line it was written to have. */
+/* em, not rem: these sit inside the passage, so they answer to its own text-size dial. */
 .context-heading {
   display: block; margin: 1.1em 0 0.35em;
-  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700;
+  font-family: var(--font-label); font-size: 0.66em; font-weight: 700;
   letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint);
   line-height: 1.3;
 }
 .context-passage > .context-heading:first-child { margin-top: 0; }
 .context-verse, .context-block { display: inline; }
 .context-verse + .context-verse::before, .context-block + .context-block::before { content: " "; }
-.context-verse-number { margin-right: 0.3em; color: var(--ink-faint); font-family: var(--font-label); font-size: 0.62rem; font-weight: 700; }
+.context-verse-number { margin-right: 0.3em; color: var(--ink-faint); font-family: var(--font-label); font-size: 0.62em; font-weight: 700; }
 .context-verse.is-selected .ctx-t, .context-block.is-selected {
   padding: 0.08em 0.14em;
   color: var(--ink);
@@ -2221,15 +2238,20 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 
    Sitting them under the name is not enough on its own: the name is one line for "Bread" and
    two for "The King & the Seed", and where it wraps depends on the column width, so the
-   arrows still rode up and down as the route changed. The title reserves two lines whether it
-   needs them or not, which pins everything below it — the arrows land in exactly the same
-   place on every route, at every width. */
-.preview-header h3 { min-height: 2.44em; }
+   arrows rode up and down as the route changed. A flat two-line reservation pinned them, but
+   at any width where every name fits on one line it also left a whole empty line between the
+   name and the arrows. The title now carries all thirteen names in one grid cell with twelve
+   of them hidden, so the box is as tall as the longest name *at this width* and no taller:
+   the arrows sit tight under the name on a wide screen, and still never move. */
+.preview-title { display: grid; }
+.preview-title > * { grid-area: 1 / 1; }
+.preview-title > .pt-ghost { visibility: hidden; pointer-events: none; }
 .preview-stepper {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 12px 0 2px;
+  /* indented past the icon chip, so they start where the name starts */
+  margin: 10px 0 16px calc(var(--preview-chip) + var(--preview-chip-gap));
 }
 .preview-step {
   width: 34px; height: 34px; flex: 0 0 34px;
@@ -2246,13 +2268,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   border-color: color-mix(in srgb, var(--c) 50%, var(--line));
   background: color-mix(in srgb, var(--c) 10%, var(--card));
 }
-.preview-count {
-  font-family: var(--font-label); font-size: 0.6rem; font-weight: 700;
-  letter-spacing: 0.09em; color: var(--ink-faint);
-  font-variant-numeric: tabular-nums; white-space: nowrap;
-  margin-left: 2px;
-}
-.preview-count b { color: var(--c); font-weight: 700; }
 @media (pointer: coarse) {
   .preview-step { width: 44px; height: 44px; flex: 0 0 44px; }
   .preview-step svg { width: 18px; height: 18px; }
@@ -2339,8 +2354,58 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
      on the edge; a flex spacer is the same gap nothing skips. */
   .hero-chart .hero-legend::after { content: ""; flex: 0 0 14px; }
   .thread-preview-card .preview-header { display: none; }
+  /* the floating bar at the bottom of the screen is the stepper here */
+  .thread-preview-card .preview-stepper { display: none; }
   .verse-tooltip { max-width: calc(100vw - 28px); }
   .context-dialog-head, .context-dialog-body { padding-left: 16px; padding-right: 16px; }
+}
+
+/* ---------- the phone's route stepper ----------
+   Two arrows and the name of the route between them, floating at the bottom of the screen for
+   as long as the chart is on it. It is centred rather than cornered, and narrow enough that it
+   never reaches the back-to-top button on the smallest phone. */
+.thread-fab {
+  position: fixed;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  transform: translate(-50%, 10px);
+  z-index: var(--z-fab);
+  display: none;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  max-width: min(330px, calc(100vw - 116px));
+  border: 1px solid color-mix(in srgb, var(--thread) 32%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .18s ease, visibility .18s ease, transform .18s ease;
+}
+.thread-fab.visible { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+.thread-fab-step {
+  flex: 0 0 40px; width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  color: var(--thread);
+  background: color-mix(in srgb, var(--thread) 10%, transparent);
+}
+.thread-fab-step svg { width: 18px; height: 18px; }
+.thread-fab-step:active { background: color-mix(in srgb, var(--thread) 22%, transparent); }
+.thread-fab-name {
+  flex: 1 1 auto; min-width: 0;
+  padding: 0 8px;
+  text-align: center;
+  font-family: var(--font-label); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.04em; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 720px) { .thread-fab { display: flex; } }
+@media (prefers-reduced-motion: reduce) {
+  .thread-fab { transition: opacity .18s ease, visibility .18s ease; transform: translate(-50%, 0); }
 }
 
 /* ---------- back to top ---------- */
@@ -2372,7 +2437,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 @media (max-width: 520px) {
   .context-dialog-head { gap: 10px; }
   .context-verpick .verpick-ic { display: block; }
-  .context-verpick .verpick-menu { min-width: min(250px, calc(100vw - 56px)); }
+  .context-verpick .verpick-menu { min-width: min(180px, calc(100vw - 56px)); }
   .back-to-top { right: 14px; bottom: 14px; width: 40px; height: 40px; }
 }
 
@@ -2427,17 +2492,23 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  /* The icon chip and the gap after it are one shared quantity: the name is set to the right of
+     them and the arrows are indented past them, so both answer to the same two numbers rather
+     than to a guess that drifts the moment the chip changes size. */
+  --preview-chip: 40px;
+  --preview-chip-gap: 14px;
 }
 
 .preview-header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: var(--preview-chip-gap);
+  /* the arrows below carry the gap now, so the name and its arrows read as one block */
+  margin-bottom: 0;
 }
 .preview-icon {
-  width: 40px;
-  height: 40px;
+  width: var(--preview-chip);
+  height: var(--preview-chip);
   border-radius: var(--r);
   background: color-mix(in srgb, var(--c) 12%, transparent);
   color: var(--c);
@@ -2823,7 +2894,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   }
   .verpick-btn { padding: 6px 11px 6px 9px; }
   .verpick-ic { display: block; }
-  .verpick-menu { min-width: 232px; }
+  .verpick-menu { min-width: 180px; }
   .navstrip {
     padding-top: 8px;
   }
@@ -2893,6 +2964,21 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--thread) 30%, transparent);
 }
 .prefs-note { display: block; font-size: 0.68em; color: var(--ink-faint); line-height: 1.4; }
+/* A way back. Every dial above this line is sticky on the device, and a panel you can only
+   walk forwards through is a panel you end up stuck in. */
+.prefs-foot { margin-top: 11px; padding-top: 10px; border-top: 1px dashed var(--line-soft); }
+.prefs-reset {
+  width: 100%; padding: 9px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card-2);
+  font-family: var(--font-label); font-size: 0.66em; font-weight: 700; letter-spacing: 0.09em;
+  color: var(--ink-soft); cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+.prefs-reset:hover {
+  color: var(--thread);
+  border-color: color-mix(in srgb, var(--thread) 40%, var(--line));
+  background: color-mix(in srgb, var(--thread) 8%, var(--card));
+}
 
 /* Six pairings, each previewed in its own two faces — but as six named rows with a
    descriptive line each they were over half the panel's height, which on a phone meant
