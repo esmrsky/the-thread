@@ -1,7 +1,7 @@
 <title>The Thread — A Field Manual to the Bible</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400..800;1,400..700&amp;family=EB+Garamond:ital,wght@0,400..800;1,400..700&amp;family=Figtree:ital,wght@0,400..900;1,400..700&amp;family=Literata:ital,opsz,wght@0,7..72,400..800;1,7..72,400..700&amp;family=Source+Sans+3:ital,wght@0,400..900;1,400..700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400..800;1,8..60,400..700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400..800;1,400..700&amp;family=Figtree:ital,wght@0,400..900;1,400..700&amp;family=Literata:ital,opsz,wght@0,7..72,400..800;1,7..72,400..700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400..800;1,8..60,400..700&amp;display=swap">
 <style>
 /* ================= THE THREAD — map-room design system ================= */
 
@@ -97,8 +97,56 @@ body { margin: 0; }
   --z-menu: 400;
 }
 
+/* ---------- warm ----------
+   Lamplight rather than daylight: the same sepia ink on a paper that has sat in the sun.
+   It is a third choice, not a variant of light, so the dark media query below has to let
+   it through untouched — hence the second :not() on that guard. */
+:root[data-theme="warm"] {
+  --paper: #f5e9d5;
+  --paper-deep: #eddcc2;
+  --card: #fdf4e4;
+  --card-2: #f7ecd8;
+  --ink: #322317;
+  --ink-soft: #6b5334;
+  --ink-faint: #7d6544;
+  --line: #dcc8a6;
+  --line-soft: #e9dabe;
+  --grat: rgba(80, 55, 25, 0.07);
+  --thread: #a8202b;
+  --gold: #91661a;
+  --c-start: #a8202b;
+  --c-pattern: #905c17;
+  --c-threads: #a8202b;
+  --c-codes: #7f5d0d;
+  --c-triune: #455d8f;
+  --c-walk: #366d3b;
+  --c-detour: #9a4526;
+  --c-mind: #524f88;
+  --c-library: #266380;
+  --t-lamb: #a8202b;
+  --t-bread: #996c1c;
+  --t-water: #29627e;
+  --t-light: #96760f;
+  --t-shepherd: #416f3d;
+  --t-king: #644382;
+  --t-temple: #276d63;
+  --t-rest: #4c5a80;
+  --t-covenant: #7c4e22;
+  --t-bride: #a34762;
+  --t-exile: #515b68;
+  --t-name: #b25018;
+  --t-garment: #8f4179;
+  --s-egypt: #515b68;
+  --s-desert: #905c17;
+  --s-land: #366d3b;
+  --shadow: 0 1px 2px rgba(70,45,15,.07), 0 10px 28px -14px rgba(70,45,15,.3);
+  --shadow-sm: 0 1px 2px rgba(70,45,15,.07), 0 8px 20px -16px rgba(70,45,15,.26);
+  --shadow-md: 0 2px 4px rgba(70,45,15,.08), 0 14px 30px -16px rgba(70,45,15,.34);
+  --shadow-lift: 0 2px 4px rgba(70,45,15,.08), 0 16px 36px -14px rgba(70,45,15,.36);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme="light"]):not([data-theme="warm"]) {
     --paper: #14171d;
     --paper-deep: #10131a;
     --card: #1b1f27;
@@ -218,8 +266,8 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: break-word; }
 p, li { text-wrap: pretty; }
 
 /* ---------- typeface themes ----------
-   Six pairings: three that read in a serif, three that read in a sans. Two of them cross
-   the pair deliberately, which is the whole point of naming them themes rather than fonts.
+   Four pairings: two that read in a serif, two that read in a sans. One of them crosses the
+   pair deliberately, which is the whole point of naming them themes rather than fonts.
    The unset default is Literata. */
 :root[data-type="source-serif"] {
   --font-head: "Figtree", var(--fb-sans);
@@ -227,23 +275,11 @@ p, li { text-wrap: pretty; }
   --font-label: "Figtree", var(--fb-sans);
   --fs-theme: 1.02;
 }
-:root[data-type="garamond"] {
-  --font-head: "EB Garamond", var(--fb-serif);
-  --font-body: "EB Garamond", var(--fb-serif);
-  --font-label: "Figtree", var(--fb-sans);
-  --fs-theme: 1.13;
-}
 :root[data-type="figtree"] {
   --font-head: "Figtree", var(--fb-sans);
   --font-body: "Figtree", var(--fb-sans);
   --font-label: "Figtree", var(--fb-sans);
   --fs-theme: 0.98;
-}
-:root[data-type="source-sans"] {
-  --font-head: "Literata", var(--fb-serif);
-  --font-body: "Source Sans 3", var(--fb-sans);
-  --font-label: "Source Sans 3", var(--fb-sans);
-  --fs-theme: 1.02;
 }
 :root[data-type="atkinson"] {
   --font-head: "Atkinson Hyperlegible Next", var(--fb-sans);
@@ -269,11 +305,30 @@ p, li { text-wrap: pretty; }
    it was. Opacity is a compositor property, so the fade itself holds 60fps on any device,
    and all four settings get the same calm behaviour. The topbar is left out of it so the
    panel you are clicking in stays crisp. */
-#view, .site-foot { transition: opacity 0.26s ease-in; }
-#view.reading-swap, .site-foot.reading-swap { opacity: 0.08; transition: opacity 0.17s ease-out; }
+#view, .site-foot, .context-dialog-inner { transition: opacity 0.26s ease-in; }
+#view.reading-swap, .site-foot.reading-swap, .context-dialog-inner.reading-swap { opacity: 0.08; transition: opacity 0.17s ease-out; }
+
+/* ---------- changing the palette ----------
+   The other three reading settings re-lay the page, so they fade the column down and back.
+   Colours do not: nothing moves, only every colour on the page lands on a new value at once,
+   and snapping them all in a single frame reads as a blink. So instead of hiding the change,
+   drive it — every painted colour interpolates to its new value together. The class is on
+   for the length of the crossfade and no longer, because a permanent transition on `*` makes
+   every hover on the page feel like it is dragging. */
+:root.theme-shift, :root.theme-shift *, :root.theme-shift *::before, :root.theme-shift *::after {
+  transition: background-color 0.34s ease, background-image 0.34s ease, color 0.34s ease,
+              border-color 0.34s ease, outline-color 0.34s ease, box-shadow 0.34s ease,
+              fill 0.34s ease, stroke 0.34s ease !important;
+  transition-delay: 0s !important;
+}
 @media (prefers-reduced-motion: reduce) {
-  #view, .site-foot { transition: none; }
-  #view.reading-swap, .site-foot.reading-swap { opacity: 1; }
+  :root.theme-shift, :root.theme-shift *, :root.theme-shift *::before, :root.theme-shift *::after {
+    transition: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #view, .site-foot, .context-dialog-inner { transition: none; }
+  #view.reading-swap, .site-foot.reading-swap, .context-dialog-inner.reading-swap { opacity: 1; }
 }
 
 ::selection { background: color-mix(in srgb, var(--thread) 25%, transparent); }
@@ -284,7 +339,7 @@ p, li { text-wrap: pretty; }
 /* ---------- one scrollbar, everywhere something scrolls ----------
    Anything that hides its scrollbar entirely (nav strip, filmstrips) opts out below. */
 .table-scroll,
-.feast-arc-panel,
+.feast-arc-scroll,
 .context-dialog-body,
 .verpick-menu,
 .thread-preview-card,
@@ -293,19 +348,19 @@ p, li { text-wrap: pretty; }
   scrollbar-color: color-mix(in srgb, var(--thread) 45%, var(--line)) transparent;
 }
 .table-scroll::-webkit-scrollbar,
-.feast-arc-panel::-webkit-scrollbar,
+.feast-arc-scroll::-webkit-scrollbar,
 .context-dialog-body::-webkit-scrollbar,
 .verpick-menu::-webkit-scrollbar,
 .thread-preview-card::-webkit-scrollbar,
 .tabernacle-graphic-container::-webkit-scrollbar { width: 8px; height: 8px; }
 .table-scroll::-webkit-scrollbar-track,
-.feast-arc-panel::-webkit-scrollbar-track,
+.feast-arc-scroll::-webkit-scrollbar-track,
 .context-dialog-body::-webkit-scrollbar-track,
 .verpick-menu::-webkit-scrollbar-track,
 .thread-preview-card::-webkit-scrollbar-track,
 .tabernacle-graphic-container::-webkit-scrollbar-track { background: transparent; }
 .table-scroll::-webkit-scrollbar-thumb,
-.feast-arc-panel::-webkit-scrollbar-thumb,
+.feast-arc-scroll::-webkit-scrollbar-thumb,
 .context-dialog-body::-webkit-scrollbar-thumb,
 .verpick-menu::-webkit-scrollbar-thumb,
 .thread-preview-card::-webkit-scrollbar-thumb,
@@ -357,7 +412,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 /* ---------- top bar ---------- */
 .topbar {
   /* The reading settings scale the article, not the toolbar. Left on the root, a 136% text
-     size (or just Garamond's optical bump) grew the nav too and ran the brand straight into
+     size (or just a typeface's optical bump) grew the nav too and ran the brand straight into
      the pills at 1280px. Dividing the two multipliers back out of 1rem lands on exactly the
      browser's own default size — so a reader who set a larger default still gets it here,
      which a hard 16px would have taken away. Everything below is sized in em off this. */
@@ -429,8 +484,8 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 :root[data-theme="dark"] .theme-toggle .ic-sun { display: block; }
 :root[data-theme="dark"] .theme-toggle .ic-moon { display: none; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .theme-toggle .ic-sun { display: block; }
-  :root:not([data-theme="light"]) .theme-toggle .ic-moon { display: none; }
+  :root:not([data-theme="light"]):not([data-theme="warm"]) .theme-toggle .ic-sun { display: block; }
+  :root:not([data-theme="light"]):not([data-theme="warm"]) .theme-toggle .ic-moon { display: none; }
 }
 
 /* centred middle column; scrolls internally only if cramped */
@@ -1468,19 +1523,32 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 /* ---------- scarlet progress rail ---------- */
 #rail { position: fixed; left: 16px; top: 130px; bottom: 56px; width: 14px; z-index: var(--z-rail); }
 /* The dots were unlabelled — thirteen identical 14px targets with only a title attribute. */
+/* The name is the target as much as the dot is — a 14px circle is a poor thing to aim at when
+   there is a word sitting right beside it saying what it does. It starts at the dot's own edge
+   (padding rather than offset) so the pointer never crosses a dead gap and loses the hover. */
 .rail-dot-label {
-  position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  padding: 4px 4px 4px 6px;
   font-family: var(--font-label); font-size: 0.58rem; font-weight: 700;
   letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
-  color: var(--ink-faint); opacity: 0; transition: opacity 0.15s ease; pointer-events: none;
+  color: var(--ink-faint); opacity: 0; transition: opacity 0.15s ease, color 0.2s ease;
+  pointer-events: none; cursor: pointer;
 }
-.rail-dot:hover .rail-dot-label, .rail-dot:focus-visible .rail-dot-label { opacity: 1; }
-@media (min-width: 1460px) { .rail-dot-label { opacity: 0.75; } }
+/* Only ever clickable while it is on screen: an invisible word reaching 120px into the page
+   margin would eat clicks meant for the column behind it. */
+.rail-dot:hover .rail-dot-label, .rail-dot:focus-visible .rail-dot-label { opacity: 1; pointer-events: auto; }
+.rail-dot:hover .rail-dot-label, .rail-dot.passed .rail-dot-label { color: var(--c); }
+@media (min-width: 1460px) { .rail-dot-label { opacity: 0.75; pointer-events: auto; } }
 .rail-track { position: absolute; left: 6px; top: 0; bottom: 0; border-left: 2px dashed var(--line); }
+/* The line is one continuous strip painted in every section's own colour, in order, with the
+   hand-offs sitting exactly on the dots — so the colour under your eye names the section you
+   are actually in. Growth is a clip, not a height: a shrinking box would rescale the gradient
+   and drag every hand-off along with it, away from the dot it belongs to. */
 .rail-fill {
-  position: absolute; left: 6px; top: 0; width: 2px; height: 0%;
+  position: absolute; left: 6px; top: 0; bottom: 0; width: 2px;
   background: var(--thread);
-  box-shadow: 0 0 7px color-mix(in srgb, var(--thread) 55%, transparent);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--thread) 45%, transparent);
+  clip-path: inset(0 0 100% 0);
 }
 .rail-dot {
   position: absolute; left: 0; width: 14px; height: 14px;
@@ -1494,8 +1562,12 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 @media (max-width: 1199px) { #rail { display: none; } }
 
 /* ---------- feast arc ---------- */
-.feast-arc-panel { margin-bottom: 22px; padding: 14px 10px 6px; }
+/* The panel no longer scrolls — the arc inside it does. The two book names are pinned to the
+   panel, so panning the year no longer drags Colossians across the legend under it, and the
+   pair now read along the top edge where the arc's own ends are lowest. */
+.feast-arc-panel { margin-bottom: 22px; padding: 30px 10px 6px; }
 .feast-arc-panel svg { width: 100%; height: auto; }
+.feast-arc-panel .chart-corner.br { top: 0; bottom: auto; right: 0; left: auto; }
 
 /* ---------- tabernacle "details worth noticing" ---------- */
 .tab-insights { margin-top: 30px; }
@@ -1507,7 +1579,11 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .insight-mini p { font-size: 0.92rem; color: var(--ink-soft); line-height: var(--lh-ui); }
 
 /* ---------- journey svg ---------- */
-.journey-panel { padding: 10px 10px 4px; margin: 8px 0 clamp(30px, 4vw, 42px); }
+/* Both ends of the promise read along the top edge. At the panel's bottom right the second
+   one landed on the "The land walks" caption and, on a scrolled page, straight under the
+   back-to-top button. */
+.journey-panel { padding: 26px 10px 4px; margin: 8px 0 clamp(30px, 4vw, 42px); }
+.journey-panel .chart-corner.br { top: 0; bottom: auto; right: 0; left: auto; }
 .journey-panel svg { width: 100%; height: auto; min-width: 0; }
 .journey-scroll { overflow: clip; }
 
@@ -1530,18 +1606,6 @@ footer.site-foot {
 }
 footer.site-foot .foot-verse { font-style: italic; max-width: 58ch; margin: 0 auto 10px; }
 footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: block; }
-footer.site-foot .foot-links { margin-top: 10px; }
-footer.site-foot .foot-link {
-  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700;
-  letter-spacing: 0.13em; text-transform: uppercase;
-  color: var(--thread); text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--thread) 45%, transparent);
-  padding-bottom: 2px;
-}
-footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
-@media (pointer: coarse) {
-  footer.site-foot .foot-link { display: inline-block; min-height: 44px; line-height: 44px; }
-}
 
 /* hero thread interactions */
 .hero-scroll { position: relative; overflow: clip; min-width: 0; }
@@ -1781,7 +1845,29 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .context-dialog-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .context-verpick { z-index: 3; }
 .context-verpick .verpick-menu { min-width: 250px; max-height: min(52dvh, 390px); overflow-y: auto; }
-.context-dialog-close { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: var(--card-2); font-size: 1.15rem; }
+/* The pill's own 9px left padding sat the book tight against the border while the caret had
+   the whole gap on the right. Here the row is short enough for the difference to show. */
+.context-verpick .verpick-btn { padding-left: 13px; }
+/* The close mark was the "×" character, which is centred on the font's own maths rather than
+   on the circle — it sat high and a hair to the left in every face. A drawn cross is centred
+   by its own geometry, so it stays put whichever typeface the reader has chosen. */
+.context-dialog-close { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: var(--card-2); }
+.context-dialog-close svg { width: 15px; height: 15px; display: block; }
+.context-dialog-close:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+/* Reading settings, in the place the reading is actually happening. */
+.context-prefs { position: relative; z-index: 4; }
+.context-prefs-btn { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: var(--card-2); }
+.context-prefs-btn svg { width: 16px; height: 16px; display: block; }
+.context-prefs-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+.context-prefs .prefs-menu { max-height: min(52dvh, 300px); overflow-y: auto; }
+.context-prefs .prefs-menu .prefs-head:first-child { margin-top: 0; }
+/* The dialog is exactly as tall as its passage and clips what it cannot hold, so a short
+   passage cut the settings panel off at the line-height row. While the panel is open the
+   dialog holds itself open to at least the panel's height. */
+.verse-context-dialog:has(.context-prefs .prefs-menu:not([hidden])) .context-dialog-inner {
+  min-height: min(290px, 70dvh);
+}
 .context-dialog-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -1902,7 +1988,9 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
    thirteen names a second time — so the labels take over as the control and the pills go. */
 .hero-line-label { display: none; }
 @media (min-width: 1100px) {
-  .hero-line-label { display: block; cursor: pointer; }
+  /* The weight lives here rather than on the element: an inline font-weight outranks any
+     stylesheet rule, so the lit state could never actually thicken the name. */
+  .hero-line-label { display: block; cursor: pointer; font-weight: 700; }
   .hero-line-label:hover, .hero-line-label.hot, .hero-line-label.selected { font-weight: 900; }
   .hero-chart .hero-legend { display: none; }
 }
@@ -2628,12 +2716,8 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .typegrid button[data-v="literata"] i { font-family: "Literata", var(--fb-serif); }
 .typegrid button[data-v="source-serif"] b { font-family: "Figtree", var(--fb-sans); }
 .typegrid button[data-v="source-serif"] i { font-family: "Source Serif 4", var(--fb-serif); }
-.typegrid button[data-v="garamond"] b,
-.typegrid button[data-v="garamond"] i { font-family: "EB Garamond", var(--fb-serif); }
 .typegrid button[data-v="figtree"] b,
 .typegrid button[data-v="figtree"] i { font-family: "Figtree", var(--fb-sans); }
-.typegrid button[data-v="source-sans"] b { font-family: "Literata", var(--fb-serif); }
-.typegrid button[data-v="source-sans"] i { font-family: "Source Sans 3", var(--fb-sans); }
 .typegrid button[data-v="atkinson"] b,
 .typegrid button[data-v="atkinson"] i { font-family: "Atkinson Hyperlegible Next", var(--fb-sans); }
 
@@ -2709,11 +2793,14 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 }
 /* Both ends of the story read along the top edge, flush with the panel's own corners. Below the
    drawing the right-hand one crowded the era ruler; up here they frame it. The inherited
-   10px/14px padding is dropped so each sits exactly in its corner rather than inset from it. */
+   10px/14px padding is dropped so each sits exactly in its corner rather than inset from it.
+   They also sit the same distance from the panel's top, left and right edges: the scroll box
+   already starts 13px in from the side and 29px down from the top, so the 16px inset here is
+   what evens all three gaps out at 29px instead of pinning the names to the very corners. */
 .hero-scroll { padding-top: 20px; }
 .hero-scroll .chart-corner { padding: 0; line-height: 1; }
-.hero-scroll .chart-corner.tl { top: 0; bottom: auto; left: 0; right: auto; }
-.hero-scroll .chart-corner.br { top: 0; bottom: auto; right: 0; left: auto; }
+.hero-scroll .chart-corner.tl { top: 0; bottom: auto; left: 16px; right: auto; }
+.hero-scroll .chart-corner.br { top: 0; bottom: auto; right: 16px; left: auto; }
 /* Full book names above, abbreviations once the panel is phone-width — see below. */
 .chart-corner .cc-short { display: none; }
 
@@ -2725,8 +2812,6 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
      and the pair now sits inside the frame rather than on it. */
   .chart-corner .cc-long { display: none; }
   .chart-corner .cc-short { display: inline; }
-  .hero-scroll .chart-corner.tl { left: 12px; }
-  .hero-scroll .chart-corner.br { right: 12px; }
 }
 
 
@@ -2735,7 +2820,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
    their labels at 2–3px — present, unreadable, and each one solved it differently (one clipped,
    one shrank, one scrolled). They now share one behaviour: below the width where the type stays
    legible they scroll sideways, with the edges faded so it is obvious there is more to see. */
-.journey-scroll, .tabernacle-graphic-container, .feast-arc-panel {
+.journey-scroll, .tabernacle-graphic-container, .feast-arc-scroll {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
@@ -2747,7 +2832,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 @media (max-width: 880px) {
   .journey-scroll > svg { min-width: 1000px; }
   .tabernacle-svg { min-width: 940px; }
-  .feast-arc-panel > svg { min-width: 1000px; }
+  .feast-arc-scroll > svg { min-width: 1000px; }
 }
 .diagram-hint {
   display: none;
@@ -2764,7 +2849,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .diagram-hint svg { width: 14px; height: 14px; flex-shrink: 0; }
 
 @media (max-width: 880px) {
-  .journey-scroll, .tabernacle-graphic-container, .feast-arc-panel {
+  .journey-scroll, .tabernacle-graphic-container, .feast-arc-scroll {
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
     mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
   }
@@ -2776,7 +2861,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
     <a class="brand" href="#/">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
         <path class="brand-thread" d="M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8" stroke-dasharray="3 2.4"/>
-        <path class="brand-cross" d="M18.6 2.6v10.6M15.5 6.1h6.2"/>
+        <path class="brand-cross" d="M18.6 4.3v8.9M16.2 7.2h4.8"/>
       </svg>
       <span class="brand-name">The Thread</span>
       <span class="brand-sub">A field manual to the Bible</span>
@@ -2801,17 +2886,15 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
         <div class="prefs-menu" id="prefs-menu" role="dialog" aria-label="Reading settings" hidden>
           <span class="prefs-head">Colours</span>
           <div class="seg" data-pref="theme">
-            <button type="button" data-v="system">System</button>
+            <button type="button" data-v="warm">Warm</button>
             <button type="button" data-v="light">Light</button>
             <button type="button" data-v="dark">Dark</button>
           </div>
-          <span class="prefs-head">Typeface <b class="prefs-head-val" id="type-name">Literata</b></span>
+          <span class="prefs-head">Typeface <b class="prefs-head-val">Literata</b></span>
           <div class="typegrid" data-pref="type">
             <button type="button" data-v="literata" data-name="Literata" aria-pressed="false" title="Literata — serif headings and text" aria-label="Literata, serif headings and text"><b>A</b><i>a</i></button>
             <button type="button" data-v="source-serif" data-name="Source Serif" aria-pressed="false" title="Source Serif — sans headings, serif text" aria-label="Source Serif, sans headings and serif text"><b>A</b><i>a</i></button>
-            <button type="button" data-v="garamond" data-name="Garamond" aria-pressed="false" title="Garamond — classic book serif" aria-label="Garamond, classic book serif"><b>A</b><i>a</i></button>
             <button type="button" data-v="figtree" data-name="Figtree" aria-pressed="false" title="Figtree — sans headings and text" aria-label="Figtree, sans headings and text"><b>A</b><i>a</i></button>
-            <button type="button" data-v="source-sans" data-name="Source Sans" aria-pressed="false" title="Source Sans — serif headings, sans text" aria-label="Source Sans, serif headings and sans text"><b>A</b><i>a</i></button>
             <button type="button" data-v="atkinson" data-name="Atkinson" aria-pressed="false" title="Atkinson — drawn for legibility" aria-label="Atkinson Hyperlegible, drawn for legibility"><b>A</b><i>a</i></button>
           </div>
           <span class="prefs-head">Line height</span>
@@ -2843,7 +2926,6 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
   <p class="foot-verse">“You search the Scriptures because you think that in them you have eternal life; and it is they that bear witness about me — yet you refuse to come to me that you may have life.” <span class="nowrap">— <a class="ref-link" target="_blank" rel="noopener" href="https://www.biblegateway.com/passage/?search=John+5%3A39-40" data-ref="John 5:39-40">John 5:39–40</a></span></p>
   <p>This site is a map, not the territory. The goal was never the map. The goal is Him.</p>
   <span class="label">The Thread · a field manual to the Bible</span>
-  <p class="foot-links"><a class="foot-link" href="compare/">Compare to Old One</a></p>
 </footer>
 
 <noscript><div class="wrap" style="padding:40px 20px"><p>This field manual needs JavaScript to unfold its maps. Please enable it and reload.</p></div></noscript>
@@ -3939,7 +4021,7 @@ function buildHeroChart() {
     paths += '<path class="hero-thread" data-thread="' + t.id + '" style="--i:' + i + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.2" stroke-linecap="round"></path>';
     // Thicker invisible trigger path on top of visual path
     paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round"></path>';
-    labels += '<text class="hero-line-label" data-thread="' + t.id + '" x="-10" y="' + (y0 + 3) + '" text-anchor="end" font-size="7.2" letter-spacing="0.7" fill="var(' + t.cvar + ')" style="font-family:var(--font-label);font-weight:700">' + t.name.toUpperCase() + '</text>';
+    labels += '<text class="hero-line-label" data-thread="' + t.id + '" x="-10" y="' + (y0 + 3) + '" text-anchor="end" font-size="7.2" letter-spacing="0.7" fill="var(' + t.cvar + ')" style="font-family:var(--font-label)">' + t.name.toUpperCase() + '</text>';
   });
   const eras = [[70, 'TORAH'], [180, 'HISTORY'], [277, 'POETS'], [398, 'PROPHETS'], [528, 'GOSPELS'], [622, 'LETTERS'], [694, 'REV']];
   let ticks = '';
@@ -4464,7 +4546,8 @@ function vCodes() {
     '<div class="tabpane" data-pane="types" hidden><p class="lede" style="margin-bottom:18px">' + linkRefs(CODES.typesNote) + '</p><div class="grid grid-2">' + types + '</div></div>' +
     '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container">' + buildTabernacleSVG() + '</div>' + diagramHint('tabernacle') + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
     '<div class="tabpane" data-pane="feasts" hidden>' +
-    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + namedRefLink('Lev 23:2', 'Leviticus') + '</span><span class="chart-corner br">' + namedRefLink('Col 2:16-17', 'Colossians') + '</span>' + buildFeastArc() + '</div>' + diagramHint('year') +
+    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + namedRefLink('Lev 23:2', 'Leviticus') + '</span><span class="chart-corner br">' + namedRefLink('Col 2:16-17', 'Colossians') + '</span>' +
+    '<div class="feast-arc-scroll">' + buildFeastArc() + '</div></div>' + diagramHint('year') +
     '<div class="feast-groups">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
     '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
     '</div>';
@@ -4838,7 +4921,9 @@ function wireAllSections() {
   // Wire legend chips hover and click
   document.querySelectorAll('.legend-chip[data-thread]').forEach(chip => {
     const threadId = chip.dataset.thread;
-    const pathEls = () => document.querySelectorAll('.hero-thread[data-thread="' + threadId + '"]');
+    /* The chart's own name for the route is part of the route: light the line and leave the
+       label unlit and the eye has to work out which of thirteen it just woke up. */
+    const pathEls = () => document.querySelectorAll('.hero-thread[data-thread="' + threadId + '"], .hero-line-label[data-thread="' + threadId + '"]');
 
     const showPreview = () => {
       cancelPreviewReset();
@@ -4879,7 +4964,7 @@ function wireAllSections() {
   // Wire hero thread paths hover and click (using thicker trigger overlay)
   document.querySelectorAll('.hero-thread-trigger, .hero-line-label').forEach(trigger => {
     const threadId = trigger.dataset.thread;
-    const paths = document.querySelectorAll('.hero-thread[data-thread="' + threadId + '"]');
+    const paths = document.querySelectorAll('.hero-thread[data-thread="' + threadId + '"], .hero-line-label[data-thread="' + threadId + '"]');
     const chipEl = () => document.querySelector('.legend-chip[data-thread="' + threadId + '"]');
 
     const showPreview = () => {
@@ -5118,22 +5203,21 @@ function wireVersionPicker(wrap, onChoose) {
 
 /* Colours, typeface, line height and text size are one panel: they are all "how this reads
    to me", and a lone sun/moon button could only ever answer a quarter of that. */
+const THEMES = ['warm', 'light', 'dark'];
 const PREFS = {
-  theme: { key: 'thread-theme', def: 'system' },
+  theme: { key: 'thread-theme', def: 'light' },
   type: { key: 'thread-type', def: 'literata' },
   lh: { key: 'thread-lh', def: 'normal' },
   fs: { key: 'thread-fs', def: '2' }
 };
 
-/* A typeface theme is a pairing of two faces, and two of the six cross serif and sans on
+/* A typeface theme is a pairing of two faces, and one of the four crosses serif and sans on
    purpose. Listed here is only what each one needs *loaded*: the picker's own previews sit
    inside a hidden menu, so no face is fetched until the panel is opened or a theme chosen. */
 const TYPE_THEMES = {
   literata: ['Literata'],
   'source-serif': ['Source Serif 4', 'Figtree'],
-  garamond: ['EB Garamond', 'Figtree'],
   figtree: ['Figtree'],
-  'source-sans': ['Source Sans 3', 'Literata'],
   atkinson: ['Atkinson Hyperlegible Next']
 };
 const FS_STEPS = [0.86, 0.93, 1, 1.08, 1.16, 1.26, 1.36];
@@ -5202,14 +5286,27 @@ function loadFaces(families) {
    lands in a single reflow while it is nearly invisible, and it fades back up with the
    reader's line pinned. `prepare` is for work that must finish first — loading a typeface. */
 let swapSeq = 0;
+/* Superseded changes are held, not dropped. Picking a typeface and then a line height inside
+   the same fade used to bin the typeface — it was written to storage and marked as chosen but
+   never applied, so the panel and the page disagreed until the next reload. Whichever fade
+   actually lands runs everything queued behind it, in the order it was asked for. */
+let pendingSwaps = [];
 function applyWithFade(mutate, prepare) {
-  const settle = () => holdScroll(90, mutate);
+  pendingSwaps.push(mutate);
+  const settle = () => holdScroll(90, () => {
+    const queued = pendingSwaps;
+    pendingSwaps = [];
+    queued.forEach(fn => fn());
+  });
   if (REDUCED_MOTION) {
     if (prepare) prepare().then(settle); else settle();
     return;
   }
   const seq = ++swapSeq;
-  const panes = [document.getElementById('view'), document.querySelector('.site-foot')].filter(Boolean);
+  /* If the passage dialog is what the reader is looking at, it is the thing that has to
+     settle — fading only the page behind it would change the type under their eye. */
+  const panes = [document.getElementById('view'), document.querySelector('.site-foot'),
+    contextDialogEl && contextDialogEl.open ? contextDialogEl.querySelector('.context-dialog-inner') : null].filter(Boolean);
   panes.forEach(pane => pane.classList.add('reading-swap'));
   /* Wait for the fade to actually reach the floor rather than guessing at a duration —
      a slow frame used to land the reflow at ~0.3 opacity, where it was still visible. */
@@ -5241,9 +5338,8 @@ function setTypeTheme(name, instant) {
   markPrefButtons('type', value);
   /* The six buttons are two letters each now, so the head carries the name of the one held —
      the only place a touch reader, who never sees a title attribute, can read it. */
-  const label = document.getElementById('type-name');
   const picked = document.querySelector('[data-pref="type"] button[data-v="' + value + '"]');
-  if (label && picked) label.textContent = picked.dataset.name || value;
+  if (picked) document.querySelectorAll('.prefs-head-val').forEach(l => { l.textContent = picked.dataset.name || value; });
   lsSet(PREFS.type.key, value);
   const apply = () => {
     if (value === PREFS.type.def) delete document.documentElement.dataset.type;
@@ -5281,13 +5377,27 @@ function setTextSize(index, instant) {
   applyWithFade(apply);
 }
 
+/* The palette swap is the one setting that changes nothing but colour, so it is the one that
+   can actually be animated. `.theme-shift` arms a colour transition on everything for exactly
+   as long as the crossfade lasts. `instant` is the first paint, where there is nothing to
+   cross-fade from; `persist` is false while the choice is still the system's rather than the
+   reader's, so a later change of system appearance is still followed. */
+let themeShiftTimer = null;
+function setTheme(value, instant, persist) {
+  const root = document.documentElement;
+  if (!instant && !REDUCED_MOTION) {
+    root.classList.add('theme-shift');
+    if (themeShiftTimer) clearTimeout(themeShiftTimer);
+    themeShiftTimer = setTimeout(() => { root.classList.remove('theme-shift'); themeShiftTimer = null; }, 420);
+  }
+  root.dataset.theme = value;
+  if (persist !== false) lsSet(PREFS.theme.key, value);
+  markPrefButtons('theme', value);
+}
+
 function applyPref(name, value, instant) {
   if (name === 'theme') {
-    const root = document.documentElement;
-    if (value === 'system') delete root.dataset.theme;
-    else root.dataset.theme = value;
-    lsSet(PREFS.theme.key, value);
-    markPrefButtons('theme', value);
+    setTheme(value, instant);
   } else if (name === 'type') {
     setTypeTheme(value, instant);
   } else if (name === 'lh') {
@@ -5298,38 +5408,78 @@ function applyPref(name, value, instant) {
 }
 
 function initPrefs() {
-  let theme = lsGet(PREFS.theme.key);
-  if (theme !== 'light' && theme !== 'dark' && theme !== 'system') theme = PREFS.theme.def;
+  /* Three palettes are offered — warm, light, dark — and none of them is "whatever the
+     system says". Until the reader picks one, the system still decides; the resolved value
+     is applied and shown as chosen, but nothing is written, so a machine that flips to dark
+     in the evening is still followed. Anyone carrying the old 'system' value lands here too. */
+  const stored = lsGet(PREFS.theme.key);
+  const chosen = THEMES.indexOf(stored) >= 0;
+  const theme = chosen ? stored
+    : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   let type = lsGet(PREFS.type.key);
   if (!TYPE_THEMES[type]) {
     /* the panel used to be a two-way serif/sans switch; carry that choice forward */
     type = lsGet('thread-font') === 'sans' ? 'figtree' : PREFS.type.def;
   }
   const fsSaved = parseInt(lsGet(PREFS.fs.key), 10);
-  applyPref('theme', theme, true);
+  setTheme(theme, true, chosen);
   applyPref('type', type, true);
   applyPref('lh', lsGet(PREFS.lh.key) || PREFS.lh.def, true);
   applyPref('fs', String(fsSaved >= 0 && fsSaved < FS_STEPS.length ? fsSaved : PREFS.fs.def), true);
 
-  const wrap = document.getElementById('prefs');
-  const btn = document.getElementById('prefs-btn');
-  const menu = document.getElementById('prefs-menu');
-  if (!wrap || !btn || !menu) return;
+  /* Both panels — the topbar's and the passage dialog's — are the same panel wired twice.
+     Only the topbar one becomes a phone sheet: the dialog is already in the top layer, and
+     a menu portaled to <body> would paint behind it. */
+  wirePrefsPanel(document.getElementById('prefs'), { sheet: true });
+}
 
-  /* On a phone the panel is a sheet pinned to the bottom of the screen, and `position: fixed`
-     resolves against the nearest ancestor with a filter — which is the topbar, blurred. Left
-     where it sits it would pin to the bottom of the header instead. So for as long as it is
-     open at that width it lives on <body>; the CSS restates the header's own font-size so the
-     em-sized controls inside come out the same either way. */
+/* The typeface and line-height halves of the panel, so the copy inside the passage dialog
+   cannot drift from the copy in the topbar. Colours and text size stay in the topbar only:
+   the dialog is a place to fix how a passage reads, not the whole site's chrome. Ids would
+   collide across two copies, so the head's value is found by class. */
+function readingPanelHtml() {
+  const faces = [
+    ['literata', 'Literata', 'serif headings and text'],
+    ['source-serif', 'Source Serif', 'sans headings, serif text'],
+    ['figtree', 'Figtree', 'sans headings and text'],
+    ['atkinson', 'Atkinson', 'drawn for legibility']
+  ];
+  return '<span class="prefs-head">Typeface <b class="prefs-head-val">Literata</b></span>' +
+    '<div class="typegrid" data-pref="type">' +
+    faces.map(f => '<button type="button" data-v="' + f[0] + '" data-name="' + f[1] + '" aria-pressed="false"' +
+      ' title="' + f[1] + ' \u2014 ' + f[2] + '" aria-label="' + f[1] + ', ' + f[2] + '"><b>A</b><i>a</i></button>').join('') +
+    '</div>' +
+    '<span class="prefs-head">Line height</span>' +
+    '<div class="seg" data-pref="lh">' +
+    ['snug', 'normal', 'roomy'].map(v => '<button type="button" data-v="' + v + '">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>').join('') +
+    '</div>' +
+    '<span class="prefs-note">Kept on this device.</span>';
+}
+
+/* The topbar panel and the one in the passage dialog are the same panel twice: the same
+   `[data-pref]` markup, the same handlers, and `markPrefButtons` already writes to every
+   copy on the page, so whichever one you use the other is already showing the answer. */
+function wirePrefsPanel(wrap, opts) {
+  if (!wrap) return null;
+  const btn = wrap.querySelector('.prefs-btn');
+  const menu = wrap.querySelector('.prefs-menu');
+  if (!btn || !menu) return null;
+
+  /* On a phone the topbar panel is a sheet pinned to the bottom of the screen, and
+     `position: fixed` resolves against the nearest ancestor with a filter — which is the
+     topbar, blurred. Left where it sits it would pin to the bottom of the header instead.
+     So for as long as it is open at that width it lives on <body>; the CSS restates the
+     header's own font-size so the em-sized controls inside come out the same either way. */
   const sheetMQ = window.matchMedia('(max-width: 760px)');
+  const canSheet = !!(opts && opts.sheet);
   let onBody = false;
-  const toSheet = () => { if (!onBody && sheetMQ.matches) { document.body.appendChild(menu); onBody = true; } };
+  const toSheet = () => { if (canSheet && !onBody && sheetMQ.matches) { document.body.appendChild(menu); onBody = true; } };
   const toWrap = () => { if (onBody) { wrap.appendChild(menu); onBody = false; } };
 
   const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); toWrap(); };
-  /* The six previews are each set in their own two faces. A hidden menu renders nothing,
-     so this first open is the moment they are worth fetching — and by the time one is
-     picked its faces are already there. */
+  /* Each preview is set in its own two faces. A hidden menu renders nothing, so this first
+     open is the moment they are worth fetching — and by the time one is picked its faces
+     are already there. */
   let previewsWarmed = false;
   const open = () => {
     toSheet();
@@ -5345,6 +5495,7 @@ function initPrefs() {
   };
   btn.addEventListener('click', ev => { ev.stopPropagation(); menu.hidden ? open() : close(); });
   menu.addEventListener('click', ev => {
+    ev.stopPropagation();
     const step = ev.target.closest('[data-pref="fs"] button[data-step]');
     if (step) { setTextSize(currentFsIndex + (+step.dataset.step)); return; }
     const b = ev.target.closest('[data-pref] button[data-v]');
@@ -5363,6 +5514,7 @@ function initPrefs() {
   const onMQ = () => { if (!menu.hidden) close(); };
   if (sheetMQ.addEventListener) sheetMQ.addEventListener('change', onMQ);
   else if (sheetMQ.addListener) sheetMQ.addListener(onMQ);
+  return { close: close };
 }
 
 function initVersionPicker() {
@@ -5406,6 +5558,7 @@ let tooltipRef = '';
 let contextDialogEl = null;
 let contextRequestId = 0;
 let contextVersionPicker = null;
+let contextPrefsPanel = null;
 
 function parseReference(refStr) {
   const clean = refStr.replace(/–/g, '-').trim();
@@ -5670,7 +5823,15 @@ function initTooltip() {
     '      <span class="verpick-val">' + ACTIVE_VERSION + '</span>' +
     '      <svg class="verpick-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 9.8 5.5 5 5.5-5"/></svg>' +
     '    </button><div class="verpick-menu" role="listbox" aria-label="Bible translation" hidden></div></div>' +
-    '    <button class="context-dialog-close" type="button" aria-label="Close">×</button></div></header>' +
+    '    <div class="prefs context-prefs">' +
+    '      <button class="prefs-btn context-prefs-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Reading settings" title="Reading settings">' +
+    '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 8h9M17.5 8H20M4 16h3.5M12 16h8"/><circle cx="15.2" cy="8" r="2.3"/><circle cx="9.7" cy="16" r="2.3"/></svg>' +
+    '      </button>' +
+    '      <div class="prefs-menu" role="dialog" aria-label="Reading settings" hidden>' + readingPanelHtml() + '</div>' +
+    '    </div>' +
+    '    <button class="context-dialog-close" type="button" aria-label="Close">' +
+    '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6.6 6.6l10.8 10.8M17.4 6.6 6.6 17.4"/></svg>' +
+    '    </button></div></header>' +
     '  <div class="context-dialog-body" aria-live="polite"></div>' +
     '  <footer class="context-dialog-foot"><button class="context-more-button" type="button">Even more context</button></footer>' +
     '</div>';
@@ -5681,6 +5842,12 @@ function initTooltip() {
     contextDialogEl.dataset.version = code;
     refreshVerseContext(true);
   });
+  contextPrefsPanel = wirePrefsPanel(contextDialogEl.querySelector('.context-prefs'));
+  /* The panel is built after initPrefs has already run, so its buttons start blank —
+     re-mark them against what is actually in force. */
+  ['type', 'lh'].forEach(k => markPrefButtons(k, k === 'type'
+    ? (document.documentElement.dataset.type || PREFS.type.def)
+    : (document.documentElement.dataset.lh || PREFS.lh.def)));
 
   tooltipEl.addEventListener('mouseenter', () => {
     if (tooltipTimer) clearTimeout(tooltipTimer);
@@ -5742,7 +5909,10 @@ function initTooltip() {
     contextDialogEl.dataset.radius = String((parseInt(contextDialogEl.dataset.radius, 10) || 4) + 6);
     refreshVerseContext(true);
   });
-  contextDialogEl.addEventListener('close', () => { if (contextVersionPicker) contextVersionPicker.close(); });
+  contextDialogEl.addEventListener('close', () => {
+    if (contextVersionPicker) contextVersionPicker.close();
+    if (contextPrefsPanel) contextPrefsPanel.close();
+  });
   contextDialogEl.addEventListener('click', ev => {
     if (ev.target === contextDialogEl) contextDialogEl.close();
   });
@@ -6092,7 +6262,7 @@ function initRail() {
       if (dh <= 0) return;
       const frac = Math.min(1, window.scrollY / dh);
       const fill = rail.querySelector('.rail-fill');
-      if (fill) fill.style.height = (frac * 100) + '%';
+      if (fill) fill.style.clipPath = 'inset(0 0 ' + ((1 - frac) * 100) + '% 0)';
       const marker = window.scrollY + window.innerHeight * 0.4;
       rail.querySelectorAll('.rail-dot').forEach(dot => {
         const el = document.getElementById(dot.dataset.view);
@@ -6108,11 +6278,37 @@ function layoutRail() {
   if (!rail) return;
   const dh = document.documentElement.scrollHeight - window.innerHeight;
   if (dh <= 0) return;
+  const stops = [];
   NAV.forEach(n => {
     const el = document.getElementById(n.id);
     const dot = rail.querySelector('.rail-dot[data-view="' + n.id + '"]');
-    if (el && dot) dot.style.top = (Math.min(1, el.offsetTop / dh) * 100) + '%';
+    const pct = el ? Math.min(1, el.offsetTop / dh) * 100 : null;
+    if (el && dot) dot.style.top = pct + '%';
+    stops.push(pct);
   });
+  paintRail(rail, stops);
+}
+
+/* One hard-edged band per section, handed off exactly where its dot sits. The first band runs
+   from the very top rather than from its own stop, so the few pixels above Start Here are not
+   a gap of nothing. A section the router has not rendered yet has no stop; it inherits the
+   band above it instead of collapsing the rest of the ladder. */
+function paintRail(rail, stops) {
+  const fill = rail.querySelector('.rail-fill');
+  if (!fill) return;
+  const bands = [];
+  let from = 0;
+  NAV.forEach((n, i) => {
+    let to = 100;
+    for (let j = i + 1; j < stops.length; j++) {
+      if (stops[j] !== null) { to = stops[j]; break; }
+    }
+    if (stops[i] === null && i > 0) return;
+    to = Math.max(from, Math.min(100, to));
+    bands.push('var(' + n.cvar + ') ' + from.toFixed(2) + '%, var(' + n.cvar + ') ' + to.toFixed(2) + '%');
+    from = to;
+  });
+  fill.style.backgroundImage = 'linear-gradient(to bottom, ' + bands.join(', ') + ')';
 }
 window.addEventListener('resize', () => setTimeout(layoutRail, 200));
 

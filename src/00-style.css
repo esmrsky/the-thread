@@ -92,8 +92,56 @@ body { margin: 0; }
   --z-menu: 400;
 }
 
+/* ---------- warm ----------
+   Lamplight rather than daylight: the same sepia ink on a paper that has sat in the sun.
+   It is a third choice, not a variant of light, so the dark media query below has to let
+   it through untouched — hence the second :not() on that guard. */
+:root[data-theme="warm"] {
+  --paper: #f5e9d5;
+  --paper-deep: #eddcc2;
+  --card: #fdf4e4;
+  --card-2: #f7ecd8;
+  --ink: #322317;
+  --ink-soft: #6b5334;
+  --ink-faint: #7d6544;
+  --line: #dcc8a6;
+  --line-soft: #e9dabe;
+  --grat: rgba(80, 55, 25, 0.07);
+  --thread: #a8202b;
+  --gold: #91661a;
+  --c-start: #a8202b;
+  --c-pattern: #905c17;
+  --c-threads: #a8202b;
+  --c-codes: #7f5d0d;
+  --c-triune: #455d8f;
+  --c-walk: #366d3b;
+  --c-detour: #9a4526;
+  --c-mind: #524f88;
+  --c-library: #266380;
+  --t-lamb: #a8202b;
+  --t-bread: #996c1c;
+  --t-water: #29627e;
+  --t-light: #96760f;
+  --t-shepherd: #416f3d;
+  --t-king: #644382;
+  --t-temple: #276d63;
+  --t-rest: #4c5a80;
+  --t-covenant: #7c4e22;
+  --t-bride: #a34762;
+  --t-exile: #515b68;
+  --t-name: #b25018;
+  --t-garment: #8f4179;
+  --s-egypt: #515b68;
+  --s-desert: #905c17;
+  --s-land: #366d3b;
+  --shadow: 0 1px 2px rgba(70,45,15,.07), 0 10px 28px -14px rgba(70,45,15,.3);
+  --shadow-sm: 0 1px 2px rgba(70,45,15,.07), 0 8px 20px -16px rgba(70,45,15,.26);
+  --shadow-md: 0 2px 4px rgba(70,45,15,.08), 0 14px 30px -16px rgba(70,45,15,.34);
+  --shadow-lift: 0 2px 4px rgba(70,45,15,.08), 0 16px 36px -14px rgba(70,45,15,.36);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme="light"]):not([data-theme="warm"]) {
     --paper: #14171d;
     --paper-deep: #10131a;
     --card: #1b1f27;
@@ -213,8 +261,8 @@ p, li, h1, h2, h3, h4, td, th, span { overflow-wrap: break-word; }
 p, li { text-wrap: pretty; }
 
 /* ---------- typeface themes ----------
-   Six pairings: three that read in a serif, three that read in a sans. Two of them cross
-   the pair deliberately, which is the whole point of naming them themes rather than fonts.
+   Four pairings: two that read in a serif, two that read in a sans. One of them crosses the
+   pair deliberately, which is the whole point of naming them themes rather than fonts.
    The unset default is Literata. */
 :root[data-type="source-serif"] {
   --font-head: "Figtree", var(--fb-sans);
@@ -222,23 +270,11 @@ p, li { text-wrap: pretty; }
   --font-label: "Figtree", var(--fb-sans);
   --fs-theme: 1.02;
 }
-:root[data-type="garamond"] {
-  --font-head: "EB Garamond", var(--fb-serif);
-  --font-body: "EB Garamond", var(--fb-serif);
-  --font-label: "Figtree", var(--fb-sans);
-  --fs-theme: 1.13;
-}
 :root[data-type="figtree"] {
   --font-head: "Figtree", var(--fb-sans);
   --font-body: "Figtree", var(--fb-sans);
   --font-label: "Figtree", var(--fb-sans);
   --fs-theme: 0.98;
-}
-:root[data-type="source-sans"] {
-  --font-head: "Literata", var(--fb-serif);
-  --font-body: "Source Sans 3", var(--fb-sans);
-  --font-label: "Source Sans 3", var(--fb-sans);
-  --fs-theme: 1.02;
 }
 :root[data-type="atkinson"] {
   --font-head: "Atkinson Hyperlegible Next", var(--fb-sans);
@@ -264,11 +300,30 @@ p, li { text-wrap: pretty; }
    it was. Opacity is a compositor property, so the fade itself holds 60fps on any device,
    and all four settings get the same calm behaviour. The topbar is left out of it so the
    panel you are clicking in stays crisp. */
-#view, .site-foot { transition: opacity 0.26s ease-in; }
-#view.reading-swap, .site-foot.reading-swap { opacity: 0.08; transition: opacity 0.17s ease-out; }
+#view, .site-foot, .context-dialog-inner { transition: opacity 0.26s ease-in; }
+#view.reading-swap, .site-foot.reading-swap, .context-dialog-inner.reading-swap { opacity: 0.08; transition: opacity 0.17s ease-out; }
+
+/* ---------- changing the palette ----------
+   The other three reading settings re-lay the page, so they fade the column down and back.
+   Colours do not: nothing moves, only every colour on the page lands on a new value at once,
+   and snapping them all in a single frame reads as a blink. So instead of hiding the change,
+   drive it — every painted colour interpolates to its new value together. The class is on
+   for the length of the crossfade and no longer, because a permanent transition on `*` makes
+   every hover on the page feel like it is dragging. */
+:root.theme-shift, :root.theme-shift *, :root.theme-shift *::before, :root.theme-shift *::after {
+  transition: background-color 0.34s ease, background-image 0.34s ease, color 0.34s ease,
+              border-color 0.34s ease, outline-color 0.34s ease, box-shadow 0.34s ease,
+              fill 0.34s ease, stroke 0.34s ease !important;
+  transition-delay: 0s !important;
+}
 @media (prefers-reduced-motion: reduce) {
-  #view, .site-foot { transition: none; }
-  #view.reading-swap, .site-foot.reading-swap { opacity: 1; }
+  :root.theme-shift, :root.theme-shift *, :root.theme-shift *::before, :root.theme-shift *::after {
+    transition: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #view, .site-foot, .context-dialog-inner { transition: none; }
+  #view.reading-swap, .site-foot.reading-swap, .context-dialog-inner.reading-swap { opacity: 1; }
 }
 
 ::selection { background: color-mix(in srgb, var(--thread) 25%, transparent); }
@@ -279,7 +334,7 @@ p, li { text-wrap: pretty; }
 /* ---------- one scrollbar, everywhere something scrolls ----------
    Anything that hides its scrollbar entirely (nav strip, filmstrips) opts out below. */
 .table-scroll,
-.feast-arc-panel,
+.feast-arc-scroll,
 .context-dialog-body,
 .verpick-menu,
 .thread-preview-card,
@@ -288,19 +343,19 @@ p, li { text-wrap: pretty; }
   scrollbar-color: color-mix(in srgb, var(--thread) 45%, var(--line)) transparent;
 }
 .table-scroll::-webkit-scrollbar,
-.feast-arc-panel::-webkit-scrollbar,
+.feast-arc-scroll::-webkit-scrollbar,
 .context-dialog-body::-webkit-scrollbar,
 .verpick-menu::-webkit-scrollbar,
 .thread-preview-card::-webkit-scrollbar,
 .tabernacle-graphic-container::-webkit-scrollbar { width: 8px; height: 8px; }
 .table-scroll::-webkit-scrollbar-track,
-.feast-arc-panel::-webkit-scrollbar-track,
+.feast-arc-scroll::-webkit-scrollbar-track,
 .context-dialog-body::-webkit-scrollbar-track,
 .verpick-menu::-webkit-scrollbar-track,
 .thread-preview-card::-webkit-scrollbar-track,
 .tabernacle-graphic-container::-webkit-scrollbar-track { background: transparent; }
 .table-scroll::-webkit-scrollbar-thumb,
-.feast-arc-panel::-webkit-scrollbar-thumb,
+.feast-arc-scroll::-webkit-scrollbar-thumb,
 .context-dialog-body::-webkit-scrollbar-thumb,
 .verpick-menu::-webkit-scrollbar-thumb,
 .thread-preview-card::-webkit-scrollbar-thumb,
@@ -352,7 +407,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 /* ---------- top bar ---------- */
 .topbar {
   /* The reading settings scale the article, not the toolbar. Left on the root, a 136% text
-     size (or just Garamond's optical bump) grew the nav too and ran the brand straight into
+     size (or just a typeface's optical bump) grew the nav too and ran the brand straight into
      the pills at 1280px. Dividing the two multipliers back out of 1rem lands on exactly the
      browser's own default size — so a reader who set a larger default still gets it here,
      which a hard 16px would have taken away. Everything below is sized in em off this. */
@@ -424,8 +479,8 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 :root[data-theme="dark"] .theme-toggle .ic-sun { display: block; }
 :root[data-theme="dark"] .theme-toggle .ic-moon { display: none; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .theme-toggle .ic-sun { display: block; }
-  :root:not([data-theme="light"]) .theme-toggle .ic-moon { display: none; }
+  :root:not([data-theme="light"]):not([data-theme="warm"]) .theme-toggle .ic-sun { display: block; }
+  :root:not([data-theme="light"]):not([data-theme="warm"]) .theme-toggle .ic-moon { display: none; }
 }
 
 /* centred middle column; scrolls internally only if cramped */
@@ -1463,19 +1518,32 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 /* ---------- scarlet progress rail ---------- */
 #rail { position: fixed; left: 16px; top: 130px; bottom: 56px; width: 14px; z-index: var(--z-rail); }
 /* The dots were unlabelled — thirteen identical 14px targets with only a title attribute. */
+/* The name is the target as much as the dot is — a 14px circle is a poor thing to aim at when
+   there is a word sitting right beside it saying what it does. It starts at the dot's own edge
+   (padding rather than offset) so the pointer never crosses a dead gap and loses the hover. */
 .rail-dot-label {
-  position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  padding: 4px 4px 4px 6px;
   font-family: var(--font-label); font-size: 0.58rem; font-weight: 700;
   letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
-  color: var(--ink-faint); opacity: 0; transition: opacity 0.15s ease; pointer-events: none;
+  color: var(--ink-faint); opacity: 0; transition: opacity 0.15s ease, color 0.2s ease;
+  pointer-events: none; cursor: pointer;
 }
-.rail-dot:hover .rail-dot-label, .rail-dot:focus-visible .rail-dot-label { opacity: 1; }
-@media (min-width: 1460px) { .rail-dot-label { opacity: 0.75; } }
+/* Only ever clickable while it is on screen: an invisible word reaching 120px into the page
+   margin would eat clicks meant for the column behind it. */
+.rail-dot:hover .rail-dot-label, .rail-dot:focus-visible .rail-dot-label { opacity: 1; pointer-events: auto; }
+.rail-dot:hover .rail-dot-label, .rail-dot.passed .rail-dot-label { color: var(--c); }
+@media (min-width: 1460px) { .rail-dot-label { opacity: 0.75; pointer-events: auto; } }
 .rail-track { position: absolute; left: 6px; top: 0; bottom: 0; border-left: 2px dashed var(--line); }
+/* The line is one continuous strip painted in every section's own colour, in order, with the
+   hand-offs sitting exactly on the dots — so the colour under your eye names the section you
+   are actually in. Growth is a clip, not a height: a shrinking box would rescale the gradient
+   and drag every hand-off along with it, away from the dot it belongs to. */
 .rail-fill {
-  position: absolute; left: 6px; top: 0; width: 2px; height: 0%;
+  position: absolute; left: 6px; top: 0; bottom: 0; width: 2px;
   background: var(--thread);
-  box-shadow: 0 0 7px color-mix(in srgb, var(--thread) 55%, transparent);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--thread) 45%, transparent);
+  clip-path: inset(0 0 100% 0);
 }
 .rail-dot {
   position: absolute; left: 0; width: 14px; height: 14px;
@@ -1489,8 +1557,12 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 @media (max-width: 1199px) { #rail { display: none; } }
 
 /* ---------- feast arc ---------- */
-.feast-arc-panel { margin-bottom: 22px; padding: 14px 10px 6px; }
+/* The panel no longer scrolls — the arc inside it does. The two book names are pinned to the
+   panel, so panning the year no longer drags Colossians across the legend under it, and the
+   pair now read along the top edge where the arc's own ends are lowest. */
+.feast-arc-panel { margin-bottom: 22px; padding: 30px 10px 6px; }
 .feast-arc-panel svg { width: 100%; height: auto; }
+.feast-arc-panel .chart-corner.br { top: 0; bottom: auto; right: 0; left: auto; }
 
 /* ---------- tabernacle "details worth noticing" ---------- */
 .tab-insights { margin-top: 30px; }
@@ -1502,7 +1574,11 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .insight-mini p { font-size: 0.92rem; color: var(--ink-soft); line-height: var(--lh-ui); }
 
 /* ---------- journey svg ---------- */
-.journey-panel { padding: 10px 10px 4px; margin: 8px 0 clamp(30px, 4vw, 42px); }
+/* Both ends of the promise read along the top edge. At the panel's bottom right the second
+   one landed on the "The land walks" caption and, on a scrolled page, straight under the
+   back-to-top button. */
+.journey-panel { padding: 26px 10px 4px; margin: 8px 0 clamp(30px, 4vw, 42px); }
+.journey-panel .chart-corner.br { top: 0; bottom: auto; right: 0; left: auto; }
 .journey-panel svg { width: 100%; height: auto; min-width: 0; }
 .journey-scroll { overflow: clip; }
 
@@ -1525,18 +1601,6 @@ footer.site-foot {
 }
 footer.site-foot .foot-verse { font-style: italic; max-width: 58ch; margin: 0 auto 10px; }
 footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: block; }
-footer.site-foot .foot-links { margin-top: 10px; }
-footer.site-foot .foot-link {
-  font-family: var(--font-label); font-size: 0.66rem; font-weight: 700;
-  letter-spacing: 0.13em; text-transform: uppercase;
-  color: var(--thread); text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--thread) 45%, transparent);
-  padding-bottom: 2px;
-}
-footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
-@media (pointer: coarse) {
-  footer.site-foot .foot-link { display: inline-block; min-height: 44px; line-height: 44px; }
-}
 
 /* hero thread interactions */
 .hero-scroll { position: relative; overflow: clip; min-width: 0; }
@@ -1776,7 +1840,29 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .context-dialog-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .context-verpick { z-index: 3; }
 .context-verpick .verpick-menu { min-width: 250px; max-height: min(52dvh, 390px); overflow-y: auto; }
-.context-dialog-close { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: var(--card-2); font-size: 1.15rem; }
+/* The pill's own 9px left padding sat the book tight against the border while the caret had
+   the whole gap on the right. Here the row is short enough for the difference to show. */
+.context-verpick .verpick-btn { padding-left: 13px; }
+/* The close mark was the "×" character, which is centred on the font's own maths rather than
+   on the circle — it sat high and a hair to the left in every face. A drawn cross is centred
+   by its own geometry, so it stays put whichever typeface the reader has chosen. */
+.context-dialog-close { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: var(--card-2); }
+.context-dialog-close svg { width: 15px; height: 15px; display: block; }
+.context-dialog-close:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+/* Reading settings, in the place the reading is actually happening. */
+.context-prefs { position: relative; z-index: 4; }
+.context-prefs-btn { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: var(--card-2); }
+.context-prefs-btn svg { width: 16px; height: 16px; display: block; }
+.context-prefs-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+.context-prefs .prefs-menu { max-height: min(52dvh, 300px); overflow-y: auto; }
+.context-prefs .prefs-menu .prefs-head:first-child { margin-top: 0; }
+/* The dialog is exactly as tall as its passage and clips what it cannot hold, so a short
+   passage cut the settings panel off at the line-height row. While the panel is open the
+   dialog holds itself open to at least the panel's height. */
+.verse-context-dialog:has(.context-prefs .prefs-menu:not([hidden])) .context-dialog-inner {
+  min-height: min(290px, 70dvh);
+}
 .context-dialog-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -1897,7 +1983,9 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
    thirteen names a second time — so the labels take over as the control and the pills go. */
 .hero-line-label { display: none; }
 @media (min-width: 1100px) {
-  .hero-line-label { display: block; cursor: pointer; }
+  /* The weight lives here rather than on the element: an inline font-weight outranks any
+     stylesheet rule, so the lit state could never actually thicken the name. */
+  .hero-line-label { display: block; cursor: pointer; font-weight: 700; }
   .hero-line-label:hover, .hero-line-label.hot, .hero-line-label.selected { font-weight: 900; }
   .hero-chart .hero-legend { display: none; }
 }
@@ -2623,12 +2711,8 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .typegrid button[data-v="literata"] i { font-family: "Literata", var(--fb-serif); }
 .typegrid button[data-v="source-serif"] b { font-family: "Figtree", var(--fb-sans); }
 .typegrid button[data-v="source-serif"] i { font-family: "Source Serif 4", var(--fb-serif); }
-.typegrid button[data-v="garamond"] b,
-.typegrid button[data-v="garamond"] i { font-family: "EB Garamond", var(--fb-serif); }
 .typegrid button[data-v="figtree"] b,
 .typegrid button[data-v="figtree"] i { font-family: "Figtree", var(--fb-sans); }
-.typegrid button[data-v="source-sans"] b { font-family: "Literata", var(--fb-serif); }
-.typegrid button[data-v="source-sans"] i { font-family: "Source Sans 3", var(--fb-sans); }
 .typegrid button[data-v="atkinson"] b,
 .typegrid button[data-v="atkinson"] i { font-family: "Atkinson Hyperlegible Next", var(--fb-sans); }
 
@@ -2704,11 +2788,14 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 }
 /* Both ends of the story read along the top edge, flush with the panel's own corners. Below the
    drawing the right-hand one crowded the era ruler; up here they frame it. The inherited
-   10px/14px padding is dropped so each sits exactly in its corner rather than inset from it. */
+   10px/14px padding is dropped so each sits exactly in its corner rather than inset from it.
+   They also sit the same distance from the panel's top, left and right edges: the scroll box
+   already starts 13px in from the side and 29px down from the top, so the 16px inset here is
+   what evens all three gaps out at 29px instead of pinning the names to the very corners. */
 .hero-scroll { padding-top: 20px; }
 .hero-scroll .chart-corner { padding: 0; line-height: 1; }
-.hero-scroll .chart-corner.tl { top: 0; bottom: auto; left: 0; right: auto; }
-.hero-scroll .chart-corner.br { top: 0; bottom: auto; right: 0; left: auto; }
+.hero-scroll .chart-corner.tl { top: 0; bottom: auto; left: 16px; right: auto; }
+.hero-scroll .chart-corner.br { top: 0; bottom: auto; right: 16px; left: auto; }
 /* Full book names above, abbreviations once the panel is phone-width — see below. */
 .chart-corner .cc-short { display: none; }
 
@@ -2720,8 +2807,6 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
      and the pair now sits inside the frame rather than on it. */
   .chart-corner .cc-long { display: none; }
   .chart-corner .cc-short { display: inline; }
-  .hero-scroll .chart-corner.tl { left: 12px; }
-  .hero-scroll .chart-corner.br { right: 12px; }
 }
 
 
@@ -2730,7 +2815,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
    their labels at 2–3px — present, unreadable, and each one solved it differently (one clipped,
    one shrank, one scrolled). They now share one behaviour: below the width where the type stays
    legible they scroll sideways, with the edges faded so it is obvious there is more to see. */
-.journey-scroll, .tabernacle-graphic-container, .feast-arc-panel {
+.journey-scroll, .tabernacle-graphic-container, .feast-arc-scroll {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
@@ -2742,7 +2827,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 @media (max-width: 880px) {
   .journey-scroll > svg { min-width: 1000px; }
   .tabernacle-svg { min-width: 940px; }
-  .feast-arc-panel > svg { min-width: 1000px; }
+  .feast-arc-scroll > svg { min-width: 1000px; }
 }
 .diagram-hint {
   display: none;
@@ -2759,7 +2844,7 @@ footer.site-foot .foot-link:hover { border-bottom-color: var(--thread); }
 .diagram-hint svg { width: 14px; height: 14px; flex-shrink: 0; }
 
 @media (max-width: 880px) {
-  .journey-scroll, .tabernacle-graphic-container, .feast-arc-panel {
+  .journey-scroll, .tabernacle-graphic-container, .feast-arc-scroll {
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
     mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
   }

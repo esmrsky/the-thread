@@ -212,7 +212,7 @@ function buildHeroChart() {
     paths += '<path class="hero-thread" data-thread="' + t.id + '" style="--i:' + i + '" d="' + d + '" fill="none" stroke="var(' + t.cvar + ')" stroke-width="2.2" stroke-linecap="round"></path>';
     // Thicker invisible trigger path on top of visual path
     paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round"></path>';
-    labels += '<text class="hero-line-label" data-thread="' + t.id + '" x="-10" y="' + (y0 + 3) + '" text-anchor="end" font-size="7.2" letter-spacing="0.7" fill="var(' + t.cvar + ')" style="font-family:var(--font-label);font-weight:700">' + t.name.toUpperCase() + '</text>';
+    labels += '<text class="hero-line-label" data-thread="' + t.id + '" x="-10" y="' + (y0 + 3) + '" text-anchor="end" font-size="7.2" letter-spacing="0.7" fill="var(' + t.cvar + ')" style="font-family:var(--font-label)">' + t.name.toUpperCase() + '</text>';
   });
   const eras = [[70, 'TORAH'], [180, 'HISTORY'], [277, 'POETS'], [398, 'PROPHETS'], [528, 'GOSPELS'], [622, 'LETTERS'], [694, 'REV']];
   let ticks = '';
@@ -737,7 +737,8 @@ function vCodes() {
     '<div class="tabpane" data-pane="types" hidden><p class="lede" style="margin-bottom:18px">' + linkRefs(CODES.typesNote) + '</p><div class="grid grid-2">' + types + '</div></div>' +
     '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container">' + buildTabernacleSVG() + '</div>' + diagramHint('tabernacle') + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
     '<div class="tabpane" data-pane="feasts" hidden>' +
-    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + namedRefLink('Lev 23:2', 'Leviticus') + '</span><span class="chart-corner br">' + namedRefLink('Col 2:16-17', 'Colossians') + '</span>' + buildFeastArc() + '</div>' + diagramHint('year') +
+    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + namedRefLink('Lev 23:2', 'Leviticus') + '</span><span class="chart-corner br">' + namedRefLink('Col 2:16-17', 'Colossians') + '</span>' +
+    '<div class="feast-arc-scroll">' + buildFeastArc() + '</div></div>' + diagramHint('year') +
     '<div class="feast-groups">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
     '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
     '</div>';
@@ -1111,7 +1112,9 @@ function wireAllSections() {
   // Wire legend chips hover and click
   document.querySelectorAll('.legend-chip[data-thread]').forEach(chip => {
     const threadId = chip.dataset.thread;
-    const pathEls = () => document.querySelectorAll('.hero-thread[data-thread="' + threadId + '"]');
+    /* The chart's own name for the route is part of the route: light the line and leave the
+       label unlit and the eye has to work out which of thirteen it just woke up. */
+    const pathEls = () => document.querySelectorAll('.hero-thread[data-thread="' + threadId + '"], .hero-line-label[data-thread="' + threadId + '"]');
 
     const showPreview = () => {
       cancelPreviewReset();
@@ -1152,7 +1155,7 @@ function wireAllSections() {
   // Wire hero thread paths hover and click (using thicker trigger overlay)
   document.querySelectorAll('.hero-thread-trigger, .hero-line-label').forEach(trigger => {
     const threadId = trigger.dataset.thread;
-    const paths = document.querySelectorAll('.hero-thread[data-thread="' + threadId + '"]');
+    const paths = document.querySelectorAll('.hero-thread[data-thread="' + threadId + '"], .hero-line-label[data-thread="' + threadId + '"]');
     const chipEl = () => document.querySelector('.legend-chip[data-thread="' + threadId + '"]');
 
     const showPreview = () => {
@@ -1391,22 +1394,21 @@ function wireVersionPicker(wrap, onChoose) {
 
 /* Colours, typeface, line height and text size are one panel: they are all "how this reads
    to me", and a lone sun/moon button could only ever answer a quarter of that. */
+const THEMES = ['warm', 'light', 'dark'];
 const PREFS = {
-  theme: { key: 'thread-theme', def: 'system' },
+  theme: { key: 'thread-theme', def: 'light' },
   type: { key: 'thread-type', def: 'literata' },
   lh: { key: 'thread-lh', def: 'normal' },
   fs: { key: 'thread-fs', def: '2' }
 };
 
-/* A typeface theme is a pairing of two faces, and two of the six cross serif and sans on
+/* A typeface theme is a pairing of two faces, and one of the four crosses serif and sans on
    purpose. Listed here is only what each one needs *loaded*: the picker's own previews sit
    inside a hidden menu, so no face is fetched until the panel is opened or a theme chosen. */
 const TYPE_THEMES = {
   literata: ['Literata'],
   'source-serif': ['Source Serif 4', 'Figtree'],
-  garamond: ['EB Garamond', 'Figtree'],
   figtree: ['Figtree'],
-  'source-sans': ['Source Sans 3', 'Literata'],
   atkinson: ['Atkinson Hyperlegible Next']
 };
 const FS_STEPS = [0.86, 0.93, 1, 1.08, 1.16, 1.26, 1.36];
@@ -1475,14 +1477,27 @@ function loadFaces(families) {
    lands in a single reflow while it is nearly invisible, and it fades back up with the
    reader's line pinned. `prepare` is for work that must finish first — loading a typeface. */
 let swapSeq = 0;
+/* Superseded changes are held, not dropped. Picking a typeface and then a line height inside
+   the same fade used to bin the typeface — it was written to storage and marked as chosen but
+   never applied, so the panel and the page disagreed until the next reload. Whichever fade
+   actually lands runs everything queued behind it, in the order it was asked for. */
+let pendingSwaps = [];
 function applyWithFade(mutate, prepare) {
-  const settle = () => holdScroll(90, mutate);
+  pendingSwaps.push(mutate);
+  const settle = () => holdScroll(90, () => {
+    const queued = pendingSwaps;
+    pendingSwaps = [];
+    queued.forEach(fn => fn());
+  });
   if (REDUCED_MOTION) {
     if (prepare) prepare().then(settle); else settle();
     return;
   }
   const seq = ++swapSeq;
-  const panes = [document.getElementById('view'), document.querySelector('.site-foot')].filter(Boolean);
+  /* If the passage dialog is what the reader is looking at, it is the thing that has to
+     settle — fading only the page behind it would change the type under their eye. */
+  const panes = [document.getElementById('view'), document.querySelector('.site-foot'),
+    contextDialogEl && contextDialogEl.open ? contextDialogEl.querySelector('.context-dialog-inner') : null].filter(Boolean);
   panes.forEach(pane => pane.classList.add('reading-swap'));
   /* Wait for the fade to actually reach the floor rather than guessing at a duration —
      a slow frame used to land the reflow at ~0.3 opacity, where it was still visible. */
@@ -1514,9 +1529,8 @@ function setTypeTheme(name, instant) {
   markPrefButtons('type', value);
   /* The six buttons are two letters each now, so the head carries the name of the one held —
      the only place a touch reader, who never sees a title attribute, can read it. */
-  const label = document.getElementById('type-name');
   const picked = document.querySelector('[data-pref="type"] button[data-v="' + value + '"]');
-  if (label && picked) label.textContent = picked.dataset.name || value;
+  if (picked) document.querySelectorAll('.prefs-head-val').forEach(l => { l.textContent = picked.dataset.name || value; });
   lsSet(PREFS.type.key, value);
   const apply = () => {
     if (value === PREFS.type.def) delete document.documentElement.dataset.type;
@@ -1554,13 +1568,27 @@ function setTextSize(index, instant) {
   applyWithFade(apply);
 }
 
+/* The palette swap is the one setting that changes nothing but colour, so it is the one that
+   can actually be animated. `.theme-shift` arms a colour transition on everything for exactly
+   as long as the crossfade lasts. `instant` is the first paint, where there is nothing to
+   cross-fade from; `persist` is false while the choice is still the system's rather than the
+   reader's, so a later change of system appearance is still followed. */
+let themeShiftTimer = null;
+function setTheme(value, instant, persist) {
+  const root = document.documentElement;
+  if (!instant && !REDUCED_MOTION) {
+    root.classList.add('theme-shift');
+    if (themeShiftTimer) clearTimeout(themeShiftTimer);
+    themeShiftTimer = setTimeout(() => { root.classList.remove('theme-shift'); themeShiftTimer = null; }, 420);
+  }
+  root.dataset.theme = value;
+  if (persist !== false) lsSet(PREFS.theme.key, value);
+  markPrefButtons('theme', value);
+}
+
 function applyPref(name, value, instant) {
   if (name === 'theme') {
-    const root = document.documentElement;
-    if (value === 'system') delete root.dataset.theme;
-    else root.dataset.theme = value;
-    lsSet(PREFS.theme.key, value);
-    markPrefButtons('theme', value);
+    setTheme(value, instant);
   } else if (name === 'type') {
     setTypeTheme(value, instant);
   } else if (name === 'lh') {
@@ -1571,38 +1599,78 @@ function applyPref(name, value, instant) {
 }
 
 function initPrefs() {
-  let theme = lsGet(PREFS.theme.key);
-  if (theme !== 'light' && theme !== 'dark' && theme !== 'system') theme = PREFS.theme.def;
+  /* Three palettes are offered — warm, light, dark — and none of them is "whatever the
+     system says". Until the reader picks one, the system still decides; the resolved value
+     is applied and shown as chosen, but nothing is written, so a machine that flips to dark
+     in the evening is still followed. Anyone carrying the old 'system' value lands here too. */
+  const stored = lsGet(PREFS.theme.key);
+  const chosen = THEMES.indexOf(stored) >= 0;
+  const theme = chosen ? stored
+    : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   let type = lsGet(PREFS.type.key);
   if (!TYPE_THEMES[type]) {
     /* the panel used to be a two-way serif/sans switch; carry that choice forward */
     type = lsGet('thread-font') === 'sans' ? 'figtree' : PREFS.type.def;
   }
   const fsSaved = parseInt(lsGet(PREFS.fs.key), 10);
-  applyPref('theme', theme, true);
+  setTheme(theme, true, chosen);
   applyPref('type', type, true);
   applyPref('lh', lsGet(PREFS.lh.key) || PREFS.lh.def, true);
   applyPref('fs', String(fsSaved >= 0 && fsSaved < FS_STEPS.length ? fsSaved : PREFS.fs.def), true);
 
-  const wrap = document.getElementById('prefs');
-  const btn = document.getElementById('prefs-btn');
-  const menu = document.getElementById('prefs-menu');
-  if (!wrap || !btn || !menu) return;
+  /* Both panels — the topbar's and the passage dialog's — are the same panel wired twice.
+     Only the topbar one becomes a phone sheet: the dialog is already in the top layer, and
+     a menu portaled to <body> would paint behind it. */
+  wirePrefsPanel(document.getElementById('prefs'), { sheet: true });
+}
 
-  /* On a phone the panel is a sheet pinned to the bottom of the screen, and `position: fixed`
-     resolves against the nearest ancestor with a filter — which is the topbar, blurred. Left
-     where it sits it would pin to the bottom of the header instead. So for as long as it is
-     open at that width it lives on <body>; the CSS restates the header's own font-size so the
-     em-sized controls inside come out the same either way. */
+/* The typeface and line-height halves of the panel, so the copy inside the passage dialog
+   cannot drift from the copy in the topbar. Colours and text size stay in the topbar only:
+   the dialog is a place to fix how a passage reads, not the whole site's chrome. Ids would
+   collide across two copies, so the head's value is found by class. */
+function readingPanelHtml() {
+  const faces = [
+    ['literata', 'Literata', 'serif headings and text'],
+    ['source-serif', 'Source Serif', 'sans headings, serif text'],
+    ['figtree', 'Figtree', 'sans headings and text'],
+    ['atkinson', 'Atkinson', 'drawn for legibility']
+  ];
+  return '<span class="prefs-head">Typeface <b class="prefs-head-val">Literata</b></span>' +
+    '<div class="typegrid" data-pref="type">' +
+    faces.map(f => '<button type="button" data-v="' + f[0] + '" data-name="' + f[1] + '" aria-pressed="false"' +
+      ' title="' + f[1] + ' \u2014 ' + f[2] + '" aria-label="' + f[1] + ', ' + f[2] + '"><b>A</b><i>a</i></button>').join('') +
+    '</div>' +
+    '<span class="prefs-head">Line height</span>' +
+    '<div class="seg" data-pref="lh">' +
+    ['snug', 'normal', 'roomy'].map(v => '<button type="button" data-v="' + v + '">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>').join('') +
+    '</div>' +
+    '<span class="prefs-note">Kept on this device.</span>';
+}
+
+/* The topbar panel and the one in the passage dialog are the same panel twice: the same
+   `[data-pref]` markup, the same handlers, and `markPrefButtons` already writes to every
+   copy on the page, so whichever one you use the other is already showing the answer. */
+function wirePrefsPanel(wrap, opts) {
+  if (!wrap) return null;
+  const btn = wrap.querySelector('.prefs-btn');
+  const menu = wrap.querySelector('.prefs-menu');
+  if (!btn || !menu) return null;
+
+  /* On a phone the topbar panel is a sheet pinned to the bottom of the screen, and
+     `position: fixed` resolves against the nearest ancestor with a filter — which is the
+     topbar, blurred. Left where it sits it would pin to the bottom of the header instead.
+     So for as long as it is open at that width it lives on <body>; the CSS restates the
+     header's own font-size so the em-sized controls inside come out the same either way. */
   const sheetMQ = window.matchMedia('(max-width: 760px)');
+  const canSheet = !!(opts && opts.sheet);
   let onBody = false;
-  const toSheet = () => { if (!onBody && sheetMQ.matches) { document.body.appendChild(menu); onBody = true; } };
+  const toSheet = () => { if (canSheet && !onBody && sheetMQ.matches) { document.body.appendChild(menu); onBody = true; } };
   const toWrap = () => { if (onBody) { wrap.appendChild(menu); onBody = false; } };
 
   const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); toWrap(); };
-  /* The six previews are each set in their own two faces. A hidden menu renders nothing,
-     so this first open is the moment they are worth fetching — and by the time one is
-     picked its faces are already there. */
+  /* Each preview is set in its own two faces. A hidden menu renders nothing, so this first
+     open is the moment they are worth fetching — and by the time one is picked its faces
+     are already there. */
   let previewsWarmed = false;
   const open = () => {
     toSheet();
@@ -1618,6 +1686,7 @@ function initPrefs() {
   };
   btn.addEventListener('click', ev => { ev.stopPropagation(); menu.hidden ? open() : close(); });
   menu.addEventListener('click', ev => {
+    ev.stopPropagation();
     const step = ev.target.closest('[data-pref="fs"] button[data-step]');
     if (step) { setTextSize(currentFsIndex + (+step.dataset.step)); return; }
     const b = ev.target.closest('[data-pref] button[data-v]');
@@ -1636,6 +1705,7 @@ function initPrefs() {
   const onMQ = () => { if (!menu.hidden) close(); };
   if (sheetMQ.addEventListener) sheetMQ.addEventListener('change', onMQ);
   else if (sheetMQ.addListener) sheetMQ.addListener(onMQ);
+  return { close: close };
 }
 
 function initVersionPicker() {
@@ -1679,6 +1749,7 @@ let tooltipRef = '';
 let contextDialogEl = null;
 let contextRequestId = 0;
 let contextVersionPicker = null;
+let contextPrefsPanel = null;
 
 function parseReference(refStr) {
   const clean = refStr.replace(/–/g, '-').trim();
@@ -1943,7 +2014,15 @@ function initTooltip() {
     '      <span class="verpick-val">' + ACTIVE_VERSION + '</span>' +
     '      <svg class="verpick-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 9.8 5.5 5 5.5-5"/></svg>' +
     '    </button><div class="verpick-menu" role="listbox" aria-label="Bible translation" hidden></div></div>' +
-    '    <button class="context-dialog-close" type="button" aria-label="Close">×</button></div></header>' +
+    '    <div class="prefs context-prefs">' +
+    '      <button class="prefs-btn context-prefs-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Reading settings" title="Reading settings">' +
+    '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 8h9M17.5 8H20M4 16h3.5M12 16h8"/><circle cx="15.2" cy="8" r="2.3"/><circle cx="9.7" cy="16" r="2.3"/></svg>' +
+    '      </button>' +
+    '      <div class="prefs-menu" role="dialog" aria-label="Reading settings" hidden>' + readingPanelHtml() + '</div>' +
+    '    </div>' +
+    '    <button class="context-dialog-close" type="button" aria-label="Close">' +
+    '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6.6 6.6l10.8 10.8M17.4 6.6 6.6 17.4"/></svg>' +
+    '    </button></div></header>' +
     '  <div class="context-dialog-body" aria-live="polite"></div>' +
     '  <footer class="context-dialog-foot"><button class="context-more-button" type="button">Even more context</button></footer>' +
     '</div>';
@@ -1954,6 +2033,12 @@ function initTooltip() {
     contextDialogEl.dataset.version = code;
     refreshVerseContext(true);
   });
+  contextPrefsPanel = wirePrefsPanel(contextDialogEl.querySelector('.context-prefs'));
+  /* The panel is built after initPrefs has already run, so its buttons start blank —
+     re-mark them against what is actually in force. */
+  ['type', 'lh'].forEach(k => markPrefButtons(k, k === 'type'
+    ? (document.documentElement.dataset.type || PREFS.type.def)
+    : (document.documentElement.dataset.lh || PREFS.lh.def)));
 
   tooltipEl.addEventListener('mouseenter', () => {
     if (tooltipTimer) clearTimeout(tooltipTimer);
@@ -2015,7 +2100,10 @@ function initTooltip() {
     contextDialogEl.dataset.radius = String((parseInt(contextDialogEl.dataset.radius, 10) || 4) + 6);
     refreshVerseContext(true);
   });
-  contextDialogEl.addEventListener('close', () => { if (contextVersionPicker) contextVersionPicker.close(); });
+  contextDialogEl.addEventListener('close', () => {
+    if (contextVersionPicker) contextVersionPicker.close();
+    if (contextPrefsPanel) contextPrefsPanel.close();
+  });
   contextDialogEl.addEventListener('click', ev => {
     if (ev.target === contextDialogEl) contextDialogEl.close();
   });
@@ -2365,7 +2453,7 @@ function initRail() {
       if (dh <= 0) return;
       const frac = Math.min(1, window.scrollY / dh);
       const fill = rail.querySelector('.rail-fill');
-      if (fill) fill.style.height = (frac * 100) + '%';
+      if (fill) fill.style.clipPath = 'inset(0 0 ' + ((1 - frac) * 100) + '% 0)';
       const marker = window.scrollY + window.innerHeight * 0.4;
       rail.querySelectorAll('.rail-dot').forEach(dot => {
         const el = document.getElementById(dot.dataset.view);
@@ -2381,11 +2469,37 @@ function layoutRail() {
   if (!rail) return;
   const dh = document.documentElement.scrollHeight - window.innerHeight;
   if (dh <= 0) return;
+  const stops = [];
   NAV.forEach(n => {
     const el = document.getElementById(n.id);
     const dot = rail.querySelector('.rail-dot[data-view="' + n.id + '"]');
-    if (el && dot) dot.style.top = (Math.min(1, el.offsetTop / dh) * 100) + '%';
+    const pct = el ? Math.min(1, el.offsetTop / dh) * 100 : null;
+    if (el && dot) dot.style.top = pct + '%';
+    stops.push(pct);
   });
+  paintRail(rail, stops);
+}
+
+/* One hard-edged band per section, handed off exactly where its dot sits. The first band runs
+   from the very top rather than from its own stop, so the few pixels above Start Here are not
+   a gap of nothing. A section the router has not rendered yet has no stop; it inherits the
+   band above it instead of collapsing the rest of the ladder. */
+function paintRail(rail, stops) {
+  const fill = rail.querySelector('.rail-fill');
+  if (!fill) return;
+  const bands = [];
+  let from = 0;
+  NAV.forEach((n, i) => {
+    let to = 100;
+    for (let j = i + 1; j < stops.length; j++) {
+      if (stops[j] !== null) { to = stops[j]; break; }
+    }
+    if (stops[i] === null && i > 0) return;
+    to = Math.max(from, Math.min(100, to));
+    bands.push('var(' + n.cvar + ') ' + from.toFixed(2) + '%, var(' + n.cvar + ') ' + to.toFixed(2) + '%');
+    from = to;
+  });
+  fill.style.backgroundImage = 'linear-gradient(to bottom, ' + bands.join(', ') + ')';
 }
 window.addEventListener('resize', () => setTimeout(layoutRail, 200));
 
