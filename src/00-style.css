@@ -97,7 +97,7 @@ body { margin: 0; }
    It is a third choice, not a variant of light, so the dark media query below has to let
    it through untouched — hence the second :not() on that guard. */
 /* ---------- the palette eases from one theme to the next ----------
-   Colour is the one site-wide setting that costs no layout, so it does not need the view
+   Color is the one site-wide setting that costs no layout, so it does not need the view
    transition the type dials depend on — it can be interpolated for real. A custom property is
    an untyped string to the browser until it is registered; declared as a <color> with
    @property, every token below becomes a value it knows how to walk from one end to the other.
@@ -190,16 +190,18 @@ body { margin: 0; }
   :root.theme-eases { transition: none; }
 }
 
+/* Warmer than it was: the paper had drifted toward a neutral cream, which read as "light with
+   a tint" rather than as lamplight. The ink is untouched — it is what carries the contrast. */
 :root[data-theme="warm"] {
-  --paper: #f5e9d5;
-  --paper-deep: #eddcc2;
-  --card: #fdf4e4;
-  --card-2: #f7ecd8;
+  --paper: #f7e5c6;
+  --paper-deep: #efd6ac;
+  --card: #fef2da;
+  --card-2: #fae8c8;
   --ink: #322317;
   --ink-soft: #6b5334;
   --ink-faint: #7d6544;
-  --line: #dcc8a6;
-  --line-soft: #e9dabe;
+  --line: #e0c599;
+  --line-soft: #edd8ae;
   --grat: rgba(80, 55, 25, 0.07);
   --thread: #a8202b;
   --gold: #91661a;
@@ -400,7 +402,7 @@ p, li { text-wrap: pretty; }
    So none of it animates. The reading column fades down, the change lands in one reflow
    while it is nearly invisible, and it fades back up with the reader's line pinned where
    it was. Opacity is a compositor property, so the fade itself holds 60fps on any device,
-   and all four settings get the same calm behaviour. The topbar is left out of it so the
+   and all four settings get the same calm behavior. The topbar is left out of it so the
    panel you are clicking in stays crisp. */
 /* Text size and leading land in one step, and the reason is worth writing down because the
    obvious fix keeps suggesting itself. 96 Promises eases font-size and line-height over 0.15s
@@ -413,9 +415,9 @@ p, li { text-wrap: pretty; }
 
 /* ---------- changing the palette ----------
    The other three reading settings re-lay the page, so they fade the column down and back.
-   Colours do not: nothing moves, only every colour on the page lands on a new value at once,
+   Colors do not: nothing moves, only every color on the page lands on a new value at once,
    and snapping them all in a single frame reads as a blink. So instead of hiding the change,
-   drive it — every painted colour interpolates to its new value together. The class is on
+   drive it — every painted color interpolates to its new value together. The class is on
    for the length of the crossfade and no longer, because a permanent transition on `*` makes
    every hover on the page feel like it is dragging. */
 /* Every reading setting — palette, typeface, leading, size — cross-fades as a view transition.
@@ -530,7 +532,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
-/* one line: brand (left) · nav (centred) · actions (right) */
+/* one line: brand (left) · nav (centered) · actions (right) */
 .topbar-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -595,7 +597,7 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   :root:not([data-theme="light"]):not([data-theme="warm"]) .theme-toggle .ic-moon { display: none; }
 }
 
-/* centred middle column; scrolls internally only if cramped */
+/* centered middle column; scrolls internally only if cramped */
 .navstrip {
   display: flex;
   gap: 3px;
@@ -1260,7 +1262,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   color: var(--c, var(--c-mind));
   display: block;
 }
-/* An icon and a coloured rule per panel: eight blocks of prose needed something to read by. */
+/* An icon and a colored rule per panel: eight blocks of prose needed something to read by. */
 .mind-panel-top {
   display: flex;
   align-items: center;
@@ -1365,7 +1367,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   display: flex; gap: 12px;
   flex-wrap: wrap;
 }
-/* one card per resource: the kind chip carries the colour, so a shelf reads as a
+/* one card per resource: the kind chip carries the color, so a shelf reads as a
    shelf rather than a paragraph that happens to have links in it */
 .shelf-item {
   display: grid;
@@ -1659,8 +1661,8 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .rail-dot:hover .rail-dot-label, .rail-dot.passed .rail-dot-label { color: var(--c); }
 @media (min-width: 1460px) { .rail-dot-label { opacity: 0.75; pointer-events: auto; } }
 .rail-track { position: absolute; left: 6px; top: 0; bottom: 0; border-left: 2px dashed var(--line); }
-/* The line is one continuous strip painted in every section's own colour, in order, with the
-   hand-offs sitting exactly on the dots — so the colour under your eye names the section you
+/* The line is one continuous strip painted in every section's own color, in order, with the
+   hand-offs sitting exactly on the dots — so the color under your eye names the section you
    are actually in. Growth is a clip, not a height: a shrinking box would rescale the gradient
    and drag every hand-off along with it, away from the dot it belongs to. */
 .rail-fill {
@@ -1778,7 +1780,7 @@ footer.site-foot {
   font-size: 0.92rem;
 }
 footer.site-foot .foot-verse { font-style: italic; max-width: 58ch; margin: 0 auto 14px; }
-/* The last thing on the page, and it was set at the same size and colour as the small print
+/* The last thing on the page, and it was set at the same size and color as the small print
    under it. It is the point of the whole site, so it reads like it. */
 footer.site-foot .foot-creed {
   max-width: 30ch;
@@ -1872,7 +1874,8 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   background: var(--card-2);
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 6px 10px 6px 9px;
+  /* the book icon sat almost on the border; the left inset is the one that has to clear it */
+  padding: 6px 12px 6px 13px;
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
@@ -2000,12 +2003,16 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   letter-spacing: 0.11em; text-transform: uppercase;
   color: var(--ink-faint);
 }
+/* The only thing to press in the pop-up, so it gets the whole width of it rather than a pill
+   in one corner — and it takes the pop-up's own corner radius so the two read as one object. */
 .tooltip-context-button {
+  flex: 1 1 auto;
+  width: 100%;
   border: 1px solid color-mix(in srgb, var(--thread) 35%, var(--line));
-  border-radius: 999px;
+  border-radius: var(--r);
   background: color-mix(in srgb, var(--thread) 8%, var(--card));
   color: var(--thread);
-  padding: 7px 11px;
+  padding: 10px 11px;
   font-family: var(--font-label);
   font-size: 0.64rem;
   font-weight: 700;
@@ -2104,12 +2111,71 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 /* The pill's own 9px left padding sat the book tight against the border while the caret had
    the whole gap on the right. Here the row is short enough for the difference to show. */
 .context-verpick .verpick-btn { padding-left: 13px; }
-/* The close mark was the "×" character, which is centred on the font's own maths rather than
-   on the circle — it sat high and a hair to the left in every face. A drawn cross is centred
+/* The close mark was the "×" character, which is centered on the font's own maths rather than
+   on the circle — it sat high and a hair to the left in every face. A drawn cross is centered
    by its own geometry, so it stays put whichever typeface the reader has chosen. */
 .context-dialog-close { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink-soft); background: var(--card-2); }
 .context-dialog-close svg { width: 15px; height: 15px; display: block; }
 .context-dialog-close:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+/* ---------- the dialog's settings are a sheet too, at phone width ----------
+   The topbar's panel portals to <body> to escape the blurred header; this one cannot — the
+   dialog is in the top layer and anything on <body> paints behind it. It does not need to:
+   an open <dialog> is `position: fixed`, so it is already a containing block, and the sheet can
+   be pinned to the bottom of the dialog itself with `position: absolute`. `.context-prefs` has
+   to stop being `position: relative` for that to resolve past it. */
+/* ---------- the passage dialog's controls, on a phone ----------
+   Translation, settings and "even more context" are the three things that change how this reads,
+   and down here they are one row of the same height rather than two of them tucked into a header
+   corner at 34px square. Both menus open upward: from the footer there is nothing below them. */
+@media (max-width: 720px) {
+  .context-dialog-foot {
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+  }
+  .context-dialog-foot .context-more-button { flex: 1 1 auto; min-height: 42px; }
+  .context-dialog-foot .verpick,
+  .context-dialog-foot .context-prefs { flex: 0 0 auto; }
+  .context-dialog-foot .verpick-btn,
+  .context-dialog-foot .context-prefs-btn {
+    height: 42px;
+    min-height: 42px;
+    border-radius: 999px;
+  }
+  .context-dialog-foot .context-prefs-btn { width: 42px; flex: 0 0 42px; }
+  .context-dialog-foot .verpick-menu {
+    top: auto;
+    bottom: calc(100% + 8px);
+    left: 0; right: auto;
+  }
+  .context-dialog-foot .verpick-menu::before {
+    top: auto; bottom: -5px; left: 17px; right: auto;
+    border: 0;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 760px) {
+  /* `.verse-context-dialog` prefix on purpose: `.context-prefs { position: relative }` is
+     declared later in this sheet, and a media query adds no specificity — a bare
+     `.context-prefs` here would lose on source order and the sheet would still hang off the
+     button. */
+  .verse-context-dialog .context-prefs { position: static; }
+  .verse-context-dialog .context-prefs .prefs-menu {
+    position: absolute;
+    top: auto; right: 0; bottom: 0; left: 0;
+    width: auto; min-width: 0;
+    max-height: min(72dvh, 520px);
+    padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
+    border-width: 1px 0 0;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    box-shadow: 0 -14px 40px color-mix(in srgb, #000 28%, transparent);
+    overscroll-behavior: contain;
+  }
+  .verse-context-dialog .context-prefs .prefs-menu::before { display: none; }
+}
 
 /* Reading settings, in the place the reading is actually happening. */
 .context-prefs { position: relative; z-index: 4; }
@@ -2464,61 +2530,36 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   .context-dialog-head, .context-dialog-body { padding-left: 16px; padding-right: 16px; }
 }
 
-/* ---------- the phone's route stepper ----------
-   Two arrows and the name of the route between them, floating at the bottom of the screen for
-   as long as the chart is on it. It is centred rather than cornered, and narrow enough that it
-   never reaches the back-to-top button on the smallest phone.
-
-   The width is fixed, not fitted. Sized to its contents the bar was as wide as whichever name
-   was in it, so the arrows walked outwards for "The Lamb & the Blood" and back in for "Bread" —
-   and a thumb parked on Next found itself pressing nothing on the third tap. A fixed box keeps
-   both arrows at the same two points on the glass for all thirteen, and the name takes whatever
-   is left in the middle. Getting all thirteen names into that middle needs the full width of
-   the screen, which is why the back-to-top button stands down while this is up: two floating
-   controls at the bottom of a phone were squeezing the bar into ellipsing its own labels, and
-   the way back to the top of the page is a tap away in the header anyway. */
-.thread-fab {
-  position: fixed;
-  left: 50%;
-  bottom: max(18px, env(safe-area-inset-bottom));
-  transform: translate(-50%, 10px);
-  z-index: var(--z-fab);
+/* ---------- where you are in the thirteen ----------
+   Almost a scrollbar on purpose. The card answers a swipe now, and a swipe wants what a
+   carousel wants: a row of marks saying how many there are and which one this is. Nothing to
+   press — pressing a 5px dot on a phone is a miss waiting to happen — just something to read
+   out of the corner of the eye. */
+.preview-dots {
   display: none;
+  flex: 0 0 auto;
+  justify-content: center;
   align-items: center;
-  gap: 2px;
-  padding: 4px;
-  width: min(346px, calc(100vw - 40px));
-  border: 1px solid color-mix(in srgb, var(--thread) 32%, var(--line));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--card) 92%, transparent);
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity .18s ease, visibility .18s ease, transform .18s ease;
+  gap: 6px;
+  padding: 14px 0 2px;
 }
-.thread-fab.visible { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
-.thread-fab-step {
-  flex: 0 0 40px; width: 40px; height: 40px;
-  display: grid; place-items: center;
+.preview-dot {
+  width: 5px; height: 5px;
   border-radius: 50%;
-  color: var(--thread);
-  background: color-mix(in srgb, var(--thread) 10%, transparent);
+  background: var(--ink-faint);
+  opacity: 0.26;
+  transition: opacity 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
-.thread-fab-step svg { width: 18px; height: 18px; }
-.thread-fab-step:active { background: color-mix(in srgb, var(--thread) 22%, transparent); }
-.thread-fab-name {
-  flex: 1 1 auto; min-width: 0;
-  padding: 0 8px;
-  text-align: center;
-  font-family: var(--font-label); font-size: 0.7rem; font-weight: 700;
-  letter-spacing: 0.04em; color: var(--ink);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.preview-dot.is-on {
+  background: var(--c, var(--thread));
+  opacity: 1;
+  transform: scale(1.5);
 }
-@media (max-width: 720px) { .thread-fab { display: flex; } }
+@media (max-width: 720px) {
+  .preview-dots { display: flex; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .thread-fab { transition: opacity .18s ease, visibility .18s ease; transform: translate(-50%, 0); }
+  .preview-dot { transition: none; }
 }
 
 /* ---------- back to top ---------- */
@@ -2544,8 +2585,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   transition: opacity .18s ease, visibility .18s ease, transform .18s ease, background-color .18s ease;
 }
 .back-to-top.visible { opacity: 1; visibility: visible; transform: none; }
-/* the route stepper owns the bottom of the screen for as long as it is there */
-body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
 .back-to-top:hover { background: var(--card); }
 .back-to-top svg { width: 19px; height: 19px; }
 
@@ -2604,6 +2643,8 @@ body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
 /* Active preview content styling */
 .preview-content {
   height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -2729,7 +2770,7 @@ body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
 }
 /* This pair used to be two sentences with an inline bold lead-in, which is not how any other
    contrast on the site is set. It now follows the Detour rows: a small uppercase label in the
-   row's own colour, the sentence underneath. */
+   row's own color, the sentence underneath. */
 .pillar-card .lie, .pillar-card .truth { display: flex; flex-direction: column; }
 .pillar-card .lie b, .pillar-card .truth b {
   display: flex; align-items: center; gap: 6px;
@@ -2890,7 +2931,7 @@ body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-/* the dotted drop from the cross to the convergence never stops travelling */
+/* the dotted drop from the cross to the convergence never stops traveling */
 .hero-anim .hero-drop {
   animation: hero-fade 0.5s ease 1.9s both, hero-drip 9s linear 1.9s infinite;
 }
@@ -3007,7 +3048,7 @@ body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
   .topbar-actions {
     gap: 8px;
   }
-  .verpick-btn { padding: 6px 11px 6px 9px; }
+  .verpick-btn { padding: 6px 12px 6px 13px; }
   .verpick-ic { display: block; }
   .verpick-menu { min-width: 180px; }
   .navstrip {
@@ -3085,9 +3126,10 @@ body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
    walk forwards through is a panel you end up stuck in. */
 .prefs-foot { margin-top: 11px; padding-top: 10px; border-top: 1px dashed var(--line-soft); }
 .prefs-reset {
-  width: 100%; padding: 9px 12px; border-radius: 999px;
+  width: 100%; padding: 10px 12px; border-radius: 999px;
   border: 1px solid var(--line); background: var(--card-2);
-  font-family: var(--font-label); font-size: 0.66em; font-weight: 700; letter-spacing: 0.09em;
+  font-family: var(--font-label); font-size: 0.8em; font-weight: 700; letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--ink-soft); cursor: pointer;
   transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
@@ -3103,10 +3145,13 @@ body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
    letters to show itself: the cap is set in the theme's heading font and the lowercase
    in its body font, so a theme that crosses serif and sans still shows that it does. */
 .typegrid { display: flex; gap: 5px; margin-bottom: 14px; }
+/* The pair were aligned on their shared baseline, which is right for the two letters and wrong
+   for the box around them — the ink sat high and left a gap underneath. Centered as a unit, with
+   the baseline alignment kept between the two glyphs by an inline wrapper's own line box. */
 .typegrid button {
   flex: 1 1 0; min-width: 0;
-  display: flex; align-items: baseline; justify-content: center; gap: 1px;
-  padding: 7px 2px 8px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; gap: 1px;
+  padding: 9px 2px 8px; border-radius: 9px;
   border: 1px solid var(--line-soft);
   background: var(--card-2);
   line-height: 1;
@@ -3148,6 +3193,25 @@ body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
   font-family: var(--font-label); font-size: 0.66em; font-weight: 700; letter-spacing: 0.05em;
   color: var(--ink); font-variant-numeric: tabular-nums;
 }
+
+/* Two halves, a small A and a large one. The percentage in the middle was a number nobody
+   acts on, and it was taking the third of the pill that the two things you actually press
+   were sharing between them. */
+.stepper.sizer { gap: 0; padding: 3px; }
+.stepper.sizer button {
+  flex: 1 1 0; width: auto; height: 34px;
+  display: grid; place-items: center;
+}
+.stepper.sizer button + button { box-shadow: inset 1px 0 0 var(--line-soft); }
+.sz-a {
+  font-family: var(--font-head); font-weight: 700; line-height: 1;
+  color: var(--ink-soft);
+  transition: color 0.15s ease;
+}
+.sz-sm { font-size: 0.88em; }
+.sz-lg { font-size: 1.32em; }
+.stepper.sizer button:hover:not(:disabled) .sz-a { color: var(--thread); }
+.stepper.sizer button[aria-pressed="true"] .sz-a { color: var(--thread); }
 
 @media (max-width: 520px) { .prefs-menu { min-width: min(272px, calc(100vw - 28px)); } }
 
@@ -3249,7 +3313,7 @@ body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
 /* ---------- diagram rails ----------
    Three diagrams drew themselves on canvases 900 units wide. Shrunk to a 325px phone that put
    their labels at 2–3px — present, unreadable, and each one solved it differently (one clipped,
-   one shrank, one scrolled). They now share one behaviour: below the width where the type stays
+   one shrank, one scrolled). They now share one behavior: below the width where the type stays
    legible they scroll sideways, with the edges faded so it is obvious there is more to see. */
 .journey-scroll, .tabernacle-graphic-container, .feast-arc-scroll {
   overflow-x: auto;

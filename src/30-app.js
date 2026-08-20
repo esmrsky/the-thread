@@ -602,7 +602,7 @@ function vStart() {
     '      <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
     '      <h3>The Story Map</h3>' +
     '      <p>Choose a route to see its waypoints and where it lands.<span class="hint-hover"> Hover to peek, click to keep it.</span></p>' +
-    '    </div>' +
+    '    </div>' + previewDotsHtml(null) +
     '  </div>' +
     '  <div class="chart-main">' +
     '    <div class="hero-scroll">' +
@@ -923,7 +923,7 @@ function updateActiveNav(id) {
 }
 
 /* Whenever exactly one route is live — hovered, focused or held — the chart drops the other
-   twelve right back so that one line is unmistakable. Thirteen colours at near-equal weight
+   twelve right back so that one line is unmistakable. Thirteen colors at near-equal weight
    was a width-matching exercise, and on a phone it was barely a difference at all. Nothing
    live means everything comes back up. */
 function syncRouteFocus() {
@@ -959,6 +959,18 @@ function buildThreadPreviewHeader(t) {
     '</h3>';
 }
 
+/* ---------- where you are in the thirteen, on a phone ----------
+   The arrows that used to float at the bottom of the screen are gone: the card answers a swipe,
+   and a swipe wants the same thing a carousel wants — a row of marks that says how many there
+   are and which one this is. Deliberately almost a scrollbar: on a card this small, thirteen
+   labelled anything would be another control to read. */
+function previewDotsHtml(activeId) {
+  const at = THREADS.findIndex(x => x.id === activeId);
+  return '<div class="preview-dots" aria-hidden="true">' +
+    THREADS.map((x, i) => '<span class="preview-dot' + (i === at ? ' is-on' : '') + '"></span>').join('') +
+    '</div>';
+}
+
 function buildThreadPreviewContent(t) {
   const shortWay = previewMilestones(t);
 
@@ -984,7 +996,7 @@ function buildThreadPreviewContent(t) {
     '      <p>' + linkRefs(t.landsOn) + '</p>' +
     '    </div>' +
     '  </div>' +
-    '</div>'
+    '</div>' + previewDotsHtml(t.id)
   );
 }
 
@@ -1089,13 +1101,13 @@ function updateThreadPreview(threadId) {
   if (!content) {
     swapPreviewContent(previewEl, buildThreadPreviewContent(t));
     activePreviewThreadId = threadId;
-    syncThreadFabName(t.name);
     return;
   }
 
   const token = ++previewSwapToken;
   const start = previewEl.offsetHeight;
   content.style.setProperty('--c', 'var(' + t.cvar + ')');
+  previewEl.style.setProperty('--c', 'var(' + t.cvar + ')');   /* the dots sit outside .preview-content */
   patchPart(content.querySelector('.preview-header'), buildThreadPreviewHeader(t));
   patchPart(content.querySelector('.preview-tag'), t.tag);
   patchPart(content.querySelector('.preview-body ul'), previewMilestones(t));
@@ -1106,6 +1118,11 @@ function updateThreadPreview(threadId) {
      its two arrows carry the neighbouring routes. Missed, they keep pointing at whatever they
      pointed at when the card was built and the second press goes nowhere. */
   patchPart(content.querySelector('.preview-stepper'), previewStepperHtml(t));
+  const dots = previewEl.querySelector('.preview-dots');
+  if (dots) {
+    const at = THREADS.findIndex(x => x.id === t.id);
+    dots.querySelectorAll('.preview-dot').forEach((d, i) => d.classList.toggle('is-on', i === at));
+  }
 
   previewEl.style.height = '';
   const end = previewEl.offsetHeight;
@@ -1116,20 +1133,18 @@ function updateThreadPreview(threadId) {
     setTimeout(() => { if (token === previewSwapToken) previewEl.style.height = ''; }, 280);
   }
   activePreviewThreadId = threadId;
-  syncThreadFabName(t.name);
 }
 
 function resetThreadPreview() {
   const previewEl = document.getElementById('thread-preview');
   if (!previewEl) return;
   activePreviewThreadId = null;
-  syncThreadFabName(null);
   swapPreviewContent(previewEl,
     '  <div class="preview-placeholder">' +
     '    <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
     '    <h3>The Story Map</h3>' +
     '    <p>Choose a route to see its waypoints and where it lands.<span class="hint-hover"> Hover to peek, click to keep it.</span></p>' +
-    '  </div>');
+    '  </div>' + previewDotsHtml(null));
 }
 
 function selectPreviewThread(threadId) {
@@ -1348,9 +1363,9 @@ function wireAllSections() {
 
 function setupScrollspy() {
   // Track every section's intersection with a thin band across the viewport's
-  // vertical centre, then activate whichever section owns that centre. This is
+  // vertical center, then activate whichever section owns that center. This is
   // stable where the old "last intersecting entry wins" loop mis-highlighted
-  // neighbours when several tall sections changed state in one callback.
+  // neighbors when several tall sections changed state in one callback.
   const visibleTops = new Map();
   const options = {
     root: null,
@@ -1477,7 +1492,7 @@ function wireVersionPicker(wrap, onChoose) {
   return { close };
 }
 
-/* Colours, typeface, line height and text size are one panel: they are all "how this reads
+/* Colors, typeface, line height and text size are one panel: they are all "how this reads
    to me", and a lone sun/moon button could only ever answer a quarter of that. */
 const THEMES = ['warm', 'light', 'dark'];
 /* The passage dialog keeps its own typeface and leading. It is the one place on the site where
@@ -1668,10 +1683,10 @@ function setTextSize(index, instant) {
    the choice is still the system's rather than the reader's, so a machine that flips to dark in
    the evening is still followed.
 
-   Colour does not go through applySmooth. The type dials have to be cross-faded because they
+   Color does not go through applySmooth. The type dials have to be cross-faded because they
    re-lay the document; a palette changes no geometry at all, so the stylesheet interpolates the
    theme tokens themselves and the page walks from one palette to the other — paper, ink, rules
-   and all thirteen route colours easing together — rather than dissolving into a photograph of
+   and all thirteen route colors easing together — rather than dissolving into a photograph of
    itself. The class is added on the first change and left on: a transition list costs nothing
    while none of its properties are moving, and there is no timer to get wrong. The forced
    reflow between the two is what makes the first press ease as well; established in the same
@@ -1684,7 +1699,7 @@ function setTheme(value, instant, persist) {
   if (instant) {
     /* Instant has to mean instant even after the ease is switched on — the reset button snaps
        the palette inside the one view transition it shares with the three type dials, and a
-       340ms colour ease running underneath that would land the cross-fade on the old palette. */
+       340ms color ease running underneath that would land the cross-fade on the old palette. */
     const eased = root.classList.contains('theme-eases');
     if (eased) root.classList.remove('theme-eases');
     root.dataset.theme = value;
@@ -1744,7 +1759,7 @@ function setContextTextSize(index) {
 }
 
 /* "Reset to defaults" means the two panels' own settings, each in its own scope: the passage
-   dialog's button puts the passage back, the topbar's puts the site back. Colour is the one
+   dialog's button puts the passage back, the topbar's puts the site back. Color is the one
    that does not go to a fixed value — before anyone chooses, the site follows the machine, so
    unchoosing has to hand it back rather than pin it to Light. */
 function resetPrefs(scope) {
@@ -1752,12 +1767,20 @@ function resetPrefs(scope) {
     setContextPref('type', PREFS.ctxType.def);
     setContextPref('lh', PREFS.ctxLh.def);
     setContextTextSize(parseInt(PREFS.ctxFs.def, 10));
+    /* "Even more context" is a reading setting too — it is how much of the chapter is on
+       screen — so a reset that left the passage eight verses long either side was resetting
+       everything except the most visible thing the reader had changed. */
+    if (contextDialogEl && contextDialogEl.open &&
+        (parseInt(contextDialogEl.dataset.radius, 10) || CONTEXT_RADIUS) !== CONTEXT_RADIUS) {
+      contextDialogEl.dataset.radius = String(CONTEXT_RADIUS);
+      refreshVerseContext(true);
+    }
     return;
   }
   lsDel(PREFS.theme.key);
   const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   /* All four under one view transition. Called one after another, each would start a
-     transition that cancelled the one before it and the page would snap three times. */
+     transition that canceled the one before it and the page would snap three times. */
   applySmooth(() => {
     setTheme(system, true, false);
     setTypeTheme(PREFS.type.def, true);
@@ -1807,11 +1830,11 @@ function initPrefs() {
   /* Both panels — the topbar's and the passage dialog's — are the same panel wired twice.
      Only the topbar one becomes a phone sheet: the dialog is already in the top layer, and
      a menu portaled to <body> would paint behind it. */
-  wirePrefsPanel(document.getElementById('prefs'), { sheet: true });
+  wirePrefsPanel(document.getElementById('prefs'), { sheet: true, portal: true });
 }
 
 /* The typeface and line-height halves of the panel, so the copy inside the passage dialog
-   cannot drift from the copy in the topbar. Colours and text size stay in the topbar only:
+   cannot drift from the copy in the topbar. Colors and text size stay in the topbar only:
    the dialog is a place to fix how a passage reads, not the whole site's chrome. Ids would
    collide across two copies, so the head's value is found by class. */
 function readingPanelHtml() {
@@ -1831,13 +1854,11 @@ function readingPanelHtml() {
     ['snug', 'normal', 'roomy'].map(v => '<button type="button" data-v="' + v + '">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>').join('') +
     '</div>' +
     '<span class="prefs-head">Text size</span>' +
-    '<div class="stepper" data-pref="ctx-fs">' +
-    '<button type="button" data-step="-1" aria-label="Smaller passage text">\u2212</button>' +
-    '<span class="stepper-val ctx-fs-val" role="status" aria-live="polite">100%</span>' +
-    '<button type="button" data-step="1" aria-label="Larger passage text">+</button>' +
+    '<div class="stepper sizer" data-pref="ctx-fs">' +
+    '<button type="button" data-step="-1" aria-label="Smaller passage text"><span class="sz-a sz-sm">A</span></button>' +
+    '<button type="button" data-step="1" aria-label="Larger passage text"><span class="sz-a sz-lg">A</span></button>' +
     '</div>' +
-    '<span class="prefs-note">Applies to this passage view.</span>' +
-    '<div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="ctx">Reset to defaults</button></div>';
+    '<div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="ctx">Reset</button></div>';
 }
 
 /* The topbar panel and the one in the passage dialog are the same panel twice: the same
@@ -1856,8 +1877,13 @@ function wirePrefsPanel(wrap, opts) {
      header's own font-size so the em-sized controls inside come out the same either way. */
   const sheetMQ = window.matchMedia('(max-width: 760px)');
   const canSheet = !!(opts && opts.sheet);
+  /* Portaling and being a sheet are two different things. The topbar's panel has to move to
+     <body> to escape the blurred header; the dialog's must not — the dialog is in the top layer
+     and anything on <body> paints behind it — but it is still a sheet, with the same handle and
+     the same throw-away, pinned to the bottom of the dialog instead. */
+  const canPortal = !!(opts && opts.portal);
   let onBody = false;
-  const toSheet = () => { if (canSheet && !onBody && sheetMQ.matches) { document.body.appendChild(menu); onBody = true; } };
+  const toSheet = () => { if (canPortal && !onBody && sheetMQ.matches) { document.body.appendChild(menu); onBody = true; } };
   const toWrap = () => { if (onBody) { wrap.appendChild(menu); onBody = false; } };
 
   /* ---------- the sheet goes down the way it came up ----------
@@ -1869,7 +1895,7 @@ function wirePrefsPanel(wrap, opts) {
      fills forwards, so it has to be taken off first or it outranks the inline transform. */
   const SHEET_MS = 220;
   let sheetTimer = null;
-  const isSheet = () => canSheet && onBody && sheetMQ.matches;
+  const isSheet = () => canSheet && sheetMQ.matches;
   const finishHide = () => {
     menu.hidden = true;
     menu.classList.remove('is-closing', 'is-dragging', 'is-snapping');
@@ -2347,7 +2373,7 @@ function initTooltip() {
     contextDialogEl.dataset.version = code;
     refreshVerseContext(true);
   });
-  contextPrefsPanel = wirePrefsPanel(contextDialogEl.querySelector('.context-prefs'));
+  contextPrefsPanel = wirePrefsPanel(contextDialogEl.querySelector('.context-prefs'), { sheet: true });
   setContextPref('type', lsGet(PREFS.ctxType.key) || PREFS.ctxType.def, true);
   setContextPref('lh', lsGet(PREFS.ctxLh.key) || PREFS.ctxLh.def, true);
   const ctxFsSaved = parseInt(lsGet(PREFS.ctxFs.key), 10);
@@ -2418,6 +2444,31 @@ function initTooltip() {
     hideTooltip(true);
   });
 
+  /* On a phone the header is the passage's name and the way out of it; the two controls that
+     change *how* it reads belong beside the one that changes how much of it there is. Moved
+     rather than duplicated — one picker, one panel, wired once. */
+  const ctxFootMQ = window.matchMedia('(max-width: 720px)');
+  const ctxHead = contextDialogEl.querySelector('.context-dialog-actions');
+  const ctxFoot = contextDialogEl.querySelector('.context-dialog-foot');
+  const ctxMore = contextDialogEl.querySelector('.context-more-button');
+  const ctxPrefsWrap = contextDialogEl.querySelector('.context-prefs');
+  const ctxClose = contextDialogEl.querySelector('.context-dialog-close');
+  const placeContextControls = () => {
+    if (ctxFootMQ.matches) {
+      ctxFoot.insertBefore(contextPickerWrap, ctxMore);
+      ctxFoot.appendChild(ctxPrefsWrap);
+    } else {
+      ctxHead.insertBefore(contextPickerWrap, ctxClose);
+      ctxHead.insertBefore(ctxPrefsWrap, ctxClose);
+    }
+  };
+  placeContextControls();
+  if (ctxFootMQ.addEventListener) ctxFootMQ.addEventListener('change', () => {
+    if (contextVersionPicker) contextVersionPicker.close();
+    if (contextPrefsPanel) contextPrefsPanel.close();
+    placeContextControls();
+  });
+
   contextDialogEl.querySelector('.context-dialog-close').addEventListener('click', () => contextDialogEl.close());
   contextDialogEl.querySelector('.context-more-button').addEventListener('click', () => {
     contextDialogEl.dataset.radius = String((parseInt(contextDialogEl.dataset.radius, 10) || CONTEXT_RADIUS) + 8);
@@ -2446,6 +2497,10 @@ function positionTooltip(link) {
   const scrollY = window.scrollY || window.pageYOffset;
   const scrollX = window.scrollX || window.pageXOffset;
   const width = Math.min(340, window.innerWidth - 28);
+  /* The clamp below places the box against this number; the stylesheet was letting it grow to
+     `100vw - 28px` instead, so on a phone a wide pop-up anchored to a reference near the right
+     edge hung ~20px off the screen. Stating the width here is what makes the two agree. */
+  tooltipEl.style.maxWidth = width + 'px';
   // Anchoring to the link's own edges means the box can grow when the verse arrives without
   // moving: below, it grows downward; above, translateY(-100%) makes it grow upward. The old
   // code guessed a height, placed it, then re-placed it — which is the movement you could see.
@@ -2851,16 +2906,6 @@ function paintRail(rail, stops) {
 }
 window.addEventListener('resize', () => setTimeout(layoutRail, 200));
 
-/* ---------- the phone's route stepper ----------
-   The two arrows inside the preview card are the desktop control; at phone width the card's
-   header is hidden and the card is a scrolled panel, so the same pair rides the bottom of the
-   screen instead. It is on screen for exactly as long as the chart is, and gone the moment you
-   scroll past it — there is nothing to step through anywhere else on the page. */
-function syncThreadFabName(name) {
-  const el = document.getElementById('thread-fab-name');
-  if (el) el.textContent = name || 'The Story Map';
-}
-
 /* Prev/next around the ring of routes, from wherever the card currently is. With nothing chosen
    yet, forward opens the first and back opens the last — an arrow or a swipe on an empty card
    should start the walk rather than do nothing. */
@@ -2888,7 +2933,7 @@ function initPreviewSwipe() {
 
   /* A swipe that refuses to start on a link is a swipe that barely works: most of this card is
      milestones, and most of a milestone is a scripture reference. So the gesture is tracked
-     wherever it starts, and it is the *click* that gets dropped once the thumb has travelled
+     wherever it starts, and it is the *click* that gets dropped once the thumb has traveled
      sideways — tap a reference and it still opens, drag from one and the card turns instead. */
   card.addEventListener('click', ev => {
     if (!swallowClick) return;
@@ -2937,41 +2982,6 @@ function initPreviewSwipe() {
   };
   card.addEventListener('pointerup', release);
   card.addEventListener('pointercancel', release);
-}
-
-function initThreadFab() {
-  const fab = document.getElementById('thread-fab');
-  if (!fab) return;
-  const phone = window.matchMedia('(max-width: 720px)');
-  let ticking = false;
-  const update = () => {
-    ticking = false;
-    const panel = document.querySelector('.hero-chart');
-    let show = false;
-    if (phone.matches && panel) {
-      const r = panel.getBoundingClientRect();
-      /* "On screen" has to mean being read, not technically intersecting: the panel is tall
-         enough to show 40px of itself at the very top of the page, and a bar that appears there
-         is a bar over the hero. It arrives when the panel has reached the middle of the screen
-         and leaves when there is less than a bar's height of it left. */
-      show = r.top < window.innerHeight * 0.55 && r.bottom > 120;
-    }
-    fab.classList.toggle('visible', show);
-  };
-  window.addEventListener('scroll', () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(update);
-  }, { passive: true });
-  window.addEventListener('resize', update);
-  if (phone.addEventListener) phone.addEventListener('change', update);
-
-  fab.addEventListener('click', ev => {
-    const b = ev.target.closest('[data-fab-dir]');
-    if (!b) return;
-    stepPreviewThread(+b.dataset.fabDir);
-  });
-  update();
 }
 
 function initBackToTop() {
@@ -3028,8 +3038,7 @@ function boot() {
 
   initRail();
   renderSections();
-  /* after the sections exist — both of these look for the chart */
-  initThreadFab();
+  /* after the sections exist — it looks for the chart */
   initPreviewSwipe();
 
   // Wire events, then handle the initial route before enabling scrollspy.

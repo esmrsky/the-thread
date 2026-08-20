@@ -26,7 +26,7 @@
           <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
         </button>
         <div class="prefs-menu" id="prefs-menu" role="dialog" aria-label="Reading settings" hidden>
-          <span class="prefs-head">Colours</span>
+          <span class="prefs-head">Colors</span>
           <div class="seg" data-pref="theme">
             <button type="button" data-v="warm">Warm</button>
             <button type="button" data-v="light">Light</button>
@@ -46,13 +46,15 @@
             <button type="button" data-v="roomy">Roomy</button>
           </div>
           <span class="prefs-head">Text size</span>
-          <div class="stepper" data-pref="fs">
-            <button type="button" data-step="-1" aria-label="Smaller text">&#8722;</button>
-            <span class="stepper-val" id="fs-val" role="status" aria-live="polite">100%</span>
-            <button type="button" data-step="1" aria-label="Larger text">+</button>
+          <!-- Two halves of one pill rather than a stepper with a readout: the percentage was a
+               number nobody needs, and it took the middle third of the control that the two
+               things you actually press were sharing. -->
+          <div class="stepper sizer" data-pref="fs">
+            <button type="button" data-step="-1" aria-label="Smaller text"><span class="sz-a sz-sm">A</span></button>
+            <button type="button" data-step="1" aria-label="Larger text"><span class="sz-a sz-lg">A</span></button>
           </div>
           <span class="prefs-note">Kept on this device.</span>
-          <div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="site">Reset to defaults</button></div>
+          <div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="site">Reset</button></div>
         </div>
       </div>
     </div>
@@ -60,20 +62,6 @@
 </header>
 
 <main id="view"></main>
-
-<!-- The route stepper, for a phone. The preview card's own header is hidden at this width, so
-     the arrows in it had neither a name to sit under nor anywhere stable to sit; here they ride
-     the bottom of the screen for as long as the chart is on it, with the route they are walking
-     named between them. -->
-<div class="thread-fab" id="thread-fab" role="group" aria-label="Step through the threads">
-  <button class="thread-fab-step" type="button" data-fab-dir="-1" aria-label="Previous thread">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg>
-  </button>
-  <span class="thread-fab-name" id="thread-fab-name" aria-live="polite">The Story Map</span>
-  <button class="thread-fab-step" type="button" data-fab-dir="1" aria-label="Next thread">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg>
-  </button>
-</div>
 
 <button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top" title="Back to top">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 11 6-6 6 6"/><path d="M12 5v14"/></svg>
