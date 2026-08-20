@@ -954,6 +954,7 @@ function buildThreadPreviewContent(t) {
   return (
     '<div class="preview-content" style="--c: var(' + t.cvar + ')">' +
     '  <div class="preview-header">' + buildThreadPreviewHeader(t) + '</div>' +
+    '  <div class="preview-stepper">' + previewStepperHtml(t) + '</div>' +
     '  <p class="preview-tag">' + t.tag + '</p>' +
     '  <div class="preview-body">' +
     '    <h4>Journey Milestones:</h4>' +
@@ -965,7 +966,6 @@ function buildThreadPreviewContent(t) {
     '  </div>' +
     '  <div class="preview-foot">' +
     '    <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
-    '<div class="preview-stepper">' + previewStepperHtml(t) + '</div>' +
     '  </div>' +
     '</div>'
   );
@@ -974,7 +974,10 @@ function buildThreadPreviewContent(t) {
 /* Thirteen routes, and the only ways in were a pill strip that scrolls sideways on a phone and
    thirteen 2px lines to aim at. A pair of arrows walks the whole set in order, so the card can
    be read straight through without ever going back to the chart to pick the next one. It wraps,
-   because stopping at Garment with no way on is a dead end for the one reader doing this. */
+   because stopping at Garment with no way on is a dead end for the one reader doing this.
+   It sits directly under the name and not at the foot of the card, because the card's height
+   changes with the route: down there the arrows moved between every press and the second click
+   of a cycle landed on nothing. Under the header they are always in the same place. */
 function previewStepperHtml(t) {
   const i = THREADS.findIndex(x => x.id === t.id);
   const at = n => THREADS[(n + THREADS.length) % THREADS.length];
@@ -1455,7 +1458,13 @@ function wireVersionPicker(wrap, onChoose) {
 /* Colours, typeface, line height and text size are one panel: they are all "how this reads
    to me", and a lone sun/moon button could only ever answer a quarter of that. */
 const THEMES = ['warm', 'light', 'dark'];
+/* The passage dialog keeps its own typeface and leading. It is the one place on the site where
+   you are reading scripture at length rather than reading *about* it, and it wants more air
+   than a page of cards does — setting the whole site to what that passage needs made every
+   other page float. Two scopes, two sets of controls, two stored values. */
 const PREFS = {
+  ctxType: { key: 'thread-ctx-type', def: 'literata' },
+  ctxLh: { key: 'thread-ctx-lh', def: 'normal' },
   theme: { key: 'thread-theme', def: 'light' },
   type: { key: 'thread-type', def: 'literata' },
   lh: { key: 'thread-lh', def: 'normal' },
@@ -1519,6 +1528,23 @@ function topAnchorEl() {
    pixels, because everything above them re-flowed. Scroll-driven chrome should not read that
    as the reader having moved, and the section offsets the rail is drawn from are stale until
    the new layout exists — so both are held until it settles, then told the answer once. */
+/* Five attempts at making a reading setting feel smooth, and the first four all tried to
+   animate the layout: fade the column and hide the reflow, interpolate --fs and --lh with
+   @property, shorten the ease, skip offscreen layout with content-visibility. Every one of
+   them re-lays a 40,000px document per frame, and every one of them stuttered.
+   A view transition does not animate layout at all. The browser photographs the page, applies
+   the change in a single reflow behind the photograph, photographs it again, and cross-fades
+   the two images on the compositor — so the cost is one layout no matter how long the fade
+   runs, and the fade itself is a GPU crossfade of two bitmaps. */
+function applySmooth(mutate) {
+  const land = () => holdScroll(0, mutate);
+  if (REDUCED_MOTION || typeof document.startViewTransition !== 'function') {
+    holdScroll(90, mutate);
+    return;
+  }
+  document.startViewTransition(land);
+}
+
 let scrollQuiet = false;
 function settleScrollDrivenUI() {
   scrollQuiet = false;
@@ -1583,7 +1609,7 @@ function setTypeTheme(name, instant) {
   /* Applied before the face arrives it would land twice — fallback first, real face a beat
      later, re-laying the page a second time under the reader. So wait, then swap once. */
   if (instant) { holdScroll(0, apply); loadFaces(TYPE_THEMES[value]); return; }
-  loadFaces(TYPE_THEMES[value]).then(() => holdScroll(90, apply));
+  loadFaces(TYPE_THEMES[value]).then(() => applySmooth(apply));
 }
 
 function setLineHeight(value, instant) {
@@ -1594,7 +1620,8 @@ function setLineHeight(value, instant) {
     if (v === 'normal') delete document.documentElement.dataset.lh;
     else document.documentElement.dataset.lh = v;
   };
-  holdScroll(instant ? 0 : 90, apply);
+  if (instant) { holdScroll(0, apply); return; }
+  applySmooth(apply);
 }
 
 function setTextSize(index, instant) {
@@ -1609,29 +1636,53 @@ function setTextSize(index, instant) {
     b.disabled = (dir < 0 && i === 0) || (dir > 0 && i === FS_STEPS.length - 1);
   });
   const apply = () => document.documentElement.style.setProperty('--fs', String(FS_STEPS[i]));
-  holdScroll(instant ? 0 : 90, apply);
+  if (instant) { holdScroll(0, apply); return; }
+  applySmooth(apply);
 }
 
-/* The palette swap is the one setting that changes nothing but colour, so it is the one that
-   can actually be animated. `.theme-shift` arms a colour transition on everything for exactly
-   as long as the crossfade lasts. `instant` is the first paint, where there is nothing to
-   cross-fade from; `persist` is false while the choice is still the system's rather than the
-   reader's, so a later change of system appearance is still followed. */
-let themeShiftTimer = null;
+/* `instant` is the first paint, where there is nothing to cross-fade from. `persist` is false
+   while the choice is still the system's rather than the reader's, so a machine that flips to
+   dark in the evening is still followed. */
 function setTheme(value, instant, persist) {
   const root = document.documentElement;
-  if (!instant && !REDUCED_MOTION) {
-    root.classList.add('theme-shift');
-    if (themeShiftTimer) clearTimeout(themeShiftTimer);
-    themeShiftTimer = setTimeout(() => { root.classList.remove('theme-shift'); themeShiftTimer = null; }, 420);
-  }
-  root.dataset.theme = value;
+  const apply = () => { root.dataset.theme = value; };
   if (persist !== false) lsSet(PREFS.theme.key, value);
   markPrefButtons('theme', value);
+  if (instant) { apply(); return; }
+  applySmooth(apply);
+}
+
+/* The dialog's own two dials. They write attributes on the dialog rather than the root, which
+   is all it takes: --lh and the font variables are inherited, so redeclaring them there stops
+   at its edge. */
+function setContextPref(which, value, instant) {
+  const key = which === 'type' ? PREFS.ctxType : PREFS.ctxLh;
+  const valid = which === 'type' ? !!TYPE_THEMES[value] : ['snug', 'normal', 'roomy'].indexOf(value) >= 0;
+  const v = valid ? value : key.def;
+  lsSet(key.key, v);
+  markPrefButtons('ctx-' + which, v);
+  if (which === 'type') {
+    const picked = document.querySelector('[data-pref="ctx-type"] button[data-v="' + v + '"]');
+    if (picked) document.querySelectorAll('.context-prefs .prefs-head-val').forEach(l => {
+      l.textContent = picked.dataset.name || v;
+    });
+  }
+  const apply = () => {
+    if (!contextDialogEl) return;
+    if (which === 'type') contextDialogEl.dataset.ctxType = v;
+    else contextDialogEl.dataset.ctxLh = v;
+  };
+  if (instant) { apply(); if (which === 'type') loadFaces(TYPE_THEMES[v]); return; }
+  if (which === 'type') loadFaces(TYPE_THEMES[v]).then(() => applySmooth(apply));
+  else applySmooth(apply);
 }
 
 function applyPref(name, value, instant) {
-  if (name === 'theme') {
+  if (name === 'ctx-type') {
+    setContextPref('type', value, instant);
+  } else if (name === 'ctx-lh') {
+    setContextPref('lh', value, instant);
+  } else if (name === 'theme') {
     setTheme(value, instant);
   } else if (name === 'type') {
     setTypeTheme(value, instant);
@@ -1680,15 +1731,15 @@ function readingPanelHtml() {
     ['atkinson', 'Atkinson', 'drawn for legibility']
   ];
   return '<span class="prefs-head">Typeface <b class="prefs-head-val">Literata</b></span>' +
-    '<div class="typegrid" data-pref="type">' +
+    '<div class="typegrid" data-pref="ctx-type">' +
     faces.map(f => '<button type="button" data-v="' + f[0] + '" data-name="' + f[1] + '" aria-pressed="false"' +
       ' title="' + f[1] + ' \u2014 ' + f[2] + '" aria-label="' + f[1] + ', ' + f[2] + '"><b>A</b><i>a</i></button>').join('') +
     '</div>' +
     '<span class="prefs-head">Line height</span>' +
-    '<div class="seg" data-pref="lh">' +
+    '<div class="seg" data-pref="ctx-lh">' +
     ['snug', 'normal', 'roomy'].map(v => '<button type="button" data-v="' + v + '">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>').join('') +
     '</div>' +
-    '<span class="prefs-note">Kept on this device.</span>';
+    '<span class="prefs-note">Applies to this passage view.</span>';
 }
 
 /* The topbar panel and the one in the passage dialog are the same panel twice: the same
@@ -1897,6 +1948,14 @@ function splitHeading(text) {
   if (!plain || plain.length > 64 || /[.!?;:,\u2014]$/.test(plain) || !rest.trim()) {
     return { heading: '', body: flowText(text) };
   }
+  /* "The Priestly Blessing" and "The Lord bless you" arrive in exactly the same shape: short,
+     first in the verse, no closing punctuation, a <br/> behind them. One is a heading and the
+     other is the first line of the blessing itself. What separates them is case — a heading is
+     Title Case and starts on a letter, while a line of verse is a sentence that happens to
+     break, and opens either lower-case or on a quote mark. */
+  if (!/^[A-Z]/.test(plain)) return { heading: '', body: flowText(text) };
+  const titleCase = plain.split(/\s+/).every(w => w.length < 4 || /^[^a-z]/.test(w));
+  if (!titleCase) return { heading: '', body: flowText(text) };
   return { heading: head, body: flowText(rest) };
 }
 
@@ -2107,11 +2166,8 @@ function initTooltip() {
     refreshVerseContext(true);
   });
   contextPrefsPanel = wirePrefsPanel(contextDialogEl.querySelector('.context-prefs'));
-  /* The panel is built after initPrefs has already run, so its buttons start blank —
-     re-mark them against what is actually in force. */
-  ['type', 'lh'].forEach(k => markPrefButtons(k, k === 'type'
-    ? (document.documentElement.dataset.type || PREFS.type.def)
-    : (document.documentElement.dataset.lh || PREFS.lh.def)));
+  setContextPref('type', lsGet(PREFS.ctxType.key) || PREFS.ctxType.def, true);
+  setContextPref('lh', lsGet(PREFS.ctxLh.key) || PREFS.ctxLh.def, true);
 
   /* On a pointing device the pop-up is inert — CSS gives it pointer-events: none — so there is
      nothing to keep alive and, more to the point, nothing standing between one reference and
@@ -2387,6 +2443,7 @@ function initMarquees() {
     let frame = 0;
     let lastTime = 0;
     let dragging = false;
+    let captured = false;
     let hoverPaused = false;
     let tapPaused = false;
     let ignoreHoverUntilLeave = false;
@@ -2423,14 +2480,22 @@ function initMarquees() {
       }
       if (ev.button !== 0) return;
       dragging = true;
+      captured = false;
       startX = ev.clientX;
       startScroll = mq.scrollLeft;
       mq.classList.add('is-dragging');
-      try { mq.setPointerCapture(ev.pointerId); } catch (e) { /* capture is a nicety, not a requirement */ }
     };
     const onPointerMove = ev => {
       if (!dragging) return;
-      mq.scrollLeft = startScroll - (ev.clientX - startX);
+      /* Capture is taken on the first real movement, never on the press. Taken on pointerdown
+         it retargets the click that follows to this element, so clicking a reference inside
+         the strip delivered a click on the strip — `closest('.ref-link')` found nothing and
+         the pop-up blinked shut with no passage behind it. */
+      if (!captured && Math.abs(ev.clientX - startX) > 6) {
+        captured = true;
+        try { mq.setPointerCapture(ev.pointerId); } catch (e) { /* capture is a nicety */ }
+      }
+      if (captured) mq.scrollLeft = startScroll - (ev.clientX - startX);
     };
     const onPointerEnd = ev => {
       if (ev.pointerType !== 'mouse') {
@@ -2453,6 +2518,7 @@ function initMarquees() {
       lastTime = 0;
       mq.classList.remove('is-dragging');
       mq.classList.toggle('is-paused', hoverPaused || tapPaused);
+      captured = false;
       try { if (mq.hasPointerCapture(ev.pointerId)) mq.releasePointerCapture(ev.pointerId); } catch (e) { /* already gone */ }
     };
     const onClick = ev => {

@@ -76,13 +76,10 @@ body { margin: 0; }
 
   /* One line-height dial. Everything that is prose derives from it, so Snug and Roomy are
      felt across the whole page rather than on body copy alone. */
-  /* The three derived leadings used to be flat offsets from --lh, which worked while --lh sat
-     at 1.75 and broke the moment it moved: at 2.4 a "tight" heading came out at 2.1. They scale
-     with the dial now, so the relationship between prose, small print and headings holds
-     wherever the reader puts it. */
-  --lh-tight: calc(var(--lh) * 0.56);
-  --lh-ui: calc(var(--lh) * 0.86);
-  --lh-wide: calc(var(--lh) * 1.06);
+  --lh: 1.75;
+  --lh-tight: calc(var(--lh) - 0.3);
+  --lh-ui: calc(var(--lh) - 0.2);
+  --lh-wide: calc(var(--lh) + 0.15);
 
   --r: 10px;
   --r-lg: 16px;
@@ -233,7 +230,10 @@ body { margin: 0; }
   --shadow-lift: 0 2px 4px rgba(0,0,0,.35), 0 18px 38px -14px rgba(0,0,0,.7);
 }
 
-/* ---------- base ---------- */
+/* ---------- base ----------
+   The line-height dial is for reading, and a heading is not reading — it is a label. Opening a
+   paragraph out to 2.4 and dragging a two-line title along with it just pulls the title apart.
+   Every heading holds its own leading whatever the dial says. */
 html, body {
   max-width: 100%;
   overflow-x: clip;
@@ -242,6 +242,10 @@ html, body {
 /* Text size is one number on the root, so every rem in the sheet follows it. Nothing about
    it is animated — see the crossfade note further down for why. */
 :root { font-size: calc(100% * var(--fs) * var(--fs-theme)); }
+
+h1, h2, h3, h4, h5, h6 { line-height: 1.22; }
+.label, .eyebrow, .badge, .nav-link, .subtab, .legend-chip, .prefs-head, .stepper-val,
+.chart-corner, .thread-count, .feast-when, .station-num { line-height: 1.3; }
 
 body {
   font-family: var(--font-body);
@@ -286,12 +290,11 @@ p, li { text-wrap: pretty; }
   --fs-theme: 0.97;
 }
 
-/* The whole ladder moved up a rung. What used to be Normal is now Snug, what used to be Roomy
-   is Normal, and Roomy goes further out than either had. Scripture set at 1.75 was tighter than
-   it wanted to be — especially in the passage dialog, which is nothing but text. */
-:root { --lh: 2.4; }
-:root[data-lh="snug"] { --lh: 1.75; }
-:root[data-lh="roomy"] { --lh: 2.8; }
+/* The site's own ladder, which is a different question from the passage dialog's — see the
+   dialog's scope further down. Moving this one up to suit long scripture made every page of
+   cards float, so it sits back where it reads well for prose about the text. */
+:root[data-lh="snug"] { --lh: 1.5; }
+:root[data-lh="roomy"] { --lh: 2.4; }
 
 /* ---------- how a reading setting changes ----------
    Every setting in the panel changes layout, and layout is the one thing a page this size
@@ -321,23 +324,21 @@ p, li { text-wrap: pretty; }
    drive it — every painted colour interpolates to its new value together. The class is on
    for the length of the crossfade and no longer, because a permanent transition on `*` makes
    every hover on the page feel like it is dragging. */
-/* This used to say `.theme-shift *`, which on this page is five thousand elements, several of
-   them transitioning box-shadow — the most expensive property in the list. It cross-faded, and
-   it dragged. What actually carries a palette change is the field behind the words: the paper,
-   the card surfaces, the ink. Those cross-fade; the rest lands at once, under a change nobody
-   is looking at the edges of. */
-:root.theme-shift body,
-:root.theme-shift .chart-panel,
-:root.theme-shift .card,
-:root.theme-shift .topbar,
-:root.theme-shift .site-foot {
-  transition: background-color 0.3s ease, background-image 0.3s ease,
-              color 0.3s ease, border-color 0.3s ease !important;
-  transition-delay: 0s !important;
+/* Every reading setting — palette, typeface, leading, size — cross-fades as a view transition.
+   The browser photographs the page, makes the change in one reflow behind the photograph, and
+   dissolves the old image into the new one on the compositor. Nothing about the layout is
+   animated, which is why it is smooth: the cost is a single layout however long the fade runs.
+   Transitioning real properties across five thousand elements was the slow way to a worse
+   result. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 @media (prefers-reduced-motion: reduce) {
-  :root.theme-shift body, :root.theme-shift .chart-panel, :root.theme-shift .card,
-  :root.theme-shift .topbar, :root.theme-shift .site-foot { transition: none !important; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   :root { transition: none; }
@@ -1908,6 +1909,31 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+/* ---------- the passage dialog's own typography ----------
+   Redeclaring --lh and the font variables on the dialog stops them at its edge: the passage
+   reads at whatever the reader set *here*, and the site behind it keeps its own. The ladder is
+   pitched higher than the site's because this is scripture at length rather than prose about
+   it — even Snug here is looser than the site's Normal. */
+.verse-context-dialog { --lh: 2.15; }
+.verse-context-dialog[data-ctx-lh="snug"] { --lh: 1.85; }
+.verse-context-dialog[data-ctx-lh="roomy"] { --lh: 2.55; }
+.verse-context-dialog[data-ctx-type="source-serif"] {
+  --font-head: "Figtree", var(--fb-sans);
+  --font-body: "Source Serif 4", var(--fb-serif);
+}
+.verse-context-dialog[data-ctx-type="figtree"] {
+  --font-head: "Figtree", var(--fb-sans);
+  --font-body: "Figtree", var(--fb-sans);
+}
+.verse-context-dialog[data-ctx-type="atkinson"] {
+  --font-head: "Atkinson Hyperlegible Next", var(--fb-sans);
+  --font-body: "Atkinson Hyperlegible Next", var(--fb-sans);
+}
+/* the passage is the thing the dial is for, so it reads at --lh rather than a derived value */
+.verse-context-dialog .context-passage { line-height: var(--lh); }
+.verse-context-dialog .context-dialog-head h3,
+.verse-context-dialog .context-heading { line-height: 1.22; }
+
 .verse-context-dialog {
   width: min(1180px, calc(100% - 40px));
   /* Tall enough to be a reading surface rather than a tooltip, but still sized to its passage:
@@ -1992,7 +2018,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
    hard break every few words, so half-lines sat alone, the gaps between them read as
    uneven, and the highlight broke into a separate underlined pill per fragment. The
    passage is one flowing paragraph; the breaks are stripped where the text is built. */
-.context-passage { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: var(--lh-wide); }
+.context-passage { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: var(--lh); }
 .context-fallback-note { margin: 12px 0 0; }
 /* A translation's own section heading, given the line it was written to have. */
 .context-heading {
@@ -2133,9 +2159,10 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
     align-items: start;
   }
   .thread-preview-card .preview-header { grid-column: 1; }
+  .thread-preview-card .preview-stepper { grid-column: 1; }
   .thread-preview-card .preview-tag { grid-column: 1; border-bottom: none; padding-bottom: 0; margin-bottom: 14px; }
   .thread-preview-card .preview-foot { grid-column: 1; margin-top: 4px; padding-top: 0; }
-  .thread-preview-card .preview-body { grid-column: 2; grid-row: 1 / span 3; }
+  .thread-preview-card .preview-body { grid-column: 2; grid-row: 1 / span 4; }
 }
 @media (min-width: 1180px) {
   .thread-preview-card .preview-body {
@@ -2165,36 +2192,52 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .preview-more::after { content: ' →'; margin-left: 5px; transition: transform .2s ease; }
 .preview-more:hover::after { transform: translateX(3px); }
 
-/* The way further in, and under it the way sideways. Stacked rather than side by side because
-   on the desktop grid this footer lives in the narrow left column, and on a phone the card is
-   one column anyway — either way a row would have put the arrows in a corner. */
 .preview-foot {
-  display: flex; flex-direction: column; align-items: flex-start;
-  gap: 12px; margin-top: auto; padding-top: 16px;
+  display: flex; align-items: center;
+  margin-top: auto; padding-top: 16px;
 }
 .preview-foot .preview-more { margin-top: 0; padding-top: 0; }
-.preview-stepper { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-.preview-step {
-  width: 30px; height: 30px; flex: 0 0 30px;
-  display: grid; place-items: center;
-  border: 1px solid var(--line); border-radius: 50%;
-  background: var(--card-2); color: var(--ink-soft);
-  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+
+/* One control, directly under the name — a bar rather than two loose buttons, so the whole
+   width is target and the eye knows where to go back to. The header above it is a fixed
+   height, which is the point: the arrows do not move between presses. */
+/* "Bread" is one line and "The King & the Seed" is two, so without a floor the bar under the
+   name would still shuffle by a line between routes. */
+.preview-header { min-height: 62px; }
+.preview-stepper {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  width: 100%;
+  margin: 14px 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card-2);
+  overflow: hidden;
 }
-.preview-step svg { width: 15px; height: 15px; }
-.preview-step:hover { color: var(--c); border-color: color-mix(in srgb, var(--c) 50%, var(--line)); background: var(--card); }
+.preview-step {
+  display: grid; place-items: center;
+  min-height: 38px;
+  color: var(--ink-soft);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+.preview-step svg { width: 16px; height: 16px; }
+.preview-step:hover { color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); }
+.preview-step:active { background: color-mix(in srgb, var(--c) 20%, transparent); }
+/* flex, not grid: a grid container makes an anonymous item of every text run, so "6" and
+   "/ 13" became two rows and the readout stacked. */
 .preview-count {
-  min-width: 4.4em; text-align: center;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 14px;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
   font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
   letter-spacing: 0.08em; color: var(--ink-faint);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .preview-count b { color: var(--c); font-weight: 700; }
-/* Every interactive thing on this site clears 44px where the input is a finger. */
-@media (pointer: coarse) {
-  .preview-step { width: 44px; height: 44px; flex: 0 0 44px; }
-  .preview-step svg { width: 18px; height: 18px; }
-}
+@media (pointer: coarse) { .preview-step { min-height: 46px; } }
 
 
 @media (max-width: 720px) {
