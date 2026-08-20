@@ -438,9 +438,11 @@ p, li { text-wrap: pretty; }
    animated, which is why it is smooth: the cost is a single layout however long the fade runs.
    Transitioning real properties across five thousand elements was the slow way to a worse
    result. */
+/* The document cannot be clicked while this runs — see applySmooth in the script. The site-wide
+   dials still need it, so the next best thing is to keep the window short. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.34s;
+  animation-duration: 0.22s;
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -536,8 +538,20 @@ html, a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
      size (or just a typeface's optical bump) grew the nav too and ran the brand straight into
      the pills at 1280px. Dividing the two multipliers back out of 1rem lands on exactly the
      browser's own default size — so a reader who set a larger default still gets it here,
-     which a hard 16px would have taken away. Everything below is sized in em off this. */
+     which a hard 16px would have taken away. Everything below is sized in em off this.
+
+     `--lh` needed the same treatment and did not have it: Roomy pushed the toolbar 5px taller,
+     which walked the settings panel hanging off it down the screen while the reader was still
+     reaching for the next control. Pinned to the default, so the dial moves the article and
+     leaves the furniture alone. */
   font-size: calc(1rem / (var(--fs) * var(--fs-theme)));
+  /* Both lines are needed. `line-height` inherits as a computed LENGTH — body resolved
+     `var(--lh)` to 38.4px and handed that down — so redeclaring the variable alone changes
+     nothing here, exactly as redeclaring --font-body alone does nothing for the passage
+     dialog. The variable pins it for anything below that reads it; the property makes the
+     toolbar itself re-read it. */
+  --lh: 1.75;
+  line-height: var(--lh);
   position: sticky; top: 0; z-index: var(--z-topbar);
   background: color-mix(in srgb, var(--paper) 88%, transparent);
   backdrop-filter: blur(10px);
@@ -1293,7 +1307,7 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
 .mind-panel-ic svg { width: 16px; height: 16px; }
 .mind-panel h4 + p { margin-top: 0; }
 .mind-panel h4 {
-  font-size: 1.02rem;
+  font-size: 1.12rem;
   color: var(--ink);
   margin-bottom: 8px;
 }
@@ -1616,9 +1630,15 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   padding: 10px 14px 12px;
   cursor: pointer;
 }
+/* The reference is this card's heading, and it was set BELOW the card's body copy — 0.64rem
+   against 0.85rem — and, having no line-height of its own, it inherited the body's `--lh`.
+   So on Roomy the card's title sat in 1.75 lines of air while reading smaller than the
+   sentence under it. Titles rank above their paragraph and keep their own tight leading;
+   the reading dial is for the reading, not for the labels. */
 .wp-card .wp-ref {
   display: block; margin-bottom: 5px;
-  font-family: var(--font-label); font-size: 0.64rem; font-weight: 700;
+  font-family: var(--font-label); font-size: 0.88rem; font-weight: 700;
+  line-height: 1.25;
   letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--c);
 }
@@ -2075,11 +2095,13 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 
 .verse-context-dialog {
   width: min(1180px, calc(100% - 40px));
-  /* Tall enough to be a reading surface rather than a tooltip, but still sized to its passage:
-     a fixed height left Genesis 1 — ten unusually terse verses — floating in half a screen of
-     nothing. The floor is what stops it collapsing; the ceiling is what it grows into. */
-  min-height: min(600px, 74dvh);
-  max-height: min(88dvh, 940px);
+  /* One height, always. It used to be sized to its passage between a floor and a ceiling, which
+     meant every dial in the reading settings resized the window: Roomy made the passage taller,
+     the dialog grew into its ceiling, and — being centred — the whole thing slid up the screen
+     under the reader, taking the open settings panel with it. Opening and closing the panel did
+     it too. A reading surface should not move while you are reading on it, so the box is fixed
+     and the passage scrolls inside it, which is what the body was already set up to do. */
+  height: min(88dvh, 940px);
   padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -2107,8 +2129,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
    `flex: 1 1 auto; min-height: 0` actually bite. */
 .context-dialog-inner {
   display: flex; flex-direction: column;
-  min-height: min(600px, 74dvh);
-  max-height: min(88dvh, 940px);
+  height: 100%;
 }
 .context-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 22px 15px; border-bottom: 1px solid var(--line); }
 .context-dialog-head .label { display: block; color: var(--thread); margin-bottom: 4px; }
@@ -2161,11 +2182,25 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
     bottom: calc(100% + 8px);
     left: 0; right: auto;
   }
-  .context-dialog-foot .verpick-menu::before {
-    top: auto; bottom: -5px; left: 17px; right: auto;
-    border: 0;
+  /* The notch is drawn 5px past the menu's bottom edge, and an absolutely positioned child
+     that overhangs the END edge counts towards scrollable overflow — so a menu whose eight
+     options fitted it exactly still scrolled, by seven pixels, for the sake of a nine-pixel
+     decoration. Upward-opening menus only: an overhang at the start edge is not scrollable and
+     the dropdown variant is fine as it is. Draw it on the wrapper, where nothing scrolls. */
+  .context-dialog-foot .verpick-menu::before { display: none; }
+  .context-dialog-foot .verpick.open::after {
+    content: "";
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 17px;
+    width: 9px;
+    height: 9px;
+    transform: rotate(45deg);
+    background: var(--card);
     border-right: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
+    z-index: calc(var(--z-menu) + 1);
+    pointer-events: none;
   }
 }
 
@@ -2196,12 +2231,9 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .context-prefs-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
 .context-prefs .prefs-menu { max-height: calc(88dvh - 190px); overflow-y: auto; }
 .context-prefs .prefs-menu .prefs-head:first-child { margin-top: 0; }
-/* The dialog is exactly as tall as its passage and clips what it cannot hold, so a short
-   passage cut the settings panel off at the line-height row. While the panel is open the
-   dialog holds itself open to at least the panel's height. */
-.verse-context-dialog:has(.context-prefs .prefs-menu:not([hidden])) .context-dialog-inner {
-  min-height: min(290px, 70dvh);
-}
+/* The floor that used to be applied only while the settings panel was open — and which resized
+   the dialog when it closed — is gone: the dialog has one height now, tall enough for the panel
+   at every size it comes in. */
 .context-dialog-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -2239,7 +2271,15 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .context-verse, .context-block { display: inline; }
 .context-verse + .context-verse::before, .context-block + .context-block::before { content: " "; }
 .context-verse-number { margin-right: 0.3em; color: var(--ink-faint); font-family: var(--font-label); font-size: 0.62em; font-weight: 700; }
-.context-verse.is-selected .ctx-t, .context-block.is-selected {
+/* Inside the mark, a faint number reads as a hole in it. */
+.context-verse.is-selected .context-verse-number { color: color-mix(in srgb, var(--thread) 72%, var(--ink)); }
+/* The mark used to sit on `.ctx-t`, which is the verse text only — so it began after the
+   verse number and, across a selection of several verses, broke at every number. Beside a
+   `.context-block` selection, which is one unbroken run, that read as a verse that had not been
+   fully underlined. The mark belongs to the whole verse: the number goes under it, and the
+   space between two selected verses (the `::before` above, which belongs to the second of the
+   pair) falls inside the run and joins them. */
+.context-verse.is-selected, .context-block.is-selected {
   padding: 0.08em 0.14em;
   color: var(--ink);
   background: color-mix(in srgb, var(--thread) 16%, transparent);
@@ -2251,6 +2291,15 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
+/* A typeface has nothing to interpolate, so the swap needs a moment of cover. It is the
+   passage that changes, so it is the passage that dips — not the document. The face is already
+   loaded by the time this runs, so there is nothing here but the one beat. */
+.context-dialog-body { transition: opacity 200ms ease; }
+.context-dialog-body.is-reface { opacity: 0.42; transition-duration: 110ms; }
+@media (prefers-reduced-motion: reduce) {
+  .context-dialog-body, .context-dialog-body.is-reface { transition: none; opacity: 1; }
+}
+
 .context-source { margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--line-soft); color: var(--ink-faint); font-family: var(--font-label); font-size: 0.65rem; line-height: 1.5; }
 .context-dialog-foot { display: flex; justify-content: center; padding: 12px 18px 14px; border-top: 1px solid var(--line); background: var(--card); }
 .context-more-button {
@@ -2640,7 +2689,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 .thread-preview-card .preview-placeholder h3 {
   font-family: var(--font-label);
-  font-size: 0.94rem;
+  font-size: 1.12rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -3091,8 +3140,19 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 
 /* ---------- reading settings ---------- */
 .prefs { position: relative; flex-shrink: 0; }
+/* ---------- the panel is furniture, not text ----------
+   Every dial in here is inherited by the panel itself: `--lh` is declared on :root and on the
+   passage dialog, `--fs`/`--fs-theme` scale the root font-size, and the typeface themes swap
+   `--font-body`. So changing line height grew the panel by 21px and moved it 5px up the screen
+   while the reader was still reaching for the next control, and changing the typeface resized
+   every label in it. The panel states all three for itself and stops moving. `1rem` is already
+   `100% * --fs * --fs-theme`, so dividing by them cancels back to a fixed size. */
 .prefs-menu {
   position: absolute; top: calc(100% + 8px); right: 0; z-index: var(--z-menu);
+  --lh: 1.4;
+  font-size: calc(1rem / (var(--fs) * var(--fs-theme)));
+  font-family: var(--font-label);
+  line-height: 1.4;
   min-width: 272px;
   padding: 12px 13px 10px;
   background: var(--card);
@@ -3119,9 +3179,14 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .prefs-head-val::before { content: "\00b7"; margin: 0 5px 0 2px; color: var(--ink-faint); }
 .seg { display: flex; gap: 2px; padding: 3px; margin-bottom: 14px;
   border: 1px solid var(--line); border-radius: 999px; background: var(--card-2); }
+/* Warm / Light / Dark, Snug / Normal / Roomy and Reset are the same kind of thing — the labels
+   on the controls of one panel — and were set three different ways: sentence case at 0.66em
+   here, uppercase at 0.8em on the button below. One treatment for all of them, and it is the
+   label idiom the rest of the site already uses. */
 .seg button {
-  flex: 1 1 auto; padding: 7px 10px; border-radius: 999px;
-  font-family: var(--font-label); font-size: 0.66em; font-weight: 700; letter-spacing: 0.05em;
+  flex: 1 1 auto; padding: 7px 8px; border-radius: 999px;
+  font-family: var(--font-label); font-size: 0.66em; font-weight: 700; letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--ink-soft); white-space: nowrap;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
@@ -3140,7 +3205,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .prefs-reset {
   width: 100%; padding: 10px 12px; border-radius: 999px;
   border: 1px solid var(--line); background: var(--card-2);
-  font-family: var(--font-label); font-size: 0.8em; font-weight: 700; letter-spacing: 0.09em;
+  font-family: var(--font-label); font-size: 0.66em; font-weight: 700; letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--ink-soft); cursor: pointer;
   transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
@@ -3206,15 +3271,23 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   color: var(--ink); font-variant-numeric: tabular-nums;
 }
 
-/* Two halves, a small A and a large one. The percentage in the middle was a number nobody
-   acts on, and it was taking the third of the pill that the two things you actually press
-   were sharing between them. */
+/* It was two equal halves of a pill with a rule down the middle — which is the shape of a
+   two-way preset, and read as one. A minus at one end, a plus at the other, and the step you
+   are standing on in between says ladder instead. The value earns its third of the pill by
+   being the only thing that tells you where you are on it. */
 .stepper.sizer { gap: 0; padding: 3px; }
 .stepper.sizer button {
-  flex: 1 1 0; width: auto; height: 34px;
+  flex: 0 0 auto; width: 38px; height: 34px;
   display: grid; place-items: center;
+  border-radius: 999px;
 }
-.stepper.sizer button + button { box-shadow: inset 1px 0 0 var(--line-soft); }
+.stepper.sizer .stepper-val { flex: 1 1 auto; }
+.sz-op {
+  font-family: var(--font-label);
+  font-size: 1.05em;
+  font-weight: 700;
+  line-height: 1;
+}
 .sz-a {
   font-family: var(--font-head); font-weight: 700; line-height: 1;
   color: var(--ink-soft);
@@ -3238,8 +3311,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
     top: auto; right: 0; bottom: 0; left: 0;
     width: auto; min-width: 0;
     max-height: min(72dvh, 520px);
-    /* it opens on <body>, away from the header whose em sizing these controls are cut to */
-    font-size: calc(1rem / (var(--fs) * var(--fs-theme)));
     padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
     border-width: 1px 0 0;
     border-radius: var(--r-lg) var(--r-lg) 0 0;
@@ -3417,8 +3488,9 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
                number nobody needs, and it took the middle third of the control that the two
                things you actually press were sharing. -->
           <div class="stepper sizer" data-pref="fs">
-            <button type="button" data-step="-1" aria-label="Smaller text"><span class="sz-a sz-sm">A</span></button>
-            <button type="button" data-step="1" aria-label="Larger text"><span class="sz-a sz-lg">A</span></button>
+            <button type="button" data-step="-1" aria-label="Smaller text"><span class="sz-op" aria-hidden="true">&#8722;</span></button>
+            <span class="stepper-val" id="fs-val">100%</span>
+            <button type="button" data-step="1" aria-label="Larger text"><span class="sz-op" aria-hidden="true">+</span></button>
           </div>
           <span class="prefs-note">Kept on this device.</span>
           <div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="site">Reset</button></div>
@@ -5806,6 +5878,7 @@ function wireVersionPicker(wrap, onChoose) {
     if (opt) choose(opt.dataset.v);
   });
   document.addEventListener('click', ev => {
+    if (VT_ACTIVE) return;   /* see applySmooth: the press is reported against <html> */
     if (!menu.hidden && !wrap.contains(ev.target)) close();
   });
   wrap.addEventListener('keydown', ev => {
@@ -5907,13 +5980,45 @@ function topAnchorEl() {
    the change in a single reflow behind the photograph, photographs it again, and cross-fades
    the two images on the compositor — so the cost is one layout no matter how long the fade
    runs, and the fade itself is a GPU crossfade of two bitmaps. */
+/* ---------- what a view transition costs ----------
+   While one is running the document is a photograph of itself: the live DOM is not hit-tested
+   at all, and `elementFromPoint` over a button in an open panel returns <html>. So a second
+   press inside the reading settings — a second typeface, another tap on A+ — never reaches the
+   panel. It reaches the document, where the outside-click handlers read it as "clicked
+   somewhere else" and shut the panel the reader is still using.
+
+   The transition is still right for the site-wide dials, which really do re-lay a 40,000px
+   document. It is not right for anything scoped to the passage dialog, and it must never be
+   allowed to close a panel: `VT_ACTIVE` is what the outside-click handlers check. */
+let VT_ACTIVE = false;
+function prefsPanelOpen() {
+  return !!document.querySelector('.prefs-menu:not([hidden])');
+}
 function applySmooth(mutate) {
   const land = () => holdScroll(0, mutate);
   if (REDUCED_MOTION || typeof document.startViewTransition !== 'function') {
     holdScroll(90, mutate);
     return;
   }
-  document.startViewTransition(land);
+  /* Starting a second transition aborts the first, which rejects its promises and logs an
+     InvalidStateError. A reader stepping the text size up twice in a row wants the second step,
+     not a second photograph of the page — so once one is running the rest land directly.
+
+     And while the settings panel is OPEN, no transition at all. Guarding the outside-click
+     handlers stopped the panel closing under a swallowed press, but the press was still lost:
+     220ms of dead, un-clickable document on a control built to be pressed repeatedly meant the
+     second typeface, or the second tap on the stepper, simply did not happen. A cross-fade of a
+     page you are not looking at is not worth that. Close the panel and the transition is back —
+     the keyboard shortcuts and Reset still get it. */
+  if (VT_ACTIVE || prefsPanelOpen()) { holdScroll(0, mutate); return; }
+  VT_ACTIVE = true;
+  const vt = document.startViewTransition(land);
+  const done = () => { VT_ACTIVE = false; };
+  const hush = () => {};
+  if (vt && vt.ready && vt.ready.then) vt.ready.then(hush, hush);
+  if (vt && vt.updateCallbackDone && vt.updateCallbackDone.then) vt.updateCallbackDone.then(hush, hush);
+  if (vt && vt.finished && vt.finished.then) vt.finished.then(done, done);
+  else setTimeout(done, 400);
 }
 
 let scrollQuiet = false;
@@ -6050,8 +6155,14 @@ function setTheme(value, instant, persist) {
    be, because they change the root font-size and re-lay a 40,000px document; this pair changes
    one paragraph inside a dialog, so the stylesheet can simply transition `line-height` and
    `font-size` the way it would transition any other animatable property, and the passage opens
-   up under the eye instead of the page being photographed and cross-faded. A typeface still
-   goes through applySmooth: there is nothing to interpolate between two faces. */
+   up under the eye instead of the page being photographed and cross-faded.
+
+   The typeface used to go through applySmooth too, on the grounds that there is nothing to
+   interpolate between two faces. That photographed the whole document to re-set one paragraph,
+   and it is what made the reading settings close when a reader picked a second typeface: the
+   press landed on the snapshot instead of the panel. It is scoped now like the other two — the
+   face is loaded before anything moves, so there is no fallback flash to hide, and the body
+   dips for a beat rather than the page dissolving into itself. */
 function setContextPref(which, value, instant) {
   const key = which === 'type' ? PREFS.ctxType : PREFS.ctxLh;
   const valid = which === 'type' ? !!TYPE_THEMES[value] : ['snug', 'normal', 'roomy'].indexOf(value) >= 0;
@@ -6071,7 +6182,15 @@ function setContextPref(which, value, instant) {
   };
   if (which !== 'type') { apply(); return; }
   if (instant) { apply(); loadFaces(TYPE_THEMES[v]); return; }
-  loadFaces(TYPE_THEMES[v]).then(() => applySmooth(apply));
+  loadFaces(TYPE_THEMES[v]).then(() => {
+    const body = contextDialogEl && contextDialogEl.querySelector('.context-dialog-body');
+    if (!body || REDUCED_MOTION) { apply(); return; }
+    body.classList.add('is-reface');
+    requestAnimationFrame(() => {
+      apply();
+      requestAnimationFrame(() => body.classList.remove('is-reface'));
+    });
+  });
 }
 
 /* The same ladder the site-wide stepper walks, on the same +/- control, but written as a
@@ -6186,9 +6305,12 @@ function readingPanelHtml() {
     ['snug', 'normal', 'roomy'].map(v => '<button type="button" data-v="' + v + '">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>').join('') +
     '</div>' +
     '<span class="prefs-head">Text size</span>' +
+    /* Two equal halves in a pill read as a two-way preset, not as a ladder you can walk. A
+       minus, the value you are on, and a plus say what it actually is. */
     '<div class="stepper sizer" data-pref="ctx-fs">' +
-    '<button type="button" data-step="-1" aria-label="Smaller passage text"><span class="sz-a sz-sm">A</span></button>' +
-    '<button type="button" data-step="1" aria-label="Larger passage text"><span class="sz-a sz-lg">A</span></button>' +
+    '<button type="button" data-step="-1" aria-label="Smaller passage text"><span class="sz-op" aria-hidden="true">\u2212</span></button>' +
+    '<span class="stepper-val ctx-fs-val">100%</span>' +
+    '<button type="button" data-step="1" aria-label="Larger passage text"><span class="sz-op" aria-hidden="true">+</span></button>' +
     '</div>' +
     '<div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="ctx">Reset</button></div>';
 }
@@ -6289,6 +6411,10 @@ function wirePrefsPanel(wrap, opts) {
   });
   /* the menu is no longer always inside the wrapper, so both count as "inside" */
   document.addEventListener('click', ev => {
+    /* A press that lands during a view transition is reported against <html> no matter where
+       the finger was — see applySmooth. Treating that as "outside" is what shut the panel
+       under a reader picking a second typeface or tapping A+ twice. */
+    if (VT_ACTIVE) return;
     if (!shut() && !wrap.contains(ev.target) && !menu.contains(ev.target)) close();
   });
   /* likewise Escape: once portaled, focus inside the sheet is no longer under the wrapper */
@@ -6353,7 +6479,7 @@ function initVersionPicker() {
   const saved = lsGet('thread-version');
   if (saved && VERSIONS.some(v => v.code === saved)) ACTIVE_VERSION = saved;
   val.textContent = ACTIVE_VERSION;
-  menu.innerHTML = versionMenuHtml('Verse pop-ups read in');
+  menu.innerHTML = versionMenuHtml('Read in');
   /* Changing translation used to close the pinned pop-up and leave it stale; re-read it instead. */
   wireVersionPicker(wrap, () => refreshPinnedTooltip());
 }
@@ -6700,7 +6826,7 @@ function initTooltip() {
     '</div>';
   document.body.appendChild(contextDialogEl);
   const contextPickerWrap = contextDialogEl.querySelector('.context-verpick');
-  contextPickerWrap.querySelector('.verpick-menu').innerHTML = versionMenuHtml('Read this passage in');
+  contextPickerWrap.querySelector('.verpick-menu').innerHTML = versionMenuHtml('Read in');
   contextVersionPicker = wireVersionPicker(contextPickerWrap, code => {
     contextDialogEl.dataset.version = code;
     refreshVerseContext(true);
@@ -7001,8 +7127,17 @@ function initMarquees() {
     track.style.transform = '';
     if (reduced) return;
 
+    /* Three groups, not two. The drift is infinite because `applyOffset` takes the transform
+       modulo one group — but the reader's own panning is native scrolling, and that ran out of
+       track: fling a strip and `scrollLeft` pinned at its maximum with the window past the last
+       card, which is the strip "going blank". With a third group there is always a whole group
+       of rendered cards on either side of the window, so `wrapScroll` below can slide the
+       scroll position back by exactly one group whenever it drifts towards an end. Every group
+       is identical, so that move shows the reader the same cards they were already looking at
+       and the strip simply keeps going. */
     track.innerHTML =
       '<div class="marquee-group">' + track.dataset.orig + '</div>' +
+      '<div class="marquee-group" aria-hidden="true">' + track.dataset.orig + '</div>' +
       '<div class="marquee-group" aria-hidden="true">' + track.dataset.orig + '</div>';
 
     const firstGroup = track.querySelector('.marquee-group');
@@ -7025,6 +7160,24 @@ function initMarquees() {
     const applyOffset = () => {
       if (loopWidth > 0) offset = ((offset % loopWidth) + loopWidth) % loopWidth;
       track.style.transform = 'translate3d(' + (-offset).toFixed(2) + 'px, 0, 0)';
+    };
+
+    /* Keep the scroll position in the middle group. Both ends of the track then stay a whole
+       group away, so no amount of flinging reaches one. The correction is a whole group, which
+       is a distance the strip looks identical across — nothing visibly moves. A drag in flight
+       is measuring from `startScroll`, so that has to move with it or the card under the thumb
+       would jump a group. */
+    const centreScroll = () => { if (loopWidth > 0) mq.scrollLeft = loopWidth; };
+    const wrapScroll = () => {
+      if (loopWidth <= 0) return;
+      let shift = 0;
+      let guard = 8;
+      while (mq.scrollLeft + shift > loopWidth * 1.5 && guard--) shift -= loopWidth;
+      guard = 8;
+      while (mq.scrollLeft + shift < loopWidth * 0.5 && guard--) shift += loopWidth;
+      if (!shift) return;
+      mq.scrollLeft += shift;
+      startScroll += shift;
     };
 
     const tick = time => {
@@ -7115,6 +7268,8 @@ function initMarquees() {
       lastTime = 0;
     };
 
+    centreScroll();
+    mq.addEventListener('scroll', wrapScroll, { passive: true });
     mq.addEventListener('pointerdown', onPointerDown);
     mq.addEventListener('pointermove', onPointerMove);
     mq.addEventListener('pointerup', onPointerEnd);
@@ -7142,7 +7297,7 @@ function initMarquees() {
     if (typeof ResizeObserver === 'function') {
       sizer = new ResizeObserver(() => {
         const next = firstGroup.offsetWidth + TRACK_GAP;
-        if (next > 0 && next !== loopWidth) { loopWidth = next; applyOffset(); }
+        if (next > 0 && next !== loopWidth) { loopWidth = next; applyOffset(); wrapScroll(); }
       });
       sizer.observe(firstGroup);
     }
@@ -7152,6 +7307,7 @@ function initMarquees() {
       if (observer) observer.disconnect();
       if (sizer) sizer.disconnect();
       mq.classList.remove('is-dragging');
+      mq.removeEventListener('scroll', wrapScroll);
       mq.removeEventListener('pointerdown', onPointerDown);
       mq.removeEventListener('pointermove', onPointerMove);
       mq.removeEventListener('pointerup', onPointerEnd);

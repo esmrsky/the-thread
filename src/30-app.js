@@ -1474,6 +1474,7 @@ function wireVersionPicker(wrap, onChoose) {
     if (opt) choose(opt.dataset.v);
   });
   document.addEventListener('click', ev => {
+    if (VT_ACTIVE) return;   /* see applySmooth: the press is reported against <html> */
     if (!menu.hidden && !wrap.contains(ev.target)) close();
   });
   wrap.addEventListener('keydown', ev => {
@@ -1575,13 +1576,45 @@ function topAnchorEl() {
    the change in a single reflow behind the photograph, photographs it again, and cross-fades
    the two images on the compositor — so the cost is one layout no matter how long the fade
    runs, and the fade itself is a GPU crossfade of two bitmaps. */
+/* ---------- what a view transition costs ----------
+   While one is running the document is a photograph of itself: the live DOM is not hit-tested
+   at all, and `elementFromPoint` over a button in an open panel returns <html>. So a second
+   press inside the reading settings — a second typeface, another tap on A+ — never reaches the
+   panel. It reaches the document, where the outside-click handlers read it as "clicked
+   somewhere else" and shut the panel the reader is still using.
+
+   The transition is still right for the site-wide dials, which really do re-lay a 40,000px
+   document. It is not right for anything scoped to the passage dialog, and it must never be
+   allowed to close a panel: `VT_ACTIVE` is what the outside-click handlers check. */
+let VT_ACTIVE = false;
+function prefsPanelOpen() {
+  return !!document.querySelector('.prefs-menu:not([hidden])');
+}
 function applySmooth(mutate) {
   const land = () => holdScroll(0, mutate);
   if (REDUCED_MOTION || typeof document.startViewTransition !== 'function') {
     holdScroll(90, mutate);
     return;
   }
-  document.startViewTransition(land);
+  /* Starting a second transition aborts the first, which rejects its promises and logs an
+     InvalidStateError. A reader stepping the text size up twice in a row wants the second step,
+     not a second photograph of the page — so once one is running the rest land directly.
+
+     And while the settings panel is OPEN, no transition at all. Guarding the outside-click
+     handlers stopped the panel closing under a swallowed press, but the press was still lost:
+     220ms of dead, un-clickable document on a control built to be pressed repeatedly meant the
+     second typeface, or the second tap on the stepper, simply did not happen. A cross-fade of a
+     page you are not looking at is not worth that. Close the panel and the transition is back —
+     the keyboard shortcuts and Reset still get it. */
+  if (VT_ACTIVE || prefsPanelOpen()) { holdScroll(0, mutate); return; }
+  VT_ACTIVE = true;
+  const vt = document.startViewTransition(land);
+  const done = () => { VT_ACTIVE = false; };
+  const hush = () => {};
+  if (vt && vt.ready && vt.ready.then) vt.ready.then(hush, hush);
+  if (vt && vt.updateCallbackDone && vt.updateCallbackDone.then) vt.updateCallbackDone.then(hush, hush);
+  if (vt && vt.finished && vt.finished.then) vt.finished.then(done, done);
+  else setTimeout(done, 400);
 }
 
 let scrollQuiet = false;
@@ -1718,8 +1751,14 @@ function setTheme(value, instant, persist) {
    be, because they change the root font-size and re-lay a 40,000px document; this pair changes
    one paragraph inside a dialog, so the stylesheet can simply transition `line-height` and
    `font-size` the way it would transition any other animatable property, and the passage opens
-   up under the eye instead of the page being photographed and cross-faded. A typeface still
-   goes through applySmooth: there is nothing to interpolate between two faces. */
+   up under the eye instead of the page being photographed and cross-faded.
+
+   The typeface used to go through applySmooth too, on the grounds that there is nothing to
+   interpolate between two faces. That photographed the whole document to re-set one paragraph,
+   and it is what made the reading settings close when a reader picked a second typeface: the
+   press landed on the snapshot instead of the panel. It is scoped now like the other two — the
+   face is loaded before anything moves, so there is no fallback flash to hide, and the body
+   dips for a beat rather than the page dissolving into itself. */
 function setContextPref(which, value, instant) {
   const key = which === 'type' ? PREFS.ctxType : PREFS.ctxLh;
   const valid = which === 'type' ? !!TYPE_THEMES[value] : ['snug', 'normal', 'roomy'].indexOf(value) >= 0;
@@ -1739,7 +1778,15 @@ function setContextPref(which, value, instant) {
   };
   if (which !== 'type') { apply(); return; }
   if (instant) { apply(); loadFaces(TYPE_THEMES[v]); return; }
-  loadFaces(TYPE_THEMES[v]).then(() => applySmooth(apply));
+  loadFaces(TYPE_THEMES[v]).then(() => {
+    const body = contextDialogEl && contextDialogEl.querySelector('.context-dialog-body');
+    if (!body || REDUCED_MOTION) { apply(); return; }
+    body.classList.add('is-reface');
+    requestAnimationFrame(() => {
+      apply();
+      requestAnimationFrame(() => body.classList.remove('is-reface'));
+    });
+  });
 }
 
 /* The same ladder the site-wide stepper walks, on the same +/- control, but written as a
@@ -1854,9 +1901,12 @@ function readingPanelHtml() {
     ['snug', 'normal', 'roomy'].map(v => '<button type="button" data-v="' + v + '">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>').join('') +
     '</div>' +
     '<span class="prefs-head">Text size</span>' +
+    /* Two equal halves in a pill read as a two-way preset, not as a ladder you can walk. A
+       minus, the value you are on, and a plus say what it actually is. */
     '<div class="stepper sizer" data-pref="ctx-fs">' +
-    '<button type="button" data-step="-1" aria-label="Smaller passage text"><span class="sz-a sz-sm">A</span></button>' +
-    '<button type="button" data-step="1" aria-label="Larger passage text"><span class="sz-a sz-lg">A</span></button>' +
+    '<button type="button" data-step="-1" aria-label="Smaller passage text"><span class="sz-op" aria-hidden="true">\u2212</span></button>' +
+    '<span class="stepper-val ctx-fs-val">100%</span>' +
+    '<button type="button" data-step="1" aria-label="Larger passage text"><span class="sz-op" aria-hidden="true">+</span></button>' +
     '</div>' +
     '<div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="ctx">Reset</button></div>';
 }
@@ -1957,6 +2007,10 @@ function wirePrefsPanel(wrap, opts) {
   });
   /* the menu is no longer always inside the wrapper, so both count as "inside" */
   document.addEventListener('click', ev => {
+    /* A press that lands during a view transition is reported against <html> no matter where
+       the finger was — see applySmooth. Treating that as "outside" is what shut the panel
+       under a reader picking a second typeface or tapping A+ twice. */
+    if (VT_ACTIVE) return;
     if (!shut() && !wrap.contains(ev.target) && !menu.contains(ev.target)) close();
   });
   /* likewise Escape: once portaled, focus inside the sheet is no longer under the wrapper */
@@ -2021,7 +2075,7 @@ function initVersionPicker() {
   const saved = lsGet('thread-version');
   if (saved && VERSIONS.some(v => v.code === saved)) ACTIVE_VERSION = saved;
   val.textContent = ACTIVE_VERSION;
-  menu.innerHTML = versionMenuHtml('Verse pop-ups read in');
+  menu.innerHTML = versionMenuHtml('Read in');
   /* Changing translation used to close the pinned pop-up and leave it stale; re-read it instead. */
   wireVersionPicker(wrap, () => refreshPinnedTooltip());
 }
@@ -2368,7 +2422,7 @@ function initTooltip() {
     '</div>';
   document.body.appendChild(contextDialogEl);
   const contextPickerWrap = contextDialogEl.querySelector('.context-verpick');
-  contextPickerWrap.querySelector('.verpick-menu').innerHTML = versionMenuHtml('Read this passage in');
+  contextPickerWrap.querySelector('.verpick-menu').innerHTML = versionMenuHtml('Read in');
   contextVersionPicker = wireVersionPicker(contextPickerWrap, code => {
     contextDialogEl.dataset.version = code;
     refreshVerseContext(true);
@@ -2669,8 +2723,17 @@ function initMarquees() {
     track.style.transform = '';
     if (reduced) return;
 
+    /* Three groups, not two. The drift is infinite because `applyOffset` takes the transform
+       modulo one group — but the reader's own panning is native scrolling, and that ran out of
+       track: fling a strip and `scrollLeft` pinned at its maximum with the window past the last
+       card, which is the strip "going blank". With a third group there is always a whole group
+       of rendered cards on either side of the window, so `wrapScroll` below can slide the
+       scroll position back by exactly one group whenever it drifts towards an end. Every group
+       is identical, so that move shows the reader the same cards they were already looking at
+       and the strip simply keeps going. */
     track.innerHTML =
       '<div class="marquee-group">' + track.dataset.orig + '</div>' +
+      '<div class="marquee-group" aria-hidden="true">' + track.dataset.orig + '</div>' +
       '<div class="marquee-group" aria-hidden="true">' + track.dataset.orig + '</div>';
 
     const firstGroup = track.querySelector('.marquee-group');
@@ -2693,6 +2756,24 @@ function initMarquees() {
     const applyOffset = () => {
       if (loopWidth > 0) offset = ((offset % loopWidth) + loopWidth) % loopWidth;
       track.style.transform = 'translate3d(' + (-offset).toFixed(2) + 'px, 0, 0)';
+    };
+
+    /* Keep the scroll position in the middle group. Both ends of the track then stay a whole
+       group away, so no amount of flinging reaches one. The correction is a whole group, which
+       is a distance the strip looks identical across — nothing visibly moves. A drag in flight
+       is measuring from `startScroll`, so that has to move with it or the card under the thumb
+       would jump a group. */
+    const centreScroll = () => { if (loopWidth > 0) mq.scrollLeft = loopWidth; };
+    const wrapScroll = () => {
+      if (loopWidth <= 0) return;
+      let shift = 0;
+      let guard = 8;
+      while (mq.scrollLeft + shift > loopWidth * 1.5 && guard--) shift -= loopWidth;
+      guard = 8;
+      while (mq.scrollLeft + shift < loopWidth * 0.5 && guard--) shift += loopWidth;
+      if (!shift) return;
+      mq.scrollLeft += shift;
+      startScroll += shift;
     };
 
     const tick = time => {
@@ -2783,6 +2864,8 @@ function initMarquees() {
       lastTime = 0;
     };
 
+    centreScroll();
+    mq.addEventListener('scroll', wrapScroll, { passive: true });
     mq.addEventListener('pointerdown', onPointerDown);
     mq.addEventListener('pointermove', onPointerMove);
     mq.addEventListener('pointerup', onPointerEnd);
@@ -2810,7 +2893,7 @@ function initMarquees() {
     if (typeof ResizeObserver === 'function') {
       sizer = new ResizeObserver(() => {
         const next = firstGroup.offsetWidth + TRACK_GAP;
-        if (next > 0 && next !== loopWidth) { loopWidth = next; applyOffset(); }
+        if (next > 0 && next !== loopWidth) { loopWidth = next; applyOffset(); wrapScroll(); }
       });
       sizer.observe(firstGroup);
     }
@@ -2820,6 +2903,7 @@ function initMarquees() {
       if (observer) observer.disconnect();
       if (sizer) sizer.disconnect();
       mq.classList.remove('is-dragging');
+      mq.removeEventListener('scroll', wrapScroll);
       mq.removeEventListener('pointerdown', onPointerDown);
       mq.removeEventListener('pointermove', onPointerMove);
       mq.removeEventListener('pointerup', onPointerEnd);
