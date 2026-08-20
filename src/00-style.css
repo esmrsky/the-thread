@@ -2365,6 +2365,12 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 @media (pointer: coarse) {
   .preview-step { width: 44px; height: 44px; flex: 0 0 44px; }
   .preview-step svg { width: 18px; height: 18px; }
+  /* Sideways belongs to the swipe handler, up and down still belongs to the page. Without this
+     the browser claims the whole gesture for scrolling and the swipe never gets a second event. */
+  .thread-preview-card { touch-action: pan-y; }
+  .preview-content, .preview-placeholder { transition: transform 0.24s cubic-bezier(.2, .7, .3, 1); }
+  /* while the thumb is down the card tracks it 1:1 — a transition here would lag the finger */
+  .preview-content.is-dragging, .preview-placeholder.is-dragging { transition: none; }
 }
 
 
@@ -3068,6 +3074,8 @@ body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
   color: var(--thread);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--thread) 30%, transparent);
 }
+/* Only the phone's sheet has a handle; in a dropdown there is nothing to drag. */
+.prefs-grab { display: none; }
 .prefs-note { display: block; font-size: 0.68em; color: var(--ink-faint); line-height: 1.4; }
 /* A way back. Every dial above this line is sticky on the device, and a panel you can only
    walk forwards through is a panel you end up stuck in. */
@@ -3158,19 +3166,40 @@ body:has(.thread-fab.visible) .back-to-top { opacity: 0; visibility: hidden; }
     box-shadow: 0 -14px 40px color-mix(in srgb, #000 28%, transparent);
     overscroll-behavior: contain;
   }
-  /* the pointer that aimed at the button becomes the sheet's grab handle */
-  .prefs-menu::before {
-    position: static;
+  /* the little pointer that aimed at the button has nothing to aim at down here */
+  .prefs-menu::before { display: none; }
+  /* The handle used to be drawn as that pseudo-element, which looked the part but could not be
+     grabbed: a pseudo-element takes no pointer capture. It is a real element now, and its box
+     runs the full width of the sheet so the thumb has a bar to catch rather than a 40px pill.
+     `touch-action: none` is what keeps the drag from scrolling the sheet's own contents. */
+  .prefs-grab {
+    display: block;
+    width: 100%;
+    padding: 4px 0 12px;
+    margin: 0;
+    touch-action: none;
+    cursor: grab;
+  }
+  .prefs-grab::after {
+    content: "";
     display: block;
     width: 40px; height: 4px;
-    margin: 2px auto 12px;
-    transform: none;
-    border: 0;
+    margin: 0 auto;
     border-radius: 999px;
     background: var(--line);
+    transition: background-color 0.15s ease, width 0.15s ease;
   }
+  .prefs-menu.is-dragging .prefs-grab { cursor: grabbing; }
+  .prefs-menu.is-dragging .prefs-grab::after { background: var(--ink-faint); width: 52px; }
+
   @media (prefers-reduced-motion: no-preference) {
     .prefs-menu:not([hidden]) { animation: sheet-up 0.24s cubic-bezier(.2,.7,.3,1) both; }
+    /* Down is a transition, not a second keyframe animation, so it leaves from wherever the
+       sheet is — closed by the button it starts from rest, closed by a flick it carries on from
+       the thumb. `is-dragging` takes the transition off so the sheet tracks the finger 1:1. */
+    .prefs-menu.is-closing { transition: transform 0.22s cubic-bezier(.4, 0, 1, 1); }
+    .prefs-menu.is-snapping { transition: transform 0.22s cubic-bezier(.2, .7, .3, 1); }
+    .prefs-menu.is-dragging { transition: none; }
   }
 }
 @keyframes sheet-up {

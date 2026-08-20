@@ -1860,13 +1860,44 @@ function wirePrefsPanel(wrap, opts) {
   const toSheet = () => { if (canSheet && !onBody && sheetMQ.matches) { document.body.appendChild(menu); onBody = true; } };
   const toWrap = () => { if (onBody) { wrap.appendChild(menu); onBody = false; } };
 
-  const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); toWrap(); };
+  /* ---------- the sheet goes down the way it came up ----------
+     Closing used to be `hidden = true`, which is a cut, not a close: the sheet came up over
+     240ms and then vanished between two frames. It now slides back out under the bottom edge,
+     and because that is a transition rather than a second keyframe animation it starts from
+     wherever the sheet currently is — which is what lets a half-dragged sheet carry on down
+     from the reader's own thumb instead of snapping back up to closed. The open animation
+     fills forwards, so it has to be taken off first or it outranks the inline transform. */
+  const SHEET_MS = 220;
+  let sheetTimer = null;
+  const isSheet = () => canSheet && onBody && sheetMQ.matches;
+  const finishHide = () => {
+    menu.hidden = true;
+    menu.classList.remove('is-closing', 'is-dragging', 'is-snapping');
+    menu.style.transform = '';
+    menu.style.animation = '';
+    toWrap();
+  };
+  const close = () => {
+    btn.setAttribute('aria-expanded', 'false');
+    if (sheetTimer) { clearTimeout(sheetTimer); sheetTimer = null; }
+    if (!isSheet() || REDUCED_MOTION) { finishHide(); return; }
+    menu.style.animation = 'none';
+    menu.classList.remove('is-dragging', 'is-snapping');
+    menu.classList.add('is-closing');
+    void menu.offsetWidth;
+    menu.style.transform = 'translateY(100%)';
+    sheetTimer = setTimeout(() => { sheetTimer = null; finishHide(); }, SHEET_MS);
+  };
   /* Each preview is set in its own two faces. A hidden menu renders nothing, so this first
      open is the moment they are worth fetching — and by the time one is picked its faces
      are already there. */
   let previewsWarmed = false;
   const open = () => {
+    if (sheetTimer) { clearTimeout(sheetTimer); sheetTimer = null; }
     toSheet();
+    menu.classList.remove('is-closing', 'is-dragging', 'is-snapping');
+    menu.style.transform = '';
+    menu.style.animation = '';
     menu.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
     if (previewsWarmed) return;
@@ -1877,7 +1908,10 @@ function wirePrefsPanel(wrap, opts) {
     }));
     loadFaces(all);
   };
-  btn.addEventListener('click', ev => { ev.stopPropagation(); menu.hidden ? open() : close(); });
+  /* A sheet on its way out is already closed as far as the button is concerned — otherwise the
+     press that catches it mid-slide closes it a second time instead of bringing it back. */
+  const shut = () => menu.hidden || menu.classList.contains('is-closing');
+  btn.addEventListener('click', ev => { ev.stopPropagation(); shut() ? open() : close(); });
   menu.addEventListener('click', ev => {
     ev.stopPropagation();
     const reset = ev.target.closest('[data-prefs-reset]');
@@ -1897,14 +1931,55 @@ function wirePrefsPanel(wrap, opts) {
   });
   /* the menu is no longer always inside the wrapper, so both count as "inside" */
   document.addEventListener('click', ev => {
-    if (!menu.hidden && !wrap.contains(ev.target) && !menu.contains(ev.target)) close();
+    if (!shut() && !wrap.contains(ev.target) && !menu.contains(ev.target)) close();
   });
   /* likewise Escape: once portaled, focus inside the sheet is no longer under the wrapper */
   document.addEventListener('keydown', ev => {
-    if (ev.key === 'Escape' && !menu.hidden) { ev.preventDefault(); close(); btn.focus(); }
+    if (ev.key === 'Escape' && !shut()) { ev.preventDefault(); close(); btn.focus(); }
   });
+  /* ---------- drag the handle down to put it away ----------
+     The handle is a real element rather than the ::before it used to be drawn as, because a
+     pseudo-element cannot take a pointer capture. `touch-action: none` on it is what stops the
+     drag scrolling the sheet's own contents out from under the thumb. Past 68px, or thrown fast
+     enough, it goes; short of that it springs back to open. */
+  if (canSheet) {
+    const grab = document.createElement('span');
+    grab.className = 'prefs-grab';
+    grab.setAttribute('aria-hidden', 'true');
+    menu.insertBefore(grab, menu.firstChild);
+    let dragId = null, y0 = 0, dy = 0, t0 = 0;
+    grab.addEventListener('pointerdown', ev => {
+      if (!isSheet()) return;
+      dragId = ev.pointerId; y0 = ev.clientY; dy = 0; t0 = performance.now();
+      try { grab.setPointerCapture(dragId); } catch (e) { /* keep tracking without it */ }
+      if (sheetTimer) { clearTimeout(sheetTimer); sheetTimer = null; }
+      menu.style.animation = 'none';
+      menu.classList.remove('is-closing', 'is-snapping');
+      menu.classList.add('is-dragging');
+    });
+    grab.addEventListener('pointermove', ev => {
+      if (ev.pointerId !== dragId) return;
+      /* Down only. Pulling up on a sheet that is already at the top of its travel should do
+         nothing rather than lift it off the bottom edge. */
+      dy = Math.max(0, ev.clientY - y0);
+      menu.style.transform = 'translateY(' + dy + 'px)';
+    });
+    const release = ev => {
+      if (ev.pointerId !== dragId) return;
+      dragId = null;
+      menu.classList.remove('is-dragging');
+      const thrown = dy / Math.max(1, performance.now() - t0) > 0.5;
+      if (dy > 68 || (thrown && dy > 12)) { close(); btn.focus({ preventScroll: true }); return; }
+      menu.classList.add('is-snapping');
+      menu.style.transform = '';
+      setTimeout(() => menu.classList.remove('is-snapping'), SHEET_MS);
+    };
+    grab.addEventListener('pointerup', release);
+    grab.addEventListener('pointercancel', release);
+  }
+
   /* crossing the sheet/dropdown boundary mid-open would leave it anchored to the wrong thing */
-  const onMQ = () => { if (!menu.hidden) close(); };
+  const onMQ = () => { if (!shut()) close(); };
   if (sheetMQ.addEventListener) sheetMQ.addEventListener('change', onMQ);
   else if (sheetMQ.addListener) sheetMQ.addListener(onMQ);
   return { close: close };
@@ -2786,6 +2861,84 @@ function syncThreadFabName(name) {
   if (el) el.textContent = name || 'The Story Map';
 }
 
+/* Prev/next around the ring of routes, from wherever the card currently is. With nothing chosen
+   yet, forward opens the first and back opens the last — an arrow or a swipe on an empty card
+   should start the walk rather than do nothing. */
+function stepPreviewThread(dir) {
+  const current = selectedPreviewThreadId || activePreviewThreadId;
+  const from = current ? THREADS.findIndex(x => x.id === current) : (dir > 0 ? -1 : 0);
+  const next = THREADS[((from + dir) % THREADS.length + THREADS.length) % THREADS.length];
+  cancelPreviewReset();
+  selectPreviewThread(next.id);
+}
+
+/* ---------- swipe the card itself ----------
+   The arrows are a target to find; a swipe is the gesture the card already looks like it should
+   answer to. Touch only: on a mouse a drag across a card is a text selection, not a page turn.
+
+   The axis is decided once, on the first 8px of movement, and only a horizontal verdict takes
+   the pointer capture — otherwise a thumb starting its scroll on the card would be caught here
+   and the page would refuse to move. `touch-action: pan-y` on the card is the other half of
+   that: it hands sideways movement to this handler and keeps up-and-down for the page. */
+function initPreviewSwipe() {
+  const card = document.getElementById('thread-preview');
+  if (!card || !window.matchMedia('(pointer: coarse)').matches) return;
+  const inner = () => card.querySelector('.preview-content, .preview-placeholder');
+  let id = null, x0 = 0, y0 = 0, dx = 0, t0 = 0, axis = null, swallowClick = false;
+
+  /* A swipe that refuses to start on a link is a swipe that barely works: most of this card is
+     milestones, and most of a milestone is a scripture reference. So the gesture is tracked
+     wherever it starts, and it is the *click* that gets dropped once the thumb has travelled
+     sideways — tap a reference and it still opens, drag from one and the card turns instead. */
+  card.addEventListener('click', ev => {
+    if (!swallowClick) return;
+    swallowClick = false;
+    ev.preventDefault();
+    ev.stopPropagation();
+  }, true);
+
+  card.addEventListener('pointerdown', ev => {
+    if (ev.pointerType === 'mouse') return;
+    id = ev.pointerId; x0 = ev.clientX; y0 = ev.clientY; dx = 0; axis = null; t0 = performance.now();
+  });
+
+  card.addEventListener('pointermove', ev => {
+    if (ev.pointerId !== id) return;
+    const mx = ev.clientX - x0, my = ev.clientY - y0;
+    if (!axis) {
+      if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
+      axis = Math.abs(mx) > Math.abs(my) ? 'x' : 'y';
+      /* throws if the pointer went away between the move and this line */
+      if (axis === 'x') { try { card.setPointerCapture(id); } catch (e) { /* keep tracking */ } }
+    }
+    if (axis !== 'x') return;
+    dx = mx;
+    const el = inner();
+    /* Damped, and capped well short of the card's own width: this is the card acknowledging the
+       thumb, not a carousel panel being dragged off the edge. */
+    if (el) {
+      el.classList.add('is-dragging');
+      el.style.transform = 'translateX(' + Math.max(-46, Math.min(46, dx * 0.34)) + 'px)';
+    }
+  });
+
+  const release = ev => {
+    if (ev.pointerId !== id) return;
+    id = null;
+    const el = inner();
+    if (el) { el.classList.remove('is-dragging'); el.style.transform = ''; }
+    if (axis !== 'x') { axis = null; return; }
+    axis = null;
+    /* any sideways travel at all was a drag, not a tap — even one too short to turn the card */
+    swallowClick = true;
+    setTimeout(() => { swallowClick = false; }, 400);
+    const flung = Math.abs(dx) / Math.max(1, performance.now() - t0) > 0.45;
+    if (Math.abs(dx) > 56 || (flung && Math.abs(dx) > 18)) stepPreviewThread(dx < 0 ? 1 : -1);
+  };
+  card.addEventListener('pointerup', release);
+  card.addEventListener('pointercancel', release);
+}
+
 function initThreadFab() {
   const fab = document.getElementById('thread-fab');
   if (!fab) return;
@@ -2816,14 +2969,7 @@ function initThreadFab() {
   fab.addEventListener('click', ev => {
     const b = ev.target.closest('[data-fab-dir]');
     if (!b) return;
-    const dir = +b.dataset.fabDir;
-    const current = selectedPreviewThreadId || activePreviewThreadId;
-    /* With nothing chosen yet, Next opens the first route and Previous the last — pressing an
-       arrow on an empty card should start the walk, not do nothing. */
-    const from = current ? THREADS.findIndex(x => x.id === current) : (dir > 0 ? -1 : 0);
-    const next = THREADS[((from + dir) % THREADS.length + THREADS.length) % THREADS.length];
-    cancelPreviewReset();
-    selectPreviewThread(next.id);
+    stepPreviewThread(+b.dataset.fabDir);
   });
   update();
 }
@@ -2882,8 +3028,9 @@ function boot() {
 
   initRail();
   renderSections();
-  /* after the sections exist — its first read looks for the chart panel */
+  /* after the sections exist — both of these look for the chart */
   initThreadFab();
+  initPreviewSwipe();
 
   // Wire events, then handle the initial route before enabling scrollspy.
   initTooltip();
