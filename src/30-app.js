@@ -749,8 +749,9 @@ function vCodes() {
     '<div class="card vocab-card" style="--c:var(--c-codes)">' +
     '<div class="vocab-head">' + icon('scroll') + '<span>The New Testament\u2019s own four words for it</span></div>' +
     '<ol class="vocab-steps">' + CODES.typesVocab.map((v, i) =>
-      '<li class="vocab-step"><span class="vocab-num">' + (i + 1) + '</span>' +
-      '<span class="vocab-greek">' + v.g + '</span>' +
+      '<li class="vocab-step">' +
+      '<span class="vocab-top"><span class="vocab-num">' + (i + 1) + '</span>' +
+      '<span class="vocab-greek">' + v.g + '</span></span>' +
       '<b class="vocab-term">' + v.t + '</b>' +
       '<p class="vocab-gloss">' + v.d + '</p>' +
       '<span class="vocab-refs">' + linkRefs(v.x) + '</span></li>').join('') +
@@ -953,9 +954,18 @@ function buildThreadPreviewContent(t) {
 
   return (
     '<div class="preview-content" style="--c: var(' + t.cvar + ')">' +
+    /* Name, stepper, tag and the way in are one column and one grid cell. As four separate
+       cells they were four grid rows, and the milestones column spanning all four made the
+       rows grow to fit it — so the gap under the name changed with the route and the arrows
+       drifted by up to 23px. In one cell their spacing is plain flow and cannot move. */
+    '  <div class="preview-side">' +
     '  <div class="preview-header">' + buildThreadPreviewHeader(t) + '</div>' +
     '  <div class="preview-stepper">' + previewStepperHtml(t) + '</div>' +
     '  <p class="preview-tag">' + t.tag + '</p>' +
+    '  <div class="preview-foot">' +
+    '    <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
+    '  </div>' +
+    '  </div>' +
     '  <div class="preview-body">' +
     '    <h4>Journey Milestones:</h4>' +
     '    <ul>' + shortWay + '</ul>' +
@@ -963,9 +973,6 @@ function buildThreadPreviewContent(t) {
     '      <strong>Where it lands</strong>' +
     '      <p>' + linkRefs(t.landsOn) + '</p>' +
     '    </div>' +
-    '  </div>' +
-    '  <div class="preview-foot">' +
-    '    <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
     '  </div>' +
     '</div>'
   );
@@ -986,9 +993,8 @@ function previewStepperHtml(t) {
     ' aria-label="' + (dir < 0 ? 'Previous' : 'Next') + ' thread: ' + at(i + dir).name + '"' +
     ' title="' + at(i + dir).name + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg></button>';
-  return arrow(-1, 'm14.5 6-6 6 6 6') +
-    '<span class="preview-count"><b>' + (i + 1) + '</b>\u2009/\u2009' + THREADS.length + '</span>' +
-    arrow(1, 'm9.5 6 6 6-6 6');
+  return arrow(-1, 'm14.5 6-6 6 6 6') + arrow(1, 'm9.5 6 6 6-6 6') +
+    '<span class="preview-count"><b>' + (i + 1) + '</b>\u2009/\u2009' + THREADS.length + '</span>';
 }
 
 let activePreviewThreadId = null;

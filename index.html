@@ -1615,21 +1615,28 @@ table.map-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; mi
   grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
 }
 .vocab-step {
-  position: relative;
   padding: 14px 14px 13px;
   border: 1px solid var(--line-soft);
   border-top: 2px solid color-mix(in srgb, var(--c) 55%, transparent);
   border-radius: var(--r);
   background: var(--card-2);
 }
+/* It was absolutely positioned at top:-1px, which put it on the 2px border rather than inside
+   the card. It reads as the step it is, on the line with the word it numbers. */
+.vocab-top { display: flex; align-items: baseline; gap: 9px; margin-bottom: 2px; }
 .vocab-num {
-  position: absolute; top: -1px; right: 10px;
-  font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
-  color: color-mix(in srgb, var(--c) 70%, var(--ink-faint));
+  flex: 0 0 auto;
+  width: 19px; height: 19px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+  font-family: var(--font-label); font-size: 0.6rem; font-weight: 700;
+  color: var(--c);
+  align-self: center;
 }
 .vocab-greek {
-  display: block; font-style: italic; font-size: 0.95rem;
-  color: var(--c); line-height: 1.2; margin-bottom: 2px;
+  font-style: italic; font-size: 0.95rem;
+  color: var(--c); line-height: 1.2;
 }
 .vocab-term {
   display: block; font-family: var(--font-label); font-size: 0.64rem; font-weight: 700;
@@ -1926,7 +1933,10 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
    reads at whatever the reader set *here*, and the site behind it keeps its own. The ladder is
    pitched higher than the site's because this is scripture at length rather than prose about
    it — even Snug here is looser than the site's Normal. */
-.verse-context-dialog { --lh: 2.15; }
+/* --font-body is re-read here on purpose: font-family computes to a concrete stack on <body>,
+   and the dialog inherits that computed value, so redeclaring the variable alone changed the
+   heading (which asks for --font-head itself) and left the passage in the old face. */
+.verse-context-dialog { --lh: 2.15; font-family: var(--font-body); }
 .verse-context-dialog[data-ctx-lh="snug"] { --lh: 1.85; }
 .verse-context-dialog[data-ctx-lh="roomy"] { --lh: 2.55; }
 .verse-context-dialog[data-ctx-type="source-serif"] {
@@ -1973,7 +1983,16 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .context-dialog-body.is-refreshing { opacity: 0.4; }
 .context-dialog-body { transition: opacity 0.18s ease; }
 .verse-context-dialog::backdrop { background: color-mix(in srgb, var(--paper) 22%, rgba(0,0,0,.72)); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
-.context-dialog-inner { display: flex; flex-direction: column; height: 100%; }
+/* The scrolling column needs a definite height to shrink inside, and `height: 100%` is not one
+   when the parent is sized between a min and a max — it resolves to auto, the column grows past
+   the dialog, and the footer with "Even more context" ends up below the clip with the passage
+   running off the bottom. Carrying the same bounds here is what makes .context-dialog-body's
+   `flex: 1 1 auto; min-height: 0` actually bite. */
+.context-dialog-inner {
+  display: flex; flex-direction: column;
+  min-height: min(600px, 74dvh);
+  max-height: min(88dvh, 940px);
+}
 .context-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 22px 15px; border-bottom: 1px solid var(--line); }
 .context-dialog-head .label { display: block; color: var(--thread); margin-bottom: 4px; }
 .context-dialog-head h3 { font-size: clamp(1.28rem, 3vw, 1.7rem); }
@@ -2170,11 +2189,10 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
     column-gap: clamp(22px, 3vw, 34px);
     align-items: start;
   }
-  .thread-preview-card .preview-header { grid-column: 1; }
-  .thread-preview-card .preview-stepper { grid-column: 1; }
-  .thread-preview-card .preview-tag { grid-column: 1; border-bottom: none; padding-bottom: 0; margin-bottom: 14px; }
-  .thread-preview-card .preview-foot { grid-column: 1; margin-top: 4px; padding-top: 0; }
-  .thread-preview-card .preview-body { grid-column: 2; grid-row: 1 / span 4; }
+  .thread-preview-card .preview-side { grid-column: 1; }
+  .thread-preview-card .preview-tag { border-bottom: none; padding-bottom: 0; margin-bottom: 14px; }
+  .thread-preview-card .preview-foot { margin-top: 4px; padding-top: 0; }
+  .thread-preview-card .preview-body { grid-column: 2; }
 }
 @media (min-width: 1180px) {
   .thread-preview-card .preview-body {
@@ -2204,52 +2222,53 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .preview-more::after { content: ' →'; margin-left: 5px; transition: transform .2s ease; }
 .preview-more:hover::after { transform: translateX(3px); }
 
+.preview-side { display: flex; flex-direction: column; min-width: 0; }
 .preview-foot {
   display: flex; align-items: center;
   margin-top: auto; padding-top: 16px;
 }
 .preview-foot .preview-more { margin-top: 0; padding-top: 0; }
 
-/* One control, directly under the name — a bar rather than two loose buttons, so the whole
-   width is target and the eye knows where to go back to. The header above it is a fixed
-   height, which is the point: the arrows do not move between presses. */
-/* "Bread" is one line and "The King & the Seed" is two, so without a floor the bar under the
-   name would still shuffle by a line between routes. */
-.preview-header { min-height: 62px; }
+/* Two circles, directly under the name.
+
+   Sitting them under the name is not enough on its own: the name is one line for "Bread" and
+   two for "The King & the Seed", and where it wraps depends on the column width, so the
+   arrows still rode up and down as the route changed. The title reserves two lines whether it
+   needs them or not, which pins everything below it — the arrows land in exactly the same
+   place on every route, at every width. */
+.preview-header h3 { min-height: 2.44em; }
 .preview-stepper {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: stretch;
-  width: 100%;
-  margin: 14px 0 4px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--card-2);
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 2px;
 }
 .preview-step {
+  width: 34px; height: 34px; flex: 0 0 34px;
   display: grid; place-items: center;
-  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card-2);
   color: var(--ink-soft);
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
-.preview-step svg { width: 16px; height: 16px; }
-.preview-step:hover { color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); }
-.preview-step:active { background: color-mix(in srgb, var(--c) 20%, transparent); }
-/* flex, not grid: a grid container makes an anonymous item of every text run, so "6" and
-   "/ 13" became two rows and the readout stacked. */
+.preview-step svg { width: 15px; height: 15px; }
+.preview-step:hover {
+  color: var(--c);
+  border-color: color-mix(in srgb, var(--c) 50%, var(--line));
+  background: color-mix(in srgb, var(--c) 10%, var(--card));
+}
 .preview-count {
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 14px;
-  border-left: 1px solid var(--line);
-  border-right: 1px solid var(--line);
-  font-family: var(--font-label); font-size: 0.62rem; font-weight: 700;
-  letter-spacing: 0.08em; color: var(--ink-faint);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  font-family: var(--font-label); font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.09em; color: var(--ink-faint);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  margin-left: 2px;
 }
 .preview-count b { color: var(--c); font-weight: 700; }
-@media (pointer: coarse) { .preview-step { min-height: 46px; } }
+@media (pointer: coarse) {
+  .preview-step { width: 44px; height: 44px; flex: 0 0 44px; }
+  .preview-step svg { width: 18px; height: 18px; }
+}
 
 
 @media (max-width: 720px) {
@@ -4771,8 +4790,9 @@ function vCodes() {
     '<div class="card vocab-card" style="--c:var(--c-codes)">' +
     '<div class="vocab-head">' + icon('scroll') + '<span>The New Testament\u2019s own four words for it</span></div>' +
     '<ol class="vocab-steps">' + CODES.typesVocab.map((v, i) =>
-      '<li class="vocab-step"><span class="vocab-num">' + (i + 1) + '</span>' +
-      '<span class="vocab-greek">' + v.g + '</span>' +
+      '<li class="vocab-step">' +
+      '<span class="vocab-top"><span class="vocab-num">' + (i + 1) + '</span>' +
+      '<span class="vocab-greek">' + v.g + '</span></span>' +
       '<b class="vocab-term">' + v.t + '</b>' +
       '<p class="vocab-gloss">' + v.d + '</p>' +
       '<span class="vocab-refs">' + linkRefs(v.x) + '</span></li>').join('') +
@@ -4975,9 +4995,18 @@ function buildThreadPreviewContent(t) {
 
   return (
     '<div class="preview-content" style="--c: var(' + t.cvar + ')">' +
+    /* Name, stepper, tag and the way in are one column and one grid cell. As four separate
+       cells they were four grid rows, and the milestones column spanning all four made the
+       rows grow to fit it — so the gap under the name changed with the route and the arrows
+       drifted by up to 23px. In one cell their spacing is plain flow and cannot move. */
+    '  <div class="preview-side">' +
     '  <div class="preview-header">' + buildThreadPreviewHeader(t) + '</div>' +
     '  <div class="preview-stepper">' + previewStepperHtml(t) + '</div>' +
     '  <p class="preview-tag">' + t.tag + '</p>' +
+    '  <div class="preview-foot">' +
+    '    <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
+    '  </div>' +
+    '  </div>' +
     '  <div class="preview-body">' +
     '    <h4>Journey Milestones:</h4>' +
     '    <ul>' + shortWay + '</ul>' +
@@ -4985,9 +5014,6 @@ function buildThreadPreviewContent(t) {
     '      <strong>Where it lands</strong>' +
     '      <p>' + linkRefs(t.landsOn) + '</p>' +
     '    </div>' +
-    '  </div>' +
-    '  <div class="preview-foot">' +
-    '    <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
     '  </div>' +
     '</div>'
   );
@@ -5008,9 +5034,8 @@ function previewStepperHtml(t) {
     ' aria-label="' + (dir < 0 ? 'Previous' : 'Next') + ' thread: ' + at(i + dir).name + '"' +
     ' title="' + at(i + dir).name + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg></button>';
-  return arrow(-1, 'm14.5 6-6 6 6 6') +
-    '<span class="preview-count"><b>' + (i + 1) + '</b>\u2009/\u2009' + THREADS.length + '</span>' +
-    arrow(1, 'm9.5 6 6 6-6 6');
+  return arrow(-1, 'm14.5 6-6 6 6 6') + arrow(1, 'm9.5 6 6 6-6 6') +
+    '<span class="preview-count"><b>' + (i + 1) + '</b>\u2009/\u2009' + THREADS.length + '</span>';
 }
 
 let activePreviewThreadId = null;
