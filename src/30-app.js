@@ -1471,59 +1471,13 @@ function loadFaces(families) {
 }
 
 /* ---------- one way to change a reading setting ----------
-   All four of them re-lay the page, and layout is the one thing this page cannot animate:
-   interpolating line-height or root font-size costs a full reflow per frame, which measured
-   at ~25fps with 170ms gaps. So nothing animates layout. The column fades down, the change
-   lands in a single reflow while it is nearly invisible, and it fades back up with the
-   reader's line pinned. `prepare` is for work that must finish first — loading a typeface. */
-let swapSeq = 0;
-/* Superseded changes are held, not dropped. Picking a typeface and then a line height inside
-   the same fade used to bin the typeface — it was written to storage and marked as chosen but
-   never applied, so the panel and the page disagreed until the next reload. Whichever fade
-   actually lands runs everything queued behind it, in the order it was asked for. */
-let pendingSwaps = [];
-function applyWithFade(mutate, prepare) {
-  pendingSwaps.push(mutate);
-  const settle = () => holdScroll(90, () => {
-    const queued = pendingSwaps;
-    pendingSwaps = [];
-    queued.forEach(fn => fn());
-  });
-  if (REDUCED_MOTION) {
-    if (prepare) prepare().then(settle); else settle();
-    return;
-  }
-  const seq = ++swapSeq;
-  /* If the passage dialog is what the reader is looking at, it is the thing that has to
-     settle — fading only the page behind it would change the type under their eye. */
-  const panes = [document.getElementById('view'), document.querySelector('.site-foot'),
-    contextDialogEl && contextDialogEl.open ? contextDialogEl.querySelector('.context-dialog-inner') : null].filter(Boolean);
-  panes.forEach(pane => pane.classList.add('reading-swap'));
-  /* Wait for the fade to actually reach the floor rather than guessing at a duration —
-     a slow frame used to land the reflow at ~0.3 opacity, where it was still visible. */
-  const atFloor = new Promise(resolve => {
-    const pane = panes[0];
-    if (!pane) { setTimeout(resolve, 180); return; }
-    let settled = false;
-    const fire = ev => {
-      if (settled || (ev && ev.propertyName !== 'opacity')) return;
-      settled = true;
-      pane.removeEventListener('transitionend', fire);
-      resolve();
-    };
-    pane.addEventListener('transitionend', fire);
-    setTimeout(fire, 420); /* the transition can be pre-empted or never start */
-  });
-  Promise.all([prepare ? prepare() : Promise.resolve(), atFloor]).then(() => {
-    if (seq !== swapSeq) return; /* a faster clicker already asked for something else */
-    settle();
-    /* one frame to paint the new layout while it is still dim, then reveal it finished */
-    requestAnimationFrame(() => { if (seq === swapSeq) panes.forEach(pane => pane.classList.remove('reading-swap')); });
-  });
-}
+   Nothing here hides the change. Text size and line height are numbers, registered with
+   @property so the browser can interpolate them, and the sheet eases the two dials from the
+   old value to the new one — the type grows or opens up under the eye instead of the column
+   dipping to near-black and coming back. A typeface has nothing to interpolate, so that one
+   lands in a single step once the face has loaded. All four pin the reader's line while the
+   layout settles, which is what `holdScroll` is for. */
 
-/* Waiting on the faces is the difference between one change and two: applied first, the
-   real face arrives a beat later and re-lays the page a second time, under the reader. */
 function setTypeTheme(name, instant) {
   const value = TYPE_THEMES[name] ? name : PREFS.type.def;
   markPrefButtons('type', value);
@@ -1536,8 +1490,10 @@ function setTypeTheme(name, instant) {
     if (value === PREFS.type.def) delete document.documentElement.dataset.type;
     else document.documentElement.dataset.type = value;
   };
+  /* Applied before the face arrives it would land twice — fallback first, real face a beat
+     later, re-laying the page a second time under the reader. So wait, then swap once. */
   if (instant) { holdScroll(0, apply); loadFaces(TYPE_THEMES[value]); return; }
-  applyWithFade(apply, () => loadFaces(TYPE_THEMES[value]));
+  loadFaces(TYPE_THEMES[value]).then(() => holdScroll(90, apply));
 }
 
 function setLineHeight(value, instant) {
@@ -1548,15 +1504,14 @@ function setLineHeight(value, instant) {
     if (v === 'normal') delete document.documentElement.dataset.lh;
     else document.documentElement.dataset.lh = v;
   };
-  if (instant) { holdScroll(0, apply); return; }
-  applyWithFade(apply);
+  holdScroll(instant ? 0 : 90, apply);
 }
 
 function setTextSize(index, instant) {
   const i = Math.max(0, Math.min(FS_STEPS.length - 1, isNaN(index) ? 2 : index));
   currentFsIndex = i;
   lsSet(PREFS.fs.key, String(i));
-  /* the readout and the end stops answer the click itself, not the fade */
+  /* the readout and the end stops answer the click itself, not the end of the ease */
   const val = document.getElementById('fs-val');
   if (val) val.textContent = Math.round(FS_STEPS[i] * 100) + '%';
   document.querySelectorAll('[data-pref="fs"] button[data-step]').forEach(b => {
@@ -1564,8 +1519,7 @@ function setTextSize(index, instant) {
     b.disabled = (dir < 0 && i === 0) || (dir > 0 && i === FS_STEPS.length - 1);
   });
   const apply = () => document.documentElement.style.setProperty('--fs', String(FS_STEPS[i]));
-  if (instant) { holdScroll(0, apply); return; }
-  applyWithFade(apply);
+  holdScroll(instant ? 0 : 90, apply);
 }
 
 /* The palette swap is the one setting that changes nothing but colour, so it is the one that
@@ -1828,6 +1782,14 @@ function cleanBollsText(text) {
     .trim();
 }
 
+/* The passage dialog sets its text as one flowing paragraph, so the line breaks a translation
+   happens to send — poetry, mostly — are folded back into spaces. Left in they broke a verse
+   into half-lines with uneven gaps, and split the highlight into a pill per fragment. The
+   hover pop-up keeps its own breaks; this is only for the dialog. */
+function flowText(text) {
+  return String(text).replace(/\s*\n+\s*/g, ' ').trim();
+}
+
 async function fetchTptFromYouVersion(ref) {
   const passage = toYouVersionPassage(ref);
   if (!passage) throw new Error('Reference not recognized.');
@@ -1962,7 +1924,7 @@ async function loadBollsContext(parsed, version, radius) {
 
   return '<p class="context-passage">' + rows.map(v => {
     const selected = v.chapter === parsed.chapter && v.verse >= selectedStart && v.verse <= selectedEnd;
-    const text = cleanBollsText(v.text);
+    const text = flowText(cleanBollsText(v.text));
     const num = v.chapter === parsed.chapter ? String(v.verse) : v.chapter + ':' + v.verse;
     return '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num +
       '</sup><span class="ctx-t">' + text + '</span></span>';
@@ -1981,14 +1943,14 @@ async function loadTptContext(parsed, radius) {
 
   if (beforeStart < selectedStart) {
     requests.push(fetchTptPassage(passage(beforeStart, selectedStart - 1)).then(text =>
-      '<span class="context-block">' + escapeScriptureText(text) + '</span>'
+      '<span class="context-block">' + flowText(escapeScriptureText(text)) + '</span>'
     ));
   }
   requests.push(fetchTptPassage(passage(selectedStart, selectedEnd)).then(text =>
-    '<span class="context-block is-selected">' + escapeScriptureText(text) + '</span>'
+    '<span class="context-block is-selected">' + flowText(escapeScriptureText(text)) + '</span>'
   ));
   requests.push(fetchTptPassage(passage(selectedEnd + 1, afterEnd)).then(text =>
-    '<span class="context-block">' + escapeScriptureText(text) + '</span>'
+    '<span class="context-block">' + flowText(escapeScriptureText(text)) + '</span>'
   ));
 
   const results = await Promise.allSettled(requests);
