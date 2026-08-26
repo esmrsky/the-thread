@@ -2501,12 +2501,22 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   .thread-preview-card .preview-lands { margin-top: 0; }
 }
 
+/* The way in, given the same corner and the same edges as the squares above it. As a bare
+   uppercase link it was the one thing in the column with no shape at all. */
 .preview-more {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  align-self: flex-start;
-  margin-top: auto;
-  padding-top: 16px;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  /* A full-width bar 33px tall reads as a rule with words on it. Given a button's height, and
+     the touch floor on top of that, because this is the one thing on the card meant to be
+     pressed rather than read. */
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid color-mix(in srgb, var(--c) 34%, var(--line));
+  border-radius: var(--r);
+  background: color-mix(in srgb, var(--c) 9%, transparent);
   color: var(--c);
   font-family: var(--font-label);
   font-size: 0.68rem;
@@ -2514,13 +2524,18 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   letter-spacing: 0.12em;
   text-decoration: none;
   text-transform: uppercase;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+.preview-more:hover {
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+  border-color: color-mix(in srgb, var(--c) 55%, var(--line));
 }
 .preview-more::after { content: ' →'; margin-left: 5px; transition: transform .2s ease; }
 .preview-more:hover::after { transform: translateX(3px); }
 
 .preview-side { display: flex; flex-direction: column; min-width: 0; }
 .preview-foot {
-  display: flex; align-items: center;
+  display: flex; align-items: stretch;
   margin-top: auto; padding-top: 16px;
 }
 .preview-foot .preview-more { margin-top: 0; padding-top: 0; }
@@ -2537,31 +2552,67 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .preview-title { display: grid; }
 .preview-title > * { grid-area: 1 / 1; }
 .preview-title > .pt-ghost { visibility: hidden; pointer-events: none; }
+/* Under the icon rather than under the name: the chip, and the two arrows cut to the same
+   square with the same corner, make an L — one shape hanging off the left edge of the column,
+   which is where the eye already is. Indented past the chip they were a third alignment in a
+   card that only has two. */
 .preview-stepper {
   display: flex;
   align-items: center;
-  gap: 8px;
-  /* indented past the icon chip, so they start where the name starts */
-  margin: 10px 0 16px calc(var(--preview-chip) + var(--preview-chip-gap));
+  gap: var(--preview-l-gap);
+  margin: var(--preview-l-gap) 0 16px;
 }
 .preview-step {
-  width: 34px; height: 34px; flex: 0 0 34px;
+  width: var(--preview-chip); height: var(--preview-chip); flex: 0 0 var(--preview-chip);
   display: grid; place-items: center;
   border: 1px solid var(--line);
-  border-radius: 50%;
+  border-radius: var(--r);
   background: var(--card-2);
   color: var(--ink-soft);
   transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
-.preview-step svg { width: 15px; height: 15px; }
+.preview-step svg { width: 16px; height: 16px; }
 .preview-step:hover {
   color: var(--c);
   border-color: color-mix(in srgb, var(--c) 50%, var(--line));
   background: color-mix(in srgb, var(--c) 10%, var(--card));
 }
+
+/* Placed AFTER `.preview-side` and `.preview-stepper` are declared, not before them: a media
+   query adds no specificity, so up there `display: grid` lost to the base `display: flex` on
+   source order while `align-items: center` — which nothing else declared — took hold anyway and
+   centred the entire column. Half a rule applied is worse than none of it.
+
+   Between 721 and 899 the card is one stacked column, so the L would be two squares of dead
+   space beside a full-width paragraph. The arrows go up onto the name's own row instead, hard
+   right — the same amount of room, taken out of a line that already had it going spare. Below
+   721 both the header and the arrows are gone entirely; the floating bar is the stepper there. */
+@media (min-width: 721px) and (max-width: 899px) {
+  .preview-side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .preview-header { grid-column: 1; grid-row: 1; }
+  .preview-stepper { grid-column: 2; grid-row: 1; margin: 0; justify-self: end; }
+  /* the stepper's own bottom margin used to open this gap; out of the flow it cannot */
+  .preview-tag { grid-column: 1 / -1; margin-top: 16px; }
+  .preview-foot { grid-column: 1 / -1; }
+}
+
+/* Stacked, the way in is no longer the last thing in the column — the milestones follow it. As
+   an inline link that was a line of text above a heading; as a filled bar it needs the heading
+   told to stand off. */
+@media (max-width: 899px) {
+  .thread-preview-card .preview-foot { padding-bottom: 20px; }
+}
+
 @media (pointer: coarse) {
-  .preview-step { width: 44px; height: 44px; flex: 0 0 44px; }
+  /* The touch floor is applied to the quantity all three squares are cut from, not to the two
+     arrows — sized on their own they outgrew the chip and the L came apart. */
+  .preview-content { --preview-chip: 44px; }
   .preview-step svg { width: 18px; height: 18px; }
+  .preview-more { min-height: 44px; }
   /* Sideways belongs to the swipe handler, up and down still belongs to the page. Without this
      the browser claims the whole gesture for scrolling and the swipe never gets a second event. */
   .thread-preview-card { touch-action: pan-y; }
@@ -2779,11 +2830,14 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  /* The icon chip and the gap after it are one shared quantity: the name is set to the right of
-     them and the arrows are indented past them, so both answer to the same two numbers rather
-     than to a guess that drifts the moment the chip changes size. */
+  /* The icon chip is one shared quantity: the name is set to the right of it and the two arrows
+     are cut to the same square, so the three of them are one shape answering to one number
+     rather than to a guess that drifts the moment the chip changes size. */
   --preview-chip: 40px;
   --preview-chip-gap: 14px;
+  /* The gap inside the L, used in both directions — icon to arrow and arrow to arrow. Equal is
+     what makes three squares read as one piece instead of three controls. */
+  --preview-l-gap: 8px;
 }
 
 .preview-header {
