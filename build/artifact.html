@@ -195,6 +195,61 @@ body { margin: 0; }
   :root.theme-eases { transition: none; }
 }
 
+/* ---------- the palette swap, and 40,000px of document ----------
+   Measured: a theme change spends 182ms of style recalculation inside its own 340ms ease, and
+   the main thread does ~430ms of work in that window, so it cannot keep up and the fade stutters.
+   The cause is not the number of tokens — trimming the transition list from 37 properties to the
+   10 ground ones only took it to 143ms. It is that every one of them is an inherited registered
+   property on :root, so each frame re-resolves inherited style for all 5,647 elements of a
+   40,302px document, ~97%% of which is off screen. `backdrop-filter` is not involved (175ms with
+   it forced off) and halving the duration only shortens the stutter (113ms).
+
+   Containment is what actually moves it: 182ms -> 51ms, keeping all 37 tokens and the 340ms ease.
+   Off-screen sections stop being re-resolved every frame.
+
+   `contain-intrinsic-size` is a fixed length and these sections are not — `pattern` is 5,711px
+   at 1400 and 12,309px at 375 — so the placeholder is measured per section at each end rather
+   than guessed once. The `auto` keyword makes the browser prefer the real size once it has
+   rendered a section — verified: `pattern` reports its real 5,711px after being scrolled past
+   and away again — so these numbers only govern what has never been on screen, and the estimate
+   corrects itself section by section as the reader goes down. They are measured at three widths
+   rather than fitted from one, because a single desktop figure used at 1400 over-stated the
+   document by 4,595px; they are declared twice because `auto <length>` is dropped whole where it
+   is not understood, and a bare length has to survive underneath it. Nothing here has a `position: fixed` descendant —
+   checked, 0 of them — so paint containment has nothing to trap. */
+.section-block { content-visibility: auto; }
+#start { contain-intrinsic-size: 3526px; contain-intrinsic-size: auto 3526px; }
+#pattern { contain-intrinsic-size: 5711px; contain-intrinsic-size: auto 5711px; }
+#threads { contain-intrinsic-size: 5716px; contain-intrinsic-size: auto 5716px; }
+#codes { contain-intrinsic-size: 1666px; contain-intrinsic-size: auto 1666px; }
+#triune { contain-intrinsic-size: 3410px; contain-intrinsic-size: auto 3410px; }
+#walking { contain-intrinsic-size: 3902px; contain-intrinsic-size: auto 3902px; }
+#detours { contain-intrinsic-size: 4934px; contain-intrinsic-size: auto 4934px; }
+#mind { contain-intrinsic-size: 7082px; contain-intrinsic-size: auto 7082px; }
+#library { contain-intrinsic-size: 3958px; contain-intrinsic-size: auto 3958px; }
+@media (max-width: 1000px) {
+  #start { contain-intrinsic-size: 3660px; contain-intrinsic-size: auto 3660px; }
+  #pattern { contain-intrinsic-size: 6393px; contain-intrinsic-size: auto 6393px; }
+  #threads { contain-intrinsic-size: 5921px; contain-intrinsic-size: auto 5921px; }
+  #codes { contain-intrinsic-size: 1727px; contain-intrinsic-size: auto 1727px; }
+  #triune { contain-intrinsic-size: 3656px; contain-intrinsic-size: auto 3656px; }
+  #walking { contain-intrinsic-size: 4282px; contain-intrinsic-size: auto 4282px; }
+  #detours { contain-intrinsic-size: 5501px; contain-intrinsic-size: auto 5501px; }
+  #mind { contain-intrinsic-size: 7684px; contain-intrinsic-size: auto 7684px; }
+  #library { contain-intrinsic-size: 4580px; contain-intrinsic-size: auto 4580px; }
+}
+@media (max-width: 720px) {
+  #start { contain-intrinsic-size: 5646px; contain-intrinsic-size: auto 5646px; }
+  #pattern { contain-intrinsic-size: 12309px; contain-intrinsic-size: auto 12309px; }
+  #threads { contain-intrinsic-size: 8647px; contain-intrinsic-size: auto 8647px; }
+  #codes { contain-intrinsic-size: 6064px; contain-intrinsic-size: auto 6064px; }
+  #triune { contain-intrinsic-size: 6927px; contain-intrinsic-size: auto 6927px; }
+  #walking { contain-intrinsic-size: 8329px; contain-intrinsic-size: auto 8329px; }
+  #detours { contain-intrinsic-size: 11331px; contain-intrinsic-size: auto 11331px; }
+  #mind { contain-intrinsic-size: 12604px; contain-intrinsic-size: auto 12604px; }
+  #library { contain-intrinsic-size: 8414px; contain-intrinsic-size: auto 8414px; }
+}
+
 /* Warmer than it was: the paper had drifted toward a neutral cream, which read as "light with
    a tint" rather than as lamplight. The ink is untouched — it is what carries the contrast.
 
