@@ -2257,10 +2257,14 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .context-fallback-note { margin: 12px 0 0; }
 /* A translation's own section heading, given the line it was written to have. */
 /* em, not rem: these sit inside the passage, so they answer to its own text-size dial. */
+/* `--ink`, not a literal white: this heading sits on `--card`, which turns over with the palette,
+   so a fixed near-white would be a black-on-black label the moment anyone chooses Light. At
+   `--ink-faint` it was 4.95:1 in dark — quieter than the 6.3:1 body it is meant to head, which is
+   backwards for a heading. Full ink puts it at 12.5:1 and above the text it introduces. */
 .context-heading {
   display: block; margin: 1.1em 0 0.35em;
   font-family: var(--font-label); font-size: 0.66em; font-weight: 700;
-  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint);
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink);
   line-height: 1.3;
 }
 .context-passage > .context-heading:first-child { margin-top: 0; }
