@@ -2006,11 +2006,30 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 /* The tint used to be a hard-edged 1080px column down the middle of the page, because the
    band itself was inside the reading wrapper. The band is now full width and the wrapper
    moved in to .view, which also takes ~40px off the stacked padding above every section. */
+/* The tint had two jobs and was doing neither. It was 4%% — sampled off the painted page, a
+   6-unit step out of 255 — and it faded to *fully* transparent by 520px, so on a section 3,500
+   to 12,300px tall it was a wash under the heading and nothing at all under the other 90%% of
+   the reading. Two sections met as identical paper with a dashed rule between them.
+
+   So: a head strong enough to announce the change, and a floor that does not go away, because
+   the floor is what makes a section feel like one place while you are inside it. The step a
+   reader actually crosses is the previous section's floor against the next one's head — two
+   different colours now, not one colour against bare paper.
+
+   The head is 15%% but spent in 260px, not 560px, and that is a contrast decision rather than a
+   taste one. Body copy is `--ink-soft`, which starts at 5.52:1 on Light's bare paper, and a 14%%
+   tint held under it took that to 4.51:1 — measured off the painted page, not computed. 200px is
+   the section's top padding, its eyebrow and its heading, all of which are `--ink` at 13:1 and
+   can carry a strong wash; measured, the first paragraph of every section begins at 205px or
+   lower — and lower still at narrow widths, where the heading wraps — so the prose always lands
+   on the 5%% floor. */
 .section-block {
   padding: clamp(40px, 5.5vw, 76px) 0;
   border-bottom: 2px dashed var(--line-soft);
   scroll-margin-top: 128px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--section-c, var(--thread)) 4%, transparent), transparent min(520px, 32vw));
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--section-c, var(--thread)) 15%, transparent),
+    color-mix(in srgb, var(--section-c, var(--thread)) 5%, transparent) 200px);
 }
 .section-block:last-of-type {
   border-bottom: none;
