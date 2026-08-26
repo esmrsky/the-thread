@@ -2,7 +2,7 @@
 // audit harness — drives real headless Chrome over CDP. No npm deps (Node ≥ 22 for built-in WebSocket).
 //
 //   node harness.mjs shots   <url> [--widths 375,1024,1280] [--themes light,dark] [--at sections|0,800,1600] [--out dir] [--reduced-motion]
-//   node harness.mjs eval    <url> [--width 1280] [--theme light] --js "<expression>"      (prints JSON)
+//   node harness.mjs eval    <url> [--width 1280] [--height 800] [--theme light] --js "<expression>"   (prints JSON)
 //   node harness.mjs paths   <url> --paths paths.json [--out dir] [--only name]           (runs interaction paths, prints pass/fail)
 //
 // Common flags: --wait ms (settle after load, default 3000)  --chrome /path/to/chrome  --mobile (touch + UA when width<700, default)
@@ -92,7 +92,7 @@ const heightFor = w => (w < 700 ? 812 : w < 1100 ? 768 : 800);
 // ---------- commands ----------
 if (cmd === 'eval') {
   const b = await launch();
-  try { const p = await openPage(b, { width: +flag('width', 1280), height: heightFor(+flag('width', 1280)), theme: flag('theme', 'light'), reduced: has('reduced-motion') }); await p.nav(url); const v = await p.ev(flag('js', 'document.title')); console.log(JSON.stringify(v, null, 1)); if (p.log.console.length || p.log.failed.length) console.error('console/network:', JSON.stringify({ console: p.log.console, failed: p.log.failed }, null, 1)); }
+  try { const p = await openPage(b, { width: +flag('width', 1280), height: +flag('height', heightFor(+flag('width', 1280))), theme: flag('theme', 'light'), reduced: has('reduced-motion') }); await p.nav(url); const v = await p.ev(flag('js', 'document.title')); console.log(JSON.stringify(v, null, 1)); if (p.log.console.length || p.log.failed.length) console.error('console/network:', JSON.stringify({ console: p.log.console, failed: p.log.failed }, null, 1)); }
   finally { b.close(); }
 }
 
@@ -131,7 +131,7 @@ if (cmd === 'paths') {
       if (only && path.name !== only) continue;
       const cfg = { ...(spec.defaults || {}), ...path };
       const width = cfg.width || 1280;
-      const p = await openPage(b, { width, height: heightFor(width), theme: cfg.theme || 'light', reduced: !!cfg.reducedMotion });
+      const p = await openPage(b, { width, height: cfg.height || heightFor(width), theme: cfg.theme || 'light', reduced: !!cfg.reducedMotion });
       const res = { name: path.name, width, theme: cfg.theme || 'light', asserts: [], errors: [], notes: [], shots: [] };
       try {
         await p.nav(cfg.url || url);

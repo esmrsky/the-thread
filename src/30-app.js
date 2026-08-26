@@ -1791,10 +1791,13 @@ function setContextPref(which, value, instant) {
 
 /* The same ladder the site-wide stepper walks, on the same +/- control, but written as a
    multiplier on the dialog rather than on :root — so it moves the passage and nothing else. */
-function setContextTextSize(index) {
+function setContextTextSize(index, transient) {
   const i = Math.max(0, Math.min(FS_STEPS.length - 1, isNaN(index) ? parseInt(PREFS.ctxFs.def, 10) : index));
   currentCtxFsIndex = i;
-  lsSet(PREFS.ctxFs.key, String(i));
+  /* "Even more context" spends a step of this ladder without being asked to, and a step nobody
+     chose has no business rewriting the size the reader did choose — it lasts as long as the
+     passage it was spent on and the next one opens where they left it. */
+  if (!transient) lsSet(PREFS.ctxFs.key, String(i));
   document.querySelectorAll('.context-prefs .ctx-fs-val').forEach(el => {
     el.textContent = Math.round(FS_STEPS[i] * 100) + '%';
   });
@@ -1820,6 +1823,12 @@ function resetPrefs(scope) {
     if (contextDialogEl && contextDialogEl.open &&
         (parseInt(contextDialogEl.dataset.radius, 10) || CONTEXT_RADIUS) !== CONTEXT_RADIUS) {
       contextDialogEl.dataset.radius = String(CONTEXT_RADIUS);
+      /* Back to nine verses either side is back to having somewhere to widen into, and back to
+         a type step that has not been spent yet. */
+      contextTypeGiven = false;
+      const more = contextDialogEl.querySelector('.context-more-button');
+      more.classList.remove('is-done');
+      more.disabled = false;
       refreshVerseContext(true);
     }
     return;
@@ -2106,6 +2115,11 @@ let tooltipRef = '';
 /* The dialog holds a fixed share of the screen rather than shrinking to fit, so four verses
    either side left most of it empty. Nine fills it, and more context is the whole point. */
 const CONTEXT_RADIUS = 9;
+/* Type is the other lever on how much of a chapter is on screen, and the only one that costs no
+   round trip: one step down the ladder shows about two more verses of what is already loaded,
+   and font-size is an interpolable number, so it eases where a fetch can only arrive. Spent once
+   per opening — after that "even more context" means what it says and goes and gets more. */
+let contextTypeGiven = false;
 let contextDialogEl = null;
 let contextRequestId = 0;
 let contextVersionPicker = null;
@@ -2525,8 +2539,21 @@ function initTooltip() {
 
   contextDialogEl.querySelector('.context-dialog-close').addEventListener('click', () => contextDialogEl.close());
   contextDialogEl.querySelector('.context-more-button').addEventListener('click', () => {
+    const body = contextDialogEl.querySelector('.context-dialog-body');
     contextDialogEl.dataset.radius = String((parseInt(contextDialogEl.dataset.radius, 10) || CONTEXT_RADIUS) + 8);
-    refreshVerseContext(true);
+    /* Ordered so the fetch reads the anchor first, off a passage nothing has touched yet — the
+       type step below and the pin agree on where the verse is only while that is still true. */
+    refreshVerseContext(true, true);
+    /* The first press spends a step of the type ladder as well as sending for more verses, and
+       it is the half that answers immediately: a fetch can only arrive, but font-size is an
+       interpolable number, so the passage contracts under the eye the moment the button is
+       pressed and a good two verses more of what is already loaded come up from under the fold
+       while the new ones are still in flight. One step, once — the box has to keep filling. */
+    if (!contextTypeGiven && currentCtxFsIndex > 0) {
+      contextTypeGiven = true;
+      pinContextSelection(body, REDUCED_MOTION ? 0 : 340);
+      setContextTextSize(currentCtxFsIndex - 1, true);
+    }
   });
   contextDialogEl.addEventListener('close', () => {
     if (contextVersionPicker) contextVersionPicker.close();
@@ -2630,7 +2657,52 @@ function hideTooltip(force) {
   }, HOVER_CAPABLE ? 60 : 200);
 }
 
-function refreshVerseContext(preserveSelection) {
+/* A reading surface must not move under the eye. Both levers — more verses, smaller type —
+   change where every line of the passage sits, so the verse the reader came for is held on the
+   pixel it was already on while the chapter grows around it. One correction after the fact is
+   not enough: the type eases over a fifth of a second and the offsets move on every frame of
+   it, so the hold runs for as long as the change does. `top` is viewport-relative on purpose —
+   offsetTop is measured against a paragraph that is itself being replaced. */
+function pinContextSelection(body, ms, targetTop) {
+  const find = () => body.querySelector('.is-selected');
+  const anchor = find();
+  if (targetTop === undefined) {
+    if (!anchor) return;
+    targetTop = anchor.getBoundingClientRect().top;
+  }
+  const end = performance.now() + ms;
+  const hold = () => {
+    const el = find();
+    if (el) {
+      const drift = el.getBoundingClientRect().top - targetTop;
+      if (Math.abs(drift) > 0.5) body.scrollTop += drift;
+    }
+    if (performance.now() < end) requestAnimationFrame(hold);
+  };
+  requestAnimationFrame(hold);
+}
+
+/* Which verse numbers were on screen before the widening; anything else is what just arrived. */
+function contextVerseKeys(body) {
+  const keys = new Set();
+  body.querySelectorAll('.context-verse-number').forEach(el => keys.add(el.textContent.trim()));
+  return keys;
+}
+
+function markNewContextVerses(body, seen) {
+  if (REDUCED_MOTION) return;
+  let numbered = false;
+  body.querySelectorAll('.context-verse').forEach(el => {
+    numbered = true;
+    const sup = el.querySelector('.context-verse-number');
+    if (sup && !seen.has(sup.textContent.trim())) el.classList.add('is-new');
+  });
+  /* TPT arrives as three blocks — before, selected, after — rewritten whole on every widening,
+     with no verse numbers to compare. The two that are not the selection are what grew. */
+  if (!numbered) body.querySelectorAll('.context-block:not(.is-selected)').forEach(el => el.classList.add('is-new'));
+}
+
+function refreshVerseContext(preserveSelection, grow) {
   if (!contextDialogEl) return;
   const ref = contextDialogEl.dataset.ref;
   const version = contextDialogEl.dataset.version || getVersion();
@@ -2640,10 +2712,17 @@ function refreshVerseContext(preserveSelection) {
   const body = contextDialogEl.querySelector('.context-dialog-body');
   const moreButton = contextDialogEl.querySelector('.context-more-button');
   const selectedBefore = preserveSelection && body.querySelector('.is-selected');
-  const selectedOffsetBefore = selectedBefore ? selectedBefore.offsetTop : 0;
-  const scrollBefore = body.scrollTop;
+  const selectedTopBefore = selectedBefore ? selectedBefore.getBoundingClientRect().top : 0;
+  const seenBefore = grow ? contextVerseKeys(body) : null;
+  const lengthBefore = grow ? body.textContent.length : 0;
   if (!preserveSelection) body.innerHTML = '<p class="context-loading">Loading surrounding verses…</p>';
-  else { body.style.minHeight = body.offsetHeight + 'px'; body.classList.add('is-refreshing'); }
+  else {
+    body.style.minHeight = body.offsetHeight + 'px';
+    /* Dimming the whole passage is right for a change of translation, where every word is
+       replaced. On a widening it is wrong: most of what is on screen is staying exactly as it
+       is, and dimming it and bringing it back reads as a flash across text nobody touched. */
+    if (!grow) body.classList.add('is-refreshing');
+  }
   moreButton.disabled = true;
   moreButton.textContent = preserveSelection ? 'Loading more…' : 'Even more context';
 
@@ -2652,12 +2731,17 @@ function refreshVerseContext(preserveSelection) {
     body.classList.remove('is-refreshing');
     setHTML(body, html);
     requestAnimationFrame(() => { body.style.minHeight = ''; });
-    if (preserveSelection) {
-      const selectedAfter = body.querySelector('.is-selected');
-      if (selectedAfter) body.scrollTop = scrollBefore + selectedAfter.offsetTop - selectedOffsetBefore;
-    }
+    if (grow) markNewContextVerses(body, seenBefore);
+    if (selectedBefore) pinContextSelection(body, REDUCED_MOTION ? 0 : 460, selectedTopBefore);
     moreButton.disabled = false;
     moreButton.textContent = 'Even more context';
+    /* Past the last verse of a book there is nothing to widen into, and asking again used to
+       re-fetch the identical passage for as long as anyone kept pressing. */
+    if (grow && body.textContent.length <= lengthBefore) {
+      moreButton.disabled = true;
+      moreButton.classList.add('is-done');
+      moreButton.textContent = 'That\u2019s all of it';
+    }
   }).catch(() => {
     if (requestId !== contextRequestId) return;
     body.classList.remove('is-refreshing');
@@ -2674,6 +2758,14 @@ function openVerseContext(ref, version) {
   contextDialogEl.dataset.ref = ref;
   contextDialogEl.dataset.version = version;
   contextDialogEl.dataset.radius = String(CONTEXT_RADIUS);
+  if (contextTypeGiven) {
+    const saved = parseInt(lsGet(PREFS.ctxFs.key), 10);
+    setContextTextSize(saved >= 0 && saved < FS_STEPS.length ? saved : parseInt(PREFS.ctxFs.def, 10), true);
+  }
+  contextTypeGiven = false;
+  const moreButton = contextDialogEl.querySelector('.context-more-button');
+  moreButton.classList.remove('is-done');
+  moreButton.disabled = false;
   contextDialogEl.querySelector('h3').textContent = formatReferenceTitle(ref);
   applyVersion(version);
   const body = contextDialogEl.querySelector('.context-dialog-body');

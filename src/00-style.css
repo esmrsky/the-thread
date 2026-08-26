@@ -2072,7 +2072,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
    can simply be transitioned. The type grows and the lines open up under the eye. */
 .verse-context-dialog .context-passage {
   line-height: var(--lh);
-  font-size: calc(1rem * var(--ctx-fs));
+  font-size: calc(var(--ctx-base) * var(--ctx-fs));
   transition: font-size 0.22s cubic-bezier(.2, .7, .3, 1), line-height 0.22s cubic-bezier(.2, .7, .3, 1);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2083,6 +2083,14 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 
 .verse-context-dialog {
   width: min(1180px, calc(100% - 40px));
+  /* The box grows with the screen; the type used to sit at a flat 16px inside it, so a passage
+     that filled a laptop left a third of a large monitor empty and ran to 142 characters a line
+     — about double a comfortable measure. The type now answers to the same two dimensions the
+     box does: width, because that is the line it has to fill, and height, because that is what
+     it has to reach. Both floors are hit well before phone size, so a phone still reads at 1rem
+     and a URL bar sliding away moves nothing. Sized so a nine-verse-either-side passage lands
+     just under the fold at 1280x800 and again at 1920x1080. */
+  --ctx-base: clamp(1rem, 0.42rem + 0.45vw + 0.55dvh, 1.28rem);
   /* One height, always. It used to be sized to its passage between a floor and a ceiling, which
      meant every dial in the reading settings resized the window: Roomy made the passage taller,
      the dialog grew into its ceiling, and — being centred — the whole thing slid up the screen
@@ -2304,6 +2312,17 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 .context-more-button:hover { background: color-mix(in srgb, var(--thread) 13%, var(--card)); }
 .context-more-button:disabled { cursor: wait; opacity: .58; }
+/* Asking again at the end of a book used to re-fetch the same verses forever, because there are
+   none past them. The button says so and stops, and it is not waiting for anything. */
+.context-more-button.is-done { cursor: default; color: var(--ink-faint); border-color: var(--line); background: var(--card-2); }
+.context-more-button.is-done:disabled { cursor: default; opacity: 1; }
+/* Only the verses that were not there a moment ago fade in. The passage used to dim whole and
+   come back, which reads as a flash on a widening where most of the text has not changed — and
+   these are inline spans, so opacity is the only thing that can move without breaking the flow. */
+@media (prefers-reduced-motion: no-preference) {
+  .context-passage .is-new { animation: ctx-grow 0.4s cubic-bezier(.2, .7, .3, 1) both; }
+  @keyframes ctx-grow { from { opacity: 0; } to { opacity: 1; } }
+}
 
 /* ================= PREVIEW CARD & THREAD HOVER STYLES ================= */
 
