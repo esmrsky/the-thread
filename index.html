@@ -2146,7 +2146,12 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
    title column refuses to shrink and pushes the translation picker off the header. The badge sits
    on the heading's baseline where there is room and drops to its own line where there is not. */
 .context-dialog-title { min-width: 0; }
-.context-dialog-ref { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
+/* Centred, not baseline-aligned. Sharing a baseline is right for two runs of text at similar
+   sizes; here the badge is a bordered pill at 0.64rem beside a heading at up to 1.7rem, so
+   matching baselines hung the whole pill 8.8px below the heading's cap-height middle and it read
+   as having slipped. Measured, the heading's line-box centre and its cap centre are 0.6px apart,
+   so plain centring is also the optical answer. */
+.context-dialog-ref { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
 .context-range {
   flex: 0 0 auto;
   padding: 3px 10px;
@@ -2550,7 +2555,10 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   display: flex; align-items: stretch;
   margin-top: auto; padding-top: 16px;
 }
-.preview-foot .preview-more { margin-top: 0; padding-top: 0; }
+/* Nothing left to cancel: `.preview-more` was an inline link that carried `margin-top: auto` and
+   `padding-top: 16px` to push itself to the foot of the column, and this undid both when the foot
+   took that job over. As a button with real padding, the surviving `padding-top: 0` was landing
+   *after* the base rule and flattening the top of it — 12px of room above the words and 22 below. */
 
 /* Two circles, directly under the name.
 
