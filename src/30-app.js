@@ -2293,7 +2293,17 @@ async function fetchTptPassage(passage) {
    other TPT failure falls back the same way, with a line saying so. */
 const TPT_MISSING_BOOKS = [2, 3, 4, 5];
 const TPT_FALLBACK_VERSION = 'NIV';
-const TPT_FALLBACK_NOTE = '<span class="verse-fallback-note">TPT does not carry this book — showing ' + TPT_FALLBACK_VERSION + '.</span>';
+
+/* Two different things went wrong and they used to be reported as one. A book TPT has never
+   carried is permanent and worth naming — the reader can stop asking for it there. A request
+   that failed is this minute's problem and might not be the next. Telling someone Exodus is
+   missing from TPT when TPT was simply down is a plain untruth. */
+function tptFallbackNote(parsed, reason) {
+  const book = (parsed && BOOK_FULL_BY_ID[parsed.bookId]) || 'this book';
+  return reason === 'missing'
+    ? 'TPT does not carry ' + book + ' — showing ' + TPT_FALLBACK_VERSION
+    : 'TPT is unavailable right now — showing ' + TPT_FALLBACK_VERSION;
+}
 
 function tptCoversBook(ref) {
   const parsed = parseReference(ref);
@@ -2302,12 +2312,17 @@ function tptCoversBook(ref) {
 
 async function loadVerseText(ref, version) {
   if (version !== 'TPT') return fetchFromBolls(ref, version);
+  const parsed = parseReference(ref);
+  const note = reason => '<span class="verse-fallback-note">' +
+    escapeScriptureText(tptFallbackNote(parsed, reason)) + '.</span>';
   if (tptCoversBook(ref)) {
     try {
       return await fetchTptFromYouVersion(ref);
-    } catch (e) { /* fall through to the NIV fallback */ }
+    } catch (e) {
+      return (await fetchFromBolls(ref, TPT_FALLBACK_VERSION)) + '\n' + note('down');
+    }
   }
-  return (await fetchFromBolls(ref, TPT_FALLBACK_VERSION)) + '\n' + TPT_FALLBACK_NOTE;
+  return (await fetchFromBolls(ref, TPT_FALLBACK_VERSION)) + '\n' + note('missing');
 }
 
 async function fetchFromBolls(ref, version) {
@@ -2358,16 +2373,21 @@ async function loadVerseContext(ref, version, radius) {
   const parsed = parseReference(ref);
   if (!parsed) throw new Error('Reference not recognized.');
   if (version !== 'TPT') return loadBollsContext(parsed, version, radius);
+  /* The note travels on the passage rather than after it. Appended as a last paragraph it was
+     measured 99px under the fold of a scrolling box, so a reader who asked for TPT and got NIV
+     saw a TPT pill in a header that never scrolls and a passage that was not TPT, and the one
+     line saying so was at the far end of a chapter. It belongs beside the translation. */
   if (TPT_MISSING_BOOKS.indexOf(parsed.bookId) === -1) {
     try {
       return await loadTptContext(parsed, radius);
-    } catch (e) { /* fall through to the NIV fallback */ }
+    } catch (e) {
+      return loadBollsContext(parsed, TPT_FALLBACK_VERSION, radius, tptFallbackNote(parsed, 'down'));
+    }
   }
-  return (await loadBollsContext(parsed, TPT_FALLBACK_VERSION, radius)) +
-    '<p class="context-fallback-note">' + TPT_FALLBACK_NOTE + '</p>';
+  return loadBollsContext(parsed, TPT_FALLBACK_VERSION, radius, tptFallbackNote(parsed, 'missing'));
 }
 
-async function loadBollsContext(parsed, version, radius) {
+async function loadBollsContext(parsed, version, radius, fallbackNote) {
   const verses = await getBollsChapter(version, parsed.bookId, parsed.chapter);
   if (!verses || !verses.length) throw new Error('Verse not found.');
   const selectedStart = parsed.verseStart === null ? 1 : parsed.verseStart;
@@ -2406,7 +2426,9 @@ async function loadBollsContext(parsed, version, radius) {
     (last.chapter !== first.chapter ? '\u2013' + last.chapter + ':' + last.verse
       : last.verse !== first.verse ? '\u2013' + last.verse : '');
 
-  return '<p class="context-passage" data-range="' + escapeScriptureText(range) + '">' + rows.map(v => {
+  return '<p class="context-passage" data-range="' + escapeScriptureText(range) + '"' +
+    (fallbackNote ? ' data-fallback="' + escapeScriptureText(fallbackNote) + '"' : '') +
+    '>' + rows.map(v => {
     const selected = v.chapter === parsed.chapter && v.verse >= selectedStart && v.verse <= selectedEnd;
     const parts = splitHeading(cleanBollsText(v.text));
     const num = v.chapter === parsed.chapter ? String(v.verse) : v.chapter + ':' + v.verse;
@@ -2455,7 +2477,8 @@ function initTooltip() {
   contextDialogEl.innerHTML =
     '<div class="context-dialog-inner">' +
     '  <header class="context-dialog-head"><div class="context-dialog-title"><span class="label">See in context</span>' +
-    '  <div class="context-dialog-ref"><h3></h3><span class="context-range" hidden></span></div></div>' +
+    '  <div class="context-dialog-ref"><h3></h3><span class="context-range" hidden></span>' +
+    '  <span class="context-fallback" hidden></span></div></div>' +
     '  <div class="context-dialog-actions"><div class="verpick context-verpick">' +
     '    <button class="verpick-btn" type="button" aria-haspopup="listbox" aria-expanded="false" title="Bible translation">' +
     '      <svg class="verpick-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C10 4.4 7 4.1 4 4.6V19c3-.5 6-.2 8 1.6 2-1.8 5-2.1 8-1.6V4.6c-3-.5-6-.2-8 1.6z"/><path d="M12 6.2v14.4"/></svg>' +
@@ -2767,6 +2790,13 @@ function setContextRange(badge, range) {
   badge.hidden = !range;
 }
 
+/* Said in the header, where the translation is named, because that is the claim it corrects. */
+function setContextFallback(badge, note) {
+  if (!badge) return;
+  badge.textContent = note || '';
+  badge.hidden = !note;
+}
+
 function refreshVerseContext(preserveSelection, grow) {
   if (!contextDialogEl) return;
   const ref = contextDialogEl.dataset.ref;
@@ -2777,13 +2807,14 @@ function refreshVerseContext(preserveSelection, grow) {
   const body = contextDialogEl.querySelector('.context-dialog-body');
   const moreButton = contextDialogEl.querySelector('.context-more-button');
   const rangeBadge = contextDialogEl.querySelector('.context-range');
+  const fallbackBadge = contextDialogEl.querySelector('.context-fallback');
   const selectedBefore = preserveSelection && body.querySelector('.is-selected');
   const selectedTopBefore = selectedBefore ? selectedBefore.getBoundingClientRect().top : 0;
   const seenBefore = grow ? contextVerseKeys(body) : null;
   const lengthBefore = grow ? body.textContent.length : 0;
   /* A widening keeps the badge it has until the wider passage lands, because it is still true.
      A fresh reference has nothing to say yet. */
-  if (!preserveSelection) setContextRange(rangeBadge, '');
+  if (!preserveSelection) { setContextRange(rangeBadge, ''); setContextFallback(fallbackBadge, ''); }
   if (!preserveSelection) body.innerHTML = '<p class="context-loading">Loading surrounding verses…</p>';
   else {
     body.style.minHeight = body.offsetHeight + 'px';
@@ -2802,6 +2833,7 @@ function refreshVerseContext(preserveSelection, grow) {
     requestAnimationFrame(() => { body.style.minHeight = ''; });
     const passage = body.querySelector('.context-passage');
     setContextRange(rangeBadge, passage ? passage.dataset.range : '');
+    setContextFallback(fallbackBadge, passage ? passage.dataset.fallback : '');
     if (grow) markNewContextVerses(body, seenBefore);
     if (selectedBefore) pinContextSelection(body, REDUCED_MOTION ? 0 : 460, selectedTopBefore);
     moreButton.disabled = false;
@@ -2818,6 +2850,7 @@ function refreshVerseContext(preserveSelection, grow) {
     body.classList.remove('is-refreshing');
     body.style.minHeight = '';
     setContextRange(rangeBadge, '');
+    setContextFallback(fallbackBadge, '');
     body.innerHTML = '<p>Unable to load the surrounding verses right now.</p>';
     moreButton.disabled = false;
     moreButton.textContent = 'Even more context';

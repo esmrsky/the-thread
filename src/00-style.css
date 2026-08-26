@@ -2156,6 +2156,29 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   white-space: nowrap;
 }
 .context-range[hidden] { display: none; }
+/* Gold, not the accent: `--thread` in this header already means the highlighted verse and the
+   "See in context" label, and a third red thing beside them would read as part of that rather
+   than as a correction to the translation named two inches to the right. Wraps to its own line
+   on its own — the row it sits in is `flex-wrap: wrap` — so it never squeezes the picker. */
+.context-fallback {
+  flex: 0 1 auto;
+  padding: 3px 10px;
+  border: 1px solid color-mix(in srgb, var(--gold) 42%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 12%, var(--card));
+  /* Mixed toward `--ink`, not `--gold` neat: gold on a gold-tinted pill measured 3.3:1 in Light
+     and 3.96:1 in Warm — under AA at 10px of uppercase. The mix darkens in the light palettes
+     and lightens in the dark one, because `--ink` turns over with them, so one declaration
+     clears AA in all three (5.58 / 6.16 / 7.33) and still reads gold. */
+  color: color-mix(in srgb, var(--gold) 60%, var(--ink));
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.context-fallback[hidden] { display: none; }
 .context-dialog-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .context-verpick { z-index: 3; }
 /* Both header menus hang from a header that sits near the top of a dialog which is itself
@@ -2280,7 +2303,6 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
    uneven, and the highlight broke into a separate underlined pill per fragment. The
    passage is one flowing paragraph; the breaks are stripped where the text is built. */
 .context-passage { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: var(--lh); }
-.context-fallback-note { margin: 12px 0 0; }
 /* A translation's own section heading, given the line it was written to have. */
 /* em, not rem: these sit inside the passage, so they answer to its own text-size dial. */
 /* `--ink`, not a literal white: this heading sits on `--card`, which turns over with the palette,
@@ -2359,7 +2381,10 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 /* Compound selector, never a bare `.is-on` — the estate's one immunity pattern against a later
    variant clobbering the base declaration it was meant to vary. */
 .ctx-shows button[aria-pressed="true"] {
-  color: var(--thread);
+  /* Same mix, same reason as the fallback badge: `--thread` neat on a `--thread`-tinted pill is
+     4.1:1 in Dark. `--ink` turns over with the palette, so mixing toward it lifts this in Dark
+     and deepens it in the light two from one declaration. */
+  color: color-mix(in srgb, var(--thread) 75%, var(--ink));
   border-color: color-mix(in srgb, var(--thread) 38%, var(--line));
   background: color-mix(in srgb, var(--thread) 10%, var(--card));
 }
@@ -2370,7 +2395,7 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   border: 1px solid color-mix(in srgb, var(--thread) 38%, var(--line));
   border-radius: 999px;
   padding: 8px 14px;
-  color: var(--thread);
+  color: color-mix(in srgb, var(--thread) 75%, var(--ink));
   background: color-mix(in srgb, var(--thread) 8%, var(--card));
   font-family: var(--font-label);
   font-size: 0.65rem;
