@@ -1504,6 +1504,12 @@ const PREFS = {
   ctxType: { key: 'thread-ctx-type', def: 'literata' },
   ctxLh: { key: 'thread-ctx-lh', def: 'normal' },
   ctxFs: { key: 'thread-ctx-fs', def: '2' },
+  /* Off by default: a verse number every twenty words and a publisher's section heading every
+     few verses are apparatus, and the passage is easier to read as the prose it is. Both are
+     one press away, and the CSS hides them on the attribute being absent rather than on it
+     being "off", so nothing flashes on screen before this is read back. */
+  ctxNums: { key: 'thread-ctx-nums', def: 'off' },
+  ctxHeads: { key: 'thread-ctx-heads', def: 'off' },
   theme: { key: 'thread-theme', def: 'light' },
   type: { key: 'thread-type', def: 'literata' },
   lh: { key: 'thread-lh', def: 'normal' },
@@ -1817,6 +1823,8 @@ function resetPrefs(scope) {
     setContextPref('type', PREFS.ctxType.def);
     setContextPref('lh', PREFS.ctxLh.def);
     setContextTextSize(parseInt(PREFS.ctxFs.def, 10));
+    setContextShow('nums', PREFS.ctxNums.def === 'on');
+    setContextShow('heads', PREFS.ctxHeads.def === 'on');
     /* "Even more context" is a reading setting too — it is how much of the chapter is on
        screen — so a reset that left the passage eight verses long either side was resetting
        everything except the most visible thing the reader had changed. */
@@ -1917,7 +1925,28 @@ function readingPanelHtml() {
     '<span class="stepper-val ctx-fs-val">100%</span>' +
     '<button type="button" data-step="1" aria-label="Larger passage text"><span class="sz-op" aria-hidden="true">+</span></button>' +
     '</div>' +
+    contextShowsHtml() +
     '<div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="ctx">Reset</button></div>';
+}
+
+/* One element, moved rather than duplicated — beside "Even more context" on a desktop footer
+   that has room for it, and inside the settings panel on a phone where the footer is already
+   three controls wide. `data-show` rather than the panel's `data-pref`/`data-v` on purpose:
+   these are two independent switches, not one choice out of a set, and the shape keeps them
+   out of the panel's single-select handler while it is sitting inside it. */
+function contextShowsHtml() {
+  return '<div class="ctx-shows"><span class="prefs-head">Show in the passage</span>' +
+    '<button type="button" data-show="nums" aria-pressed="false">Verse numbers</button>' +
+    '<button type="button" data-show="heads" aria-pressed="false">Headings</button>' +
+    '</div>';
+}
+
+function setContextShow(which, on) {
+  const pref = which === 'nums' ? PREFS.ctxNums : PREFS.ctxHeads;
+  lsSet(pref.key, on ? 'on' : 'off');
+  if (contextDialogEl) contextDialogEl.dataset[which] = on ? 'on' : 'off';
+  document.querySelectorAll('.ctx-shows button[data-show="' + which + '"]').forEach(b =>
+    b.setAttribute('aria-pressed', String(on)));
 }
 
 /* The topbar panel and the one in the passage dialog are the same panel twice: the same
@@ -2367,7 +2396,17 @@ async function loadBollsContext(parsed, version, radius) {
     }
   }
 
-  return '<p class="context-passage">' + rows.map(v => {
+  /* What is actually on screen is not what was asked for: a radius is clipped by the start of
+     Genesis and the end of Revelation, and widened past a chapter edge it reaches into the
+     neighbouring one. So the range is read off the rows that were built, after every splice,
+     and rides on the passage itself — the one element that cannot disagree with it. */
+  const first = rows[0], last = rows[rows.length - 1];
+  const book = BOOK_FULL_BY_ID[parsed.bookId] || '';
+  const range = !first ? '' : book + ' ' + first.chapter + ':' + first.verse +
+    (last.chapter !== first.chapter ? '\u2013' + last.chapter + ':' + last.verse
+      : last.verse !== first.verse ? '\u2013' + last.verse : '');
+
+  return '<p class="context-passage" data-range="' + escapeScriptureText(range) + '">' + rows.map(v => {
     const selected = v.chapter === parsed.chapter && v.verse >= selectedStart && v.verse <= selectedEnd;
     const parts = splitHeading(cleanBollsText(v.text));
     const num = v.chapter === parsed.chapter ? String(v.verse) : v.chapter + ':' + v.verse;
@@ -2415,7 +2454,8 @@ function initTooltip() {
   contextDialogEl.tabIndex = -1;
   contextDialogEl.innerHTML =
     '<div class="context-dialog-inner">' +
-    '  <header class="context-dialog-head"><div><span class="label">See in context</span><h3></h3></div>' +
+    '  <header class="context-dialog-head"><div class="context-dialog-title"><span class="label">See in context</span>' +
+    '  <div class="context-dialog-ref"><h3></h3><span class="context-range" hidden></span></div></div>' +
     '  <div class="context-dialog-actions"><div class="verpick context-verpick">' +
     '    <button class="verpick-btn" type="button" aria-haspopup="listbox" aria-expanded="false" title="Bible translation">' +
     '      <svg class="verpick-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C10 4.4 7 4.1 4 4.6V19c3-.5 6-.2 8 1.6 2-1.8 5-2.1 8-1.6V4.6c-3-.5-6-.2-8 1.6z"/><path d="M12 6.2v14.4"/></svg>' +
@@ -2446,6 +2486,16 @@ function initTooltip() {
   setContextPref('lh', lsGet(PREFS.ctxLh.key) || PREFS.ctxLh.def, true);
   const ctxFsSaved = parseInt(lsGet(PREFS.ctxFs.key), 10);
   setContextTextSize(ctxFsSaved >= 0 && ctxFsSaved < FS_STEPS.length ? ctxFsSaved : parseInt(PREFS.ctxFs.def, 10));
+  setContextShow('nums', (lsGet(PREFS.ctxNums.key) || PREFS.ctxNums.def) === 'on');
+  setContextShow('heads', (lsGet(PREFS.ctxHeads.key) || PREFS.ctxHeads.def) === 'on');
+  /* Listener on the group, not on the panel: the group is moved between the footer and the
+     panel at 720px and the presses have to keep working in both homes. */
+  contextDialogEl.querySelector('.ctx-shows').addEventListener('click', ev => {
+    const b = ev.target.closest('button[data-show]');
+    if (!b) return;
+    ev.stopPropagation();
+    setContextShow(b.dataset.show, b.getAttribute('aria-pressed') !== 'true');
+  });
 
   /* On a pointing device the pop-up is inert — CSS gives it pointer-events: none — so there is
      nothing to keep alive and, more to the point, nothing standing between one reference and
@@ -2521,13 +2571,17 @@ function initTooltip() {
   const ctxMore = contextDialogEl.querySelector('.context-more-button');
   const ctxPrefsWrap = contextDialogEl.querySelector('.context-prefs');
   const ctxClose = contextDialogEl.querySelector('.context-dialog-close');
+  const ctxShows = contextDialogEl.querySelector('.ctx-shows');
+  const ctxPrefsMenu = ctxPrefsWrap.querySelector('.prefs-menu');
   const placeContextControls = () => {
     if (ctxFootMQ.matches) {
       ctxFoot.insertBefore(contextPickerWrap, ctxMore);
       ctxFoot.appendChild(ctxPrefsWrap);
+      ctxPrefsMenu.insertBefore(ctxShows, ctxPrefsMenu.querySelector('.prefs-foot'));
     } else {
       ctxHead.insertBefore(contextPickerWrap, ctxClose);
       ctxHead.insertBefore(ctxPrefsWrap, ctxClose);
+      ctxFoot.appendChild(ctxShows);
     }
   };
   placeContextControls();
@@ -2702,6 +2756,17 @@ function markNewContextVerses(body, seen) {
   if (!numbered) body.querySelectorAll('.context-block:not(.is-selected)').forEach(el => el.classList.add('is-new'));
 }
 
+/* The heading names the verse the reader clicked, and it does not move; this says how much of
+   the chapter is standing behind it, and it moves on every widening. Told apart by weight rather
+   than by colour — the accent in this header already belongs to the highlight in the passage.
+   TPT arrives as three unnumbered blocks with no reliable edges, so it says nothing at all
+   rather than guessing. */
+function setContextRange(badge, range) {
+  if (!badge) return;
+  badge.textContent = range ? 'Showing ' + range : '';
+  badge.hidden = !range;
+}
+
 function refreshVerseContext(preserveSelection, grow) {
   if (!contextDialogEl) return;
   const ref = contextDialogEl.dataset.ref;
@@ -2711,10 +2776,14 @@ function refreshVerseContext(preserveSelection, grow) {
   const requestId = ++contextRequestId;
   const body = contextDialogEl.querySelector('.context-dialog-body');
   const moreButton = contextDialogEl.querySelector('.context-more-button');
+  const rangeBadge = contextDialogEl.querySelector('.context-range');
   const selectedBefore = preserveSelection && body.querySelector('.is-selected');
   const selectedTopBefore = selectedBefore ? selectedBefore.getBoundingClientRect().top : 0;
   const seenBefore = grow ? contextVerseKeys(body) : null;
   const lengthBefore = grow ? body.textContent.length : 0;
+  /* A widening keeps the badge it has until the wider passage lands, because it is still true.
+     A fresh reference has nothing to say yet. */
+  if (!preserveSelection) setContextRange(rangeBadge, '');
   if (!preserveSelection) body.innerHTML = '<p class="context-loading">Loading surrounding verses…</p>';
   else {
     body.style.minHeight = body.offsetHeight + 'px';
@@ -2731,6 +2800,8 @@ function refreshVerseContext(preserveSelection, grow) {
     body.classList.remove('is-refreshing');
     setHTML(body, html);
     requestAnimationFrame(() => { body.style.minHeight = ''; });
+    const passage = body.querySelector('.context-passage');
+    setContextRange(rangeBadge, passage ? passage.dataset.range : '');
     if (grow) markNewContextVerses(body, seenBefore);
     if (selectedBefore) pinContextSelection(body, REDUCED_MOTION ? 0 : 460, selectedTopBefore);
     moreButton.disabled = false;
@@ -2746,6 +2817,7 @@ function refreshVerseContext(preserveSelection, grow) {
     if (requestId !== contextRequestId) return;
     body.classList.remove('is-refreshing');
     body.style.minHeight = '';
+    setContextRange(rangeBadge, '');
     body.innerHTML = '<p>Unable to load the surrounding verses right now.</p>';
     moreButton.disabled = false;
     moreButton.textContent = 'Even more context';

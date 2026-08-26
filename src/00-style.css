@@ -2130,6 +2130,27 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 .context-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 22px 15px; border-bottom: 1px solid var(--line); }
 .context-dialog-head .label { display: block; color: var(--thread); margin-bottom: 4px; }
 .context-dialog-head h3 { font-size: clamp(1.28rem, 3vw, 1.7rem); }
+/* `min-width: 0` because this is a flex child holding a long unbreakable range — without it the
+   title column refuses to shrink and pushes the translation picker off the header. The badge sits
+   on the heading's baseline where there is room and drops to its own line where there is not. */
+.context-dialog-title { min-width: 0; }
+.context-dialog-ref { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
+.context-range {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card-2);
+  color: var(--ink-soft);
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.context-range[hidden] { display: none; }
 .context-dialog-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .context-verpick { z-index: 3; }
 /* Both header menus hang from a header that sits near the top of a dialog which is itself
@@ -2268,6 +2289,10 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   line-height: 1.3;
 }
 .context-passage > .context-heading:first-child { margin-top: 0; }
+/* Keyed on the attribute NOT being "on", so the apparatus is absent from the very first paint
+   rather than shown and then taken away once the stored setting is read back. */
+.verse-context-dialog:not([data-nums="on"]) .context-verse-number { display: none; }
+.verse-context-dialog:not([data-heads="on"]) .context-heading { display: none; }
 .context-verse, .context-block { display: inline; }
 .context-verse + .context-verse::before, .context-block + .context-block::before { content: " "; }
 .context-verse-number { margin-right: 0.3em; color: var(--ink-faint); font-family: var(--font-label); font-size: 0.62em; font-weight: 700; }
@@ -2301,7 +2326,41 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
 }
 
 .context-source { margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--line-soft); color: var(--ink-faint); font-family: var(--font-label); font-size: 0.65rem; line-height: 1.5; }
-.context-dialog-foot { display: flex; justify-content: center; padding: 12px 18px 14px; border-top: 1px solid var(--line); background: var(--card); }
+.context-dialog-foot { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 18px 14px; border-top: 1px solid var(--line); background: var(--card); }
+/* The same group in two homes. In the footer it is a row beside "Even more context" and the
+   label would be noise, since the button it sits next to already says what this is about; in
+   the panel the label is the only thing naming it, and it takes its own line above the pair. */
+.ctx-shows { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+/* Scoped to the panel, NOT hidden-when-in-the-footer: below 720px the whole prefs wrapper is
+   moved *into* the footer, so a `.context-dialog-foot .ctx-shows .prefs-head { display: none }`
+   matched in the panel as well and took the label with it. Say where it shows, not where it
+   doesn't — the ancestor this group hangs from is the thing that moves. */
+.ctx-shows .prefs-head { display: none; }
+.prefs-menu .ctx-shows .prefs-head { display: block; flex: 1 0 100%; margin-bottom: 2px; }
+.ctx-shows button {
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card-2);
+  color: var(--ink-soft);
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+}
+.ctx-shows button:hover { color: var(--ink); border-color: var(--ink-faint); }
+/* Compound selector, never a bare `.is-on` — the estate's one immunity pattern against a later
+   variant clobbering the base declaration it was meant to vary. */
+.ctx-shows button[aria-pressed="true"] {
+  color: var(--thread);
+  border-color: color-mix(in srgb, var(--thread) 38%, var(--line));
+  background: color-mix(in srgb, var(--thread) 10%, var(--card));
+}
+/* The panel is where a thumb reaches these, so that copy gets the touch target; the footer copy
+   sits beside a 31px pill under a cursor and matching it keeps the row level. */
+.prefs-menu .ctx-shows button { min-height: 44px; flex: 1 1 auto; }
 .context-more-button {
   border: 1px solid color-mix(in srgb, var(--thread) 38%, var(--line));
   border-radius: 999px;
