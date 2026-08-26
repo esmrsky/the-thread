@@ -896,12 +896,39 @@ const VIEWS = { start: vStart, pattern: vPattern, threads: vThreads, codes: vCod
 
 let isScrollingNav = false;
 
+/* A deep link scrolls before anything below the fold has been laid out, and the sections in
+   between are `content-visibility: auto` — still standing at their `contain-intrinsic-size`
+   placeholder. The browser lands on an estimate, then the real heights arrive as those sections
+   come into range and the target slides out from under the landing. So: land again on every
+   frame the target is still moving, and stop as soon as it holds still. Bails the moment the
+   reader touches the page — a deep link is the one moment nobody has, but if they do, theirs
+   wins. */
+function settleRoute(el, ms) {
+  let cancelled = false;
+  const stop = () => { cancelled = true; };
+  ['wheel', 'touchstart', 'keydown'].forEach(t => addEventListener(t, stop, { once: true, passive: true }));
+  const end = performance.now() + ms;
+  let last = NaN, stable = 0;
+  const step = () => {
+    if (cancelled) return;
+    const top = Math.round(el.getBoundingClientRect().top);
+    if (top === last) stable++;
+    else { stable = 0; el.scrollIntoView({ behavior: 'auto', block: 'start' }); }
+    last = top;
+    if (stable < 3 && performance.now() < end) requestAnimationFrame(step);
+    else ['wheel', 'touchstart', 'keydown'].forEach(t => removeEventListener(t, stop));
+  };
+  requestAnimationFrame(step);
+}
+
 function route(options) {
   const id = (location.hash.replace('#/', '') || 'start').split('?')[0];
   const sectionEl = document.getElementById(id);
   if (sectionEl) {
     isScrollingNav = true;
-    sectionEl.scrollIntoView({ behavior: options && options.instant ? 'auto' : 'smooth', block: 'start' });
+    const instant = Boolean(options && options.instant);
+    sectionEl.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
+    if (instant) settleRoute(sectionEl, 1200);
     setTimeout(() => { isScrollingNav = false; }, 800);
     updateActiveNav(id);
   }

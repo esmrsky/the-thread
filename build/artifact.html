@@ -259,15 +259,15 @@ body { margin: 0; }
    the same way but keeps its lightness, because lightness is the contrast and the contrast was
    already measured. */
 :root[data-theme="warm"] {
-  --paper: #eedbc9;
-  --paper-deep: #e3cab2;
-  --card: #f7e9db;
-  --card-2: #f1decb;
-  --ink: #312318;
-  --ink-soft: #694e36;
-  --ink-faint: #7b5f46;
-  --line: #d3b9a0;
-  --line-soft: #e1cbb4;
+  --paper: #f0dfc7;
+  --paper-deep: #e6cfaf;
+  --card: #f9ecd9;
+  --card-2: #f3e2c8;
+  --ink: #312518;
+  --ink-soft: #695236;
+  --ink-faint: #7b6446;
+  --line: #d6be9c;
+  --line-soft: #e5cfb0;
   --grat: rgba(74, 52, 32, 0.07);
   --thread: #a8202b;
   --gold: #91661a;
@@ -2033,9 +2033,33 @@ footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: bl
   border-bottom: 2px dashed var(--line-soft);
   scroll-margin-top: 128px;
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--section-c, var(--thread)) 15%, transparent),
-    color-mix(in srgb, var(--section-c, var(--thread)) 5%, transparent) 200px);
+    color-mix(in srgb, var(--section-c, var(--thread)) var(--tint-head), transparent),
+    color-mix(in srgb, var(--section-c, var(--thread)) var(--tint-floor), transparent) 200px);
 }
+
+/* ---------- how much tint, per palette ----------
+   The same percentage is not the same amount of colour. Against Dark's near-black paper a 5%%
+   floor is a large proportional lift and the whole section reads as tinted; against Light's
+   bright paper the identical mix is almost nothing, so only the 200px head showed and the rest
+   of the section fell back to bare paper — a thin band, which is exactly how it looked.
+
+   So the light palettes get more of it. The ceiling is body copy, and it is a low ceiling:
+   `--ink-soft` starts at 5.52:1 on Light's bare paper and every point of floor costs about a
+   tenth of that, so 7%% measured 4.92:1 and 6%% is the most that still holds 5. The head can be far stronger — 22%% — because only the eyebrow
+   and the heading sit inside those 200px, and both are `--ink` at 11:1 or better.
+
+   Dark is deliberately left at what it already had. */
+.section-block { --tint-head: 22%; --tint-floor: 6%; }
+/* The first section is the hero, and `--c-start` is red — on a warm paper that wash read as a
+   pink page rather than as a section colour. It carries no tint in the light palettes; against
+   Dark's near-black it reads as intended and is left alone. */
+#start { --tint-head: 0%; --tint-floor: 0%; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="warm"]) .section-block,
+  :root:not([data-theme="light"]):not([data-theme="warm"]) #start { --tint-head: 15%; --tint-floor: 5%; }
+}
+:root[data-theme="dark"] .section-block,
+:root[data-theme="dark"] #start { --tint-head: 15%; --tint-floor: 5%; }
 .section-block:last-of-type {
   border-bottom: none;
 }
@@ -5540,12 +5564,39 @@ const VIEWS = { start: vStart, pattern: vPattern, threads: vThreads, codes: vCod
 
 let isScrollingNav = false;
 
+/* A deep link scrolls before anything below the fold has been laid out, and the sections in
+   between are `content-visibility: auto` — still standing at their `contain-intrinsic-size`
+   placeholder. The browser lands on an estimate, then the real heights arrive as those sections
+   come into range and the target slides out from under the landing. So: land again on every
+   frame the target is still moving, and stop as soon as it holds still. Bails the moment the
+   reader touches the page — a deep link is the one moment nobody has, but if they do, theirs
+   wins. */
+function settleRoute(el, ms) {
+  let cancelled = false;
+  const stop = () => { cancelled = true; };
+  ['wheel', 'touchstart', 'keydown'].forEach(t => addEventListener(t, stop, { once: true, passive: true }));
+  const end = performance.now() + ms;
+  let last = NaN, stable = 0;
+  const step = () => {
+    if (cancelled) return;
+    const top = Math.round(el.getBoundingClientRect().top);
+    if (top === last) stable++;
+    else { stable = 0; el.scrollIntoView({ behavior: 'auto', block: 'start' }); }
+    last = top;
+    if (stable < 3 && performance.now() < end) requestAnimationFrame(step);
+    else ['wheel', 'touchstart', 'keydown'].forEach(t => removeEventListener(t, stop));
+  };
+  requestAnimationFrame(step);
+}
+
 function route(options) {
   const id = (location.hash.replace('#/', '') || 'start').split('?')[0];
   const sectionEl = document.getElementById(id);
   if (sectionEl) {
     isScrollingNav = true;
-    sectionEl.scrollIntoView({ behavior: options && options.instant ? 'auto' : 'smooth', block: 'start' });
+    const instant = Boolean(options && options.instant);
+    sectionEl.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
+    if (instant) settleRoute(sectionEl, 1200);
     setTimeout(() => { isScrollingNav = false; }, 800);
     updateActiveNav(id);
   }
