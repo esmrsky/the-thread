@@ -87,7 +87,7 @@ const THREADS = [
     tag: 'A crown promised in Eden, tracked through one family tree.',
     way: [
       { ref: 'Gen 3:15', note: 'The first promise in the Bible: her Seed will crush the serpent’s head. One Offspring. Game on.' },
-      { ref: 'Gen 49:10', note: 'Jacob’s deathbed GPS: the scepter belongs to Judah — “until he comes to whom it belongs.”' },
+      { ref: 'Gen 49:10', note: 'Jacob’s deathbed GPS: the scepter belongs to Judah — “until he to whom it belongs shall come.”' },
       { ref: '2 Sam 7:12-16', note: 'God to David: your offspring’s throne will stand forever. (Solomon dies. So it’s Someone else.)' },
       { ref: 'Ps 2; Ps 110', note: '“You are my Son”… “Sit at my right hand.” Coronation psalms waiting a thousand years for a head to fit the crown.' },
       { ref: 'Isa 9:6-7', note: '“Unto us a child is born… the government upon his shoulder… on the throne of David, forever.”' },
@@ -111,7 +111,7 @@ const THREADS = [
       { ref: 'John 1:14', j: true, note: '“The Word became flesh and dwelt” — literally, TABERNACLED — “among us, and we beheld his glory.”' },
       { ref: 'John 2:19-21', note: '“Destroy this temple, and in three days I will raise it up.” He was talking about His body.' },
       { ref: 'Matt 27:51', note: 'The veil tears, top to bottom. God’s own handwriting: the room is open.' },
-      { ref: '1 Cor 6:19', note: '“Your body is a temple of the Holy Spirit.” The address changed. It’s you now.' },
+      { ref: '1 Cor 6:19', note: '“Your bodies are temples of the Holy Spirit.” The address changed. It’s you now.' },
       { ref: 'Rev 21:3,22', note: '“I saw no temple in the city… its temple is the Lord God the Almighty and the Lamb.” Dwelling restored, for good.' }
     ],
     landsOn: 'Haggai promised a lesser building greater glory than Solomon’s gold. Then a Galilean walked into it. The glory was never the gold — it was the Guest.',

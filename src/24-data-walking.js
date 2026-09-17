@@ -65,7 +65,7 @@ const WALKING = {
       name: 'Grace is the trainer', icon: 'walk',
       lie: 'Too much grace makes people lazy and sinful.',
       truth: 'Grace is the only thing that has ever actually trained anyone.',
-      body: '“The grace of God has appeared… TRAINING us to renounce ungodliness” (Titus 2:11-12) — grace isn’t the opposite of transformation; it’s the engine of it. “Sin shall not be your master, BECAUSE you are not under law but under grace” (Rom 6:14) — the verse everyone quotes backwards. And the hardest-working apostle credited his output the same way: “I worked harder than any of them — yet not I, but the grace of God with me” (1 Cor 15:10). Law pressures from outside; grace grows from inside.',
+      body: '“The grace of God has appeared… TRAINING us to renounce ungodliness” (Titus 2:11-12) — grace isn’t the opposite of transformation; it’s the engine of it. “Sin shall no longer be your master, BECAUSE you are not under the law, but under grace” (Rom 6:14) — the verse everyone quotes backwards. And the hardest-working apostle credited his output the same way: “I worked harder than any of them — yet not I, but the grace of God with me” (1 Cor 15:10). Law pressures from outside; grace grows from inside.',
       refs: ['Titus 2:11-12', 'Rom 6:1-2,14', '1 Cor 15:10', 'Gal 5:22-23'],
       practice: 'Audit your motivations for a week: every “have to,” ask whether a “get to” is available. That swap is the whole gearbox.'
     }

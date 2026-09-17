@@ -2359,7 +2359,7 @@ async function fetchFromBolls(ref, version) {
   const { bookId, chapter, verseStart, verseEnd } = parsed;
   let verses;
   try {
-    verses = await getBollsChapter(version, bookId, chapter);
+    verses = await getChapter(version, bookId, chapter);
   } catch (e) {
     return 'Could not retrieve scripture text.';
   }
@@ -2384,14 +2384,55 @@ async function fetchFromBolls(ref, version) {
   }).join(' ');
 }
 
-async function getBollsChapter(version, bookId, chapter) {
+/* NIV comes from YouVersion through the Worker: the current NIV, under the estate's app key,
+   a chapter at a time. Its HTML marks every verse (<span class="yv-v" v="23">), so the chapter
+   splits into the same [{verse, text}] list bolls returns, with <br> where a line or paragraph
+   breaks. bolls.life supplies the other translations, and stands in for NIV only when the
+   Worker can't be reached. (bolls.life's own NIV is the 1984 edition.) */
+const NIV_VERSION_ID = 111;
+
+function splitYouVersionChapter(html) {
+  const parts = String(html)
+    .replace(/<span class="yv-vlbl">[\s\S]*?<\/span>/g, '')
+    .split(/<span class="yv-v" v="(\d+)[^"]*"><\/span>/);
+  const verses = [];
+  for (let i = 1; i < parts.length; i += 2) {
+    const text = parts[i + 1]
+      .replace(/<\/div>\s*<div\b[^>]*>/g, '<br>')
+      .replace(/<\/?(?:div|span)\b[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&#0?39;|&#x27;/g, "'").replace(/&amp;/g, '&')
+      .replace(/^(?:\s*<br>)+|(?:<br>\s*)+$/g, '')
+      .trim();
+    if (text) verses.push({ verse: Number(parts[i]), text });
+  }
+  return verses;
+}
+
+async function fetchYouVersionChapter(bookId, chapter) {
+  const book = YOUVERSION_USFM_BOOKS[bookId];
+  if (!book) throw new Error('Reference not recognized.');
+  const url = SCRIPTURE_API_BASE + '/passage?version=' + NIV_VERSION_ID + '&passage=' + book + '.' + chapter + '&format=html';
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok || !body.content) throw new Error(body.message || 'NIV could not be loaded.');
+  const verses = splitYouVersionChapter(body.content);
+  if (!verses.length) throw new Error('NIV chapter was empty.');
+  return verses;
+}
+
+async function fetchBollsChapter(version, bookId, chapter) {
+  const res = await fetch('https://bolls.life/get-text/' + version + '/' + bookId + '/' + chapter + '/');
+  if (!res.ok) throw new Error('API error');
+  return res.json();
+}
+
+async function getChapter(version, bookId, chapter) {
   const cacheKey = `${version}-${bookId}-${chapter}`;
 
   if (!chapterCache[cacheKey]) {
-    const url = 'https://bolls.life/get-text/' + version + '/' + bookId + '/' + chapter + '/';
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('API error');
-    chapterCache[cacheKey] = await res.json();
+    chapterCache[cacheKey] = version === 'NIV'
+      ? await fetchYouVersionChapter(bookId, chapter).catch(() => fetchBollsChapter('NIV', bookId, chapter))
+      : await fetchBollsChapter(version, bookId, chapter);
   }
   return chapterCache[cacheKey];
 }
@@ -2415,7 +2456,7 @@ async function loadVerseContext(ref, version, radius) {
 }
 
 async function loadBollsContext(parsed, version, radius, fallbackNote) {
-  const verses = await getBollsChapter(version, parsed.bookId, parsed.chapter);
+  const verses = await getChapter(version, parsed.bookId, parsed.chapter);
   if (!verses || !verses.length) throw new Error('Verse not found.');
   const selectedStart = parsed.verseStart === null ? 1 : parsed.verseStart;
   const selectedEnd = parsed.verseEnd || selectedStart;
@@ -2428,7 +2469,7 @@ async function loadBollsContext(parsed, version, radius, fallbackNote) {
   // A passage does not stop where the chapter file does. Asking for more context at the top of
   // a chapter used to add verses after it, which is the opposite of what was asked for.
   if (rangeStart < 1 && parsed.chapter > 1) {
-    const prev = await getBollsChapter(version, parsed.bookId, parsed.chapter - 1).catch(() => null);
+    const prev = await getChapter(version, parsed.bookId, parsed.chapter - 1).catch(() => null);
     if (prev && prev.length) {
       const wanted = 1 - rangeStart;
       const tail = prev.slice(Math.max(0, prev.length - wanted));
@@ -2436,7 +2477,7 @@ async function loadBollsContext(parsed, version, radius, fallbackNote) {
     }
   }
   if (rangeEnd > verses.length) {
-    const next = await getBollsChapter(version, parsed.bookId, parsed.chapter + 1).catch(() => null);
+    const next = await getChapter(version, parsed.bookId, parsed.chapter + 1).catch(() => null);
     if (next && next.length) {
       const headRows = next.slice(0, rangeEnd - verses.length);
       rows.push.apply(rows, headRows.map(v => ({ chapter: parsed.chapter + 1, verse: v.verse, text: v.text })));
