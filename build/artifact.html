@@ -6993,11 +6993,16 @@ const TPT_FALLBACK_VERSION = 'NIV';
    carried is permanent and worth naming — the reader can stop asking for it there. A request
    that failed is this minute's problem and might not be the next. Telling someone Exodus is
    missing from TPT when TPT was simply down is a plain untruth. */
-function tptFallbackNote(parsed, reason) {
+function tptFallbackNote(parsed, reason, shown = TPT_FALLBACK_VERSION) {
   const book = (parsed && BOOK_FULL_BY_ID[parsed.bookId]) || 'this book';
   return reason === 'missing'
-    ? 'TPT does not carry ' + book + ' — showing ' + TPT_FALLBACK_VERSION
-    : 'TPT is unavailable right now — showing ' + TPT_FALLBACK_VERSION;
+    ? 'TPT does not carry ' + book + ' — showing ' + shown
+    : 'TPT is unavailable right now — showing ' + shown;
+}
+
+/* The same sentence for any other translation that had to be stood in for. */
+function swapNote(version, shown) {
+  return version + ' is unavailable right now — showing ' + shown;
 }
 
 function tptCoversBook(ref) {
@@ -7008,19 +7013,19 @@ function tptCoversBook(ref) {
 async function loadVerseText(ref, version) {
   if (version !== 'TPT') return fetchFromBolls(ref, version);
   const parsed = parseReference(ref);
-  const note = reason => '<span class="verse-fallback-note">' +
-    escapeScriptureText(tptFallbackNote(parsed, reason)) + '.</span>';
   if (tptCoversBook(ref)) {
     try {
       return await fetchTptFromYouVersion(ref);
     } catch (e) {
-      return (await fetchFromBolls(ref, TPT_FALLBACK_VERSION)) + '\n' + note('down');
+      return fetchFromBolls(ref, TPT_FALLBACK_VERSION, shown => tptFallbackNote(parsed, 'down', shown));
     }
   }
-  return (await fetchFromBolls(ref, TPT_FALLBACK_VERSION)) + '\n' + note('missing');
+  return fetchFromBolls(ref, TPT_FALLBACK_VERSION, shown => tptFallbackNote(parsed, 'missing', shown));
 }
 
-async function fetchFromBolls(ref, version) {
+/* `noteFor(shown)` is passed when this read is already a stand-in (TPT reading NIV), so the
+   one note names what was asked for and what actually came back, which may be the WEB. */
+async function fetchFromBolls(ref, version, noteFor) {
   const parsed = parseReference(ref);
   if (!parsed) return 'Reference not recognized.';
 
@@ -7047,17 +7052,33 @@ async function fetchFromBolls(ref, version) {
 
   if (!filtered.length) return 'Verse not found in ' + version + '.';
 
+  const shown = verses.standIn || version;
+  const note = noteFor ? noteFor(shown) : shown !== version ? swapNote(version, shown) : '';
   return filtered.map(v => {
     return cleanBollsText(v.text);
-  }).join(' ');
+  }).join(' ') + (note ? '\n<span class="verse-fallback-note">' + escapeScriptureText(note) + '.</span>' : '');
 }
 
 /* NIV comes from YouVersion through the Worker: the current NIV, under the estate's app key,
    a chapter at a time. Its HTML marks every verse (<span class="yv-v" v="23">), so the chapter
    splits into the same [{verse, text}] list bolls returns, with <br> where a line or paragraph
-   breaks. bolls.life supplies the other translations, and stands in for NIV only when the
-   Worker can't be reached. (bolls.life's own NIV is the 1984 edition.) */
+   breaks. bolls.life supplies the other translations. When the Worker can't be reached, the
+   World English Bible stands in for NIV, labeled: bolls.life's own NIV was the 1984 edition,
+   and since October 2026 it is not Scripture at all (see fetchBollsChapter). */
 const NIV_VERSION_ID = 111;
+const NIV_STANDIN = 'WEB';
+
+/* bolls.life sometimes answers with a notice where the text should be: since October 2026
+   every NIV chapter comes back as one "verse" saying Biblica has prohibited it. Every chapter
+   in the Bible has at least two verses, so a single entry about the translation is a notice,
+   and so is any response with that wording. A notice is a failure, never Scripture. */
+function isNotice(verses) {
+  if (!Array.isArray(verses) || !verses.length) return false;
+  const all = verses.map(v => (v && v.text) || '').join(' ');
+  if (/prohibited me from using|has prohibited (?:me|us|the use)/i.test(all)) return true;
+  return verses.length === 1 && /\btranslation\b/i.test(all) &&
+    /prohibit|copyright|licen[cs]|removed|no longer/i.test(all);
+}
 
 function splitYouVersionChapter(html) {
   const parts = String(html)
@@ -7091,17 +7112,27 @@ async function fetchYouVersionChapter(bookId, chapter) {
 async function fetchBollsChapter(version, bookId, chapter) {
   const res = await fetch('https://bolls.life/get-text/' + version + '/' + bookId + '/' + chapter + '/');
   if (!res.ok) throw new Error('API error');
-  return res.json();
+  const verses = await res.json();
+  if (isNotice(verses)) throw new Error('bolls.life sent a notice, not ' + version);
+  return verses;
 }
 
 async function getChapter(version, bookId, chapter) {
   const cacheKey = `${version}-${bookId}-${chapter}`;
-
-  if (!chapterCache[cacheKey]) {
-    chapterCache[cacheKey] = version === 'NIV'
-      ? await fetchYouVersionChapter(bookId, chapter).catch(() => fetchBollsChapter('NIV', bookId, chapter))
-      : await fetchBollsChapter(version, bookId, chapter);
+  if (chapterCache[cacheKey]) return chapterCache[cacheKey];
+  if (version === 'NIV') {
+    try {
+      chapterCache[cacheKey] = await fetchYouVersionChapter(bookId, chapter);
+      return chapterCache[cacheKey];
+    } catch (e) {
+      /* The stand-in is not kept under the NIV key, so the next passage tries the Worker
+         again; `standIn` tells the note what is actually on screen. */
+      const shown = (await getChapter(NIV_STANDIN, bookId, chapter)).slice();
+      shown.standIn = NIV_STANDIN;
+      return shown;
+    }
   }
+  chapterCache[cacheKey] = await fetchBollsChapter(version, bookId, chapter);
   return chapterCache[cacheKey];
 }
 
@@ -7117,15 +7148,17 @@ async function loadVerseContext(ref, version, radius) {
     try {
       return await loadTptContext(parsed, radius);
     } catch (e) {
-      return loadBollsContext(parsed, TPT_FALLBACK_VERSION, radius, tptFallbackNote(parsed, 'down'));
+      return loadBollsContext(parsed, TPT_FALLBACK_VERSION, radius, shown => tptFallbackNote(parsed, 'down', shown));
     }
   }
-  return loadBollsContext(parsed, TPT_FALLBACK_VERSION, radius, tptFallbackNote(parsed, 'missing'));
+  return loadBollsContext(parsed, TPT_FALLBACK_VERSION, radius, shown => tptFallbackNote(parsed, 'missing', shown));
 }
 
-async function loadBollsContext(parsed, version, radius, fallbackNote) {
+async function loadBollsContext(parsed, version, radius, noteFor) {
   const verses = await getChapter(version, parsed.bookId, parsed.chapter);
   if (!verses || !verses.length) throw new Error('Verse not found.');
+  const shownVersion = verses.standIn || version;
+  const fallbackNote = noteFor ? noteFor(shownVersion) : shownVersion !== version ? swapNote(version, shownVersion) : '';
   const selectedStart = parsed.verseStart === null ? 1 : parsed.verseStart;
   const selectedEnd = parsed.verseEnd || selectedStart;
   const rangeStart = selectedStart - radius;
