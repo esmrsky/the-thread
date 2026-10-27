@@ -5,6 +5,11 @@
 set -e
 cd "$(dirname "$0")"
 
+# Both pages name each other, so a search engine can offer the right one. There is no language
+# switch on either page and no redirect: Russian is reached at /the-thread/ru/ (standing decision
+# in esmrsky.github.io/TRANSLATION-ROUTINE.md).
+HREFLANG='<link rel="alternate" hreflang="en" href="https://esmrsky.github.io/the-thread/">\n<link rel="alternate" hreflang="ru" href="https://esmrsky.github.io/the-thread/ru/">\n<link rel="alternate" hreflang="x-default" href="https://esmrsky.github.io/the-thread/">\n'
+
 JS_FILES="src/20-icons.js src/21-data-threads.js src/22-data-pattern.js src/23-data-codes.js src/24-data-walking.js src/25-data-mind.js src/26-data-triune.js src/30-app.js"
 
 {
@@ -18,7 +23,7 @@ JS_FILES="src/20-icons.js src/21-data-threads.js src/22-data-pattern.js src/23-d
 } > build/artifact.html
 
 {
-  printf '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>The Thread — A Field Manual to the Bible</title>\n<meta name="description" content="Maps of the threads, patterns, and codes that tie the whole Bible together — all of it pointing to Jesus.">\n<link rel="icon" href="data:image/svg+xml,%%3Csvg xmlns=%%27http://www.w3.org/2000/svg%%27 viewBox=%%270 0 24 24%%27%%3E%%3Cpath d=%%27M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8%%27 fill=%%27none%%27 stroke=%%27%%23e05a66%%27 stroke-width=%%272.2%%27 stroke-linecap=%%27round%%27 stroke-dasharray=%%273 2.4%%27/%%3E%%3Cpath d=%%27M18.6 4.3v8.9M16.2 7.2h4.8%%27 fill=%%27none%%27 stroke=%%27%%23cfa648%%27 stroke-width=%%272.4%%27 stroke-linecap=%%27round%%27/%%3E%%3C/svg%%3E">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400..800;1,400..700&amp;family=Figtree:ital,wght@0,400..900;1,400..700&amp;family=Literata:ital,opsz,wght@0,7..72,400..800;1,7..72,400..700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400..800;1,8..60,400..700&amp;display=swap">\n<style>\n'
+  printf '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>The Thread — A Field Manual to the Bible</title>\n<meta name="description" content="Maps of the threads, patterns, and codes that tie the whole Bible together — all of it pointing to Jesus.">\n'"$HREFLANG"'<link rel="icon" href="data:image/svg+xml,%%3Csvg xmlns=%%27http://www.w3.org/2000/svg%%27 viewBox=%%270 0 24 24%%27%%3E%%3Cpath d=%%27M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8%%27 fill=%%27none%%27 stroke=%%27%%23e05a66%%27 stroke-width=%%272.2%%27 stroke-linecap=%%27round%%27 stroke-dasharray=%%273 2.4%%27/%%3E%%3Cpath d=%%27M18.6 4.3v8.9M16.2 7.2h4.8%%27 fill=%%27none%%27 stroke=%%27%%23cfa648%%27 stroke-width=%%272.4%%27 stroke-linecap=%%27round%%27/%%3E%%3C/svg%%3E">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400..800;1,400..700&amp;family=Figtree:ital,wght@0,400..900;1,400..700&amp;family=Literata:ital,opsz,wght@0,7..72,400..800;1,7..72,400..700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400..800;1,8..60,400..700&amp;display=swap">\n<style>\n'
   cat src/00-style.css
   printf '</style>\n</head>\n<body>\n'
   cat src/10-shell.html
@@ -27,4 +32,27 @@ JS_FILES="src/20-icons.js src/21-data-threads.js src/22-data-pattern.js src/23-d
   printf '\n</script>\n</body>\n</html>\n'
 } > index.html
 
-echo "Built index.html ($(wc -c < index.html | tr -d ' ') bytes) and build/artifact.html"
+# ---------- Russian: ru/index.html ----------
+# Same stylesheet, same app script; the six data files come from src/ru/ instead, plus the UI
+# string table, and the shell is the English one with its strings swapped (tools/ru-shell.py).
+# The check stops the build if the Russian sources have drifted from the English ones.
+if command -v node >/dev/null 2>&1; then
+  node tools/check-ru.js
+else
+  echo "warning: node not found, skipped tools/check-ru.js (the Russian data was not checked against the English)" >&2
+fi
+python3 tools/ru-shell.py > build/ru-shell.html
+RU_JS_FILES="src/20-icons.js src/ru/21-data-threads.js src/ru/22-data-pattern.js src/ru/23-data-codes.js src/ru/24-data-walking.js src/ru/25-data-mind.js src/ru/26-data-triune.js src/ru/29-ui.js src/30-app.js"
+mkdir -p ru
+{
+  printf '<!doctype html>\n<html lang="ru">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Нить: полевой справочник по Библии</title>\n<meta name="description" content="Карты нитей, узоров и шифров, которые связывают всю Библию воедино, и все они указывают на Иисуса.">\n'"$HREFLANG"'<link rel="icon" href="data:image/svg+xml,%%3Csvg xmlns=%%27http://www.w3.org/2000/svg%%27 viewBox=%%270 0 24 24%%27%%3E%%3Cpath d=%%27M2 18c4.5 0 3.5-9 7.5-9s2.5 8 7 8%%27 fill=%%27none%%27 stroke=%%27%%23e05a66%%27 stroke-width=%%272.2%%27 stroke-linecap=%%27round%%27 stroke-dasharray=%%273 2.4%%27/%%3E%%3Cpath d=%%27M18.6 4.3v8.9M16.2 7.2h4.8%%27 fill=%%27none%%27 stroke=%%27%%23cfa648%%27 stroke-width=%%272.4%%27 stroke-linecap=%%27round%%27/%%3E%%3C/svg%%3E">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400..800;1,400..700&amp;family=Figtree:ital,wght@0,400..900;1,400..700&amp;family=Literata:ital,opsz,wght@0,7..72,400..800;1,7..72,400..700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400..800;1,8..60,400..700&amp;display=swap">\n<style>\n'
+  cat src/00-style.css
+  printf '</style>\n</head>\n<body>\n'
+  cat build/ru-shell.html
+  printf '<script>\n'
+  cat $RU_JS_FILES
+  printf '\n</script>\n</body>\n</html>\n'
+} > ru/index.html
+rm -f build/ru-shell.html
+
+echo "Built index.html ($(wc -c < index.html | tr -d ' ') bytes), ru/index.html ($(wc -c < ru/index.html | tr -d ' ') bytes) and build/artifact.html"
