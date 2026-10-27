@@ -1874,6 +1874,9 @@ footer.site-foot .foot-creed {
   text-wrap: balance;
 }
 footer.site-foot .label { color: var(--ink-faint); margin-top: 12px; display: block; }
+/* The scripture licence line. Only the Russian page carries one (НРП is Biblica's, quoted under
+   its permission); small print, under the creed rather than competing with it. */
+footer.site-foot .foot-note { max-width: 62ch; margin: 18px auto 0; font-size: 0.8rem; line-height: 1.5; color: var(--ink-faint); }
 
 /* hero thread interactions */
 .hero-scroll { position: relative; overflow: clip; min-width: 0; }
