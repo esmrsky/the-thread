@@ -19,6 +19,17 @@ A single-file website that maps the Bible's threads, patterns, and codes — all
 - **research/** — the sourced research dossiers behind the content (grace theology, mind/body/spirit, bible threads), with confidence labels and URLs.
 - **build/artifact.html** — the same site without the document wrapper (used for Claude artifact previews).
 
+## Russian (`/ru/`)
+
+`ru/index.html` is built from the same stylesheet and app script, with Russian data files in place of the English ones:
+
+- `src/ru/21-…26-data-*.js` mirror the English data files key for key (same ids, same order, same array lengths). Quoted scripture is НРП (Новый русский перевод, fetched from bolls.life `NRT`); references use Russian abbreviations and НРП's Septuagint psalm numbering.
+- `src/ru/29-ui.js` (`UI_RU`) holds every string `30-app.js` writes, keyed by its English text; `TXT()` / `TXTF()` look them up only when `<html lang="ru">`.
+- `src/ru/10-shell.json` holds the shell's strings; `tools/ru-shell.py` swaps them in and fails if an English fragment has moved.
+- `tools/check-ru.js` (run by `build.sh`) fails the build when the Russian data no longer matches the English shape, when a reference points somewhere else once Russian numbering is applied, or when a UI string has no Russian entry. **After editing English content, update the Russian twin too.** A new psalm reference must be added to its `PSALMS` table after reading the verse on bolls.life.
+
+There is no language switch and no redirect; the two pages are linked only by `hreflang`.
+
 ## Editing content
 
 All content lives in the `src/2x-data-*.js` files as plain JavaScript objects — edit the text, then rebuild:

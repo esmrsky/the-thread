@@ -1,105 +1,134 @@
 /* ================= app: helpers ================= */
 const BG = 'https://www.biblegateway.com/passage/?search=';
 
+/* ---------- one script, two languages ----------
+   The Russian page (/ru/) is built from these same sources with Russian data files in place of
+   the English ones, plus `UI_RU`: every string this file writes, keyed by its English text.
+   `lang` on <html> is the switch. On the English page `UI_RU` does not exist, `RU` is false and
+   `TXT()` hands every string straight back, so nothing here changes what English renders.
+   Named TXT, not T: buildTabernacleSVG and slab() keep a local `T` (a slab thickness), and a
+   helper called T was shadowed there and threw "T is not a function". */
+const RU = document.documentElement.lang === 'ru' && typeof UI_RU !== 'undefined';
+function TXT(s) { return RU && Object.prototype.hasOwnProperty.call(UI_RU, s) ? UI_RU[s] : s; }
+/* "Station {n}" → "Станция 3": the template is the key, the values fill both languages alike. */
+function TXTF(s, vars) { return TXT(s).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)); }
+/* Russian counts take three forms (1 точка, 3 точки, 8 точек). */
+function ruPlural(n, forms) {
+  const a = Math.abs(n) % 100, b = a % 10;
+  return forms[a > 10 && a < 20 ? 2 : b === 1 ? 0 : b >= 2 && b <= 4 ? 1 : 2];
+}
+/* Volume numbers: Russian has a fourth (4 Царств = 2 Kings). The English pattern stays as it was. */
+const REF_NUM = RU ? '[1234]' : '[123]';
+const REF_BOOK_WORD = RU ? '[A-Za-z\\u0400-\\u04FF]+\\.?' : '[A-Za-z]+';
+
 /* One table for every book, so the three places that used to keep their own list stay in
    step: the link regex below, `parseReference`'s book ids, and the full name the context
    dialog shows. `names` holds every spelling that appears in the copy — abbreviated and
    spelled out — and `n` marks the numbered volumes so "2 Kings" and "Kings" resolve apart. */
 const BOOKS = [
-  { id: 1, full: 'Genesis', names: ['Gen', 'Genesis'] },
-  { id: 2, full: 'Exodus', names: ['Ex', 'Exod', 'Exodus'] },
-  { id: 3, full: 'Leviticus', names: ['Lev', 'Leviticus'] },
-  { id: 4, full: 'Numbers', names: ['Num', 'Numbers'] },
-  { id: 5, full: 'Deuteronomy', names: ['Deut', 'Deuteronomy'] },
-  { id: 6, full: 'Joshua', names: ['Josh', 'Joshua'] },
-  { id: 7, full: 'Judges', names: ['Judg', 'Judges'] },
-  { id: 8, full: 'Ruth', names: ['Ruth'] },
-  { id: 9, full: '1 Samuel', n: 1, names: ['Sam', 'Samuel'] },
-  { id: 10, full: '2 Samuel', n: 2, names: ['Sam', 'Samuel'] },
-  { id: 11, full: '1 Kings', n: 1, names: ['Kings'] },
-  { id: 12, full: '2 Kings', n: 2, names: ['Kings'] },
-  { id: 13, full: '1 Chronicles', n: 1, names: ['Chr', 'Chronicles'] },
-  { id: 14, full: '2 Chronicles', n: 2, names: ['Chr', 'Chronicles'] },
-  { id: 15, full: 'Ezra', names: ['Ezra'] },
-  { id: 16, full: 'Nehemiah', names: ['Neh', 'Nehemiah'] },
-  { id: 17, full: 'Esther', names: ['Esth', 'Esther'] },
-  { id: 18, full: 'Job', names: ['Job'] },
-  { id: 19, full: 'Psalms', names: ['Ps', 'Psalm', 'Psalms'] },
-  { id: 20, full: 'Proverbs', names: ['Prov', 'Proverbs'] },
-  { id: 21, full: 'Ecclesiastes', names: ['Eccl', 'Ecclesiastes'] },
-  { id: 22, full: 'Song of Songs', names: ['Song'] },
-  { id: 23, full: 'Isaiah', names: ['Isa', 'Isaiah'] },
-  { id: 24, full: 'Jeremiah', names: ['Jer', 'Jeremiah'] },
-  { id: 25, full: 'Lamentations', names: ['Lam', 'Lamentations'] },
-  { id: 26, full: 'Ezekiel', names: ['Ezek', 'Ezekiel'] },
-  { id: 27, full: 'Daniel', names: ['Dan', 'Daniel'] },
-  { id: 28, full: 'Hosea', names: ['Hos', 'Hosea'] },
-  { id: 29, full: 'Joel', names: ['Joel'] },
-  { id: 30, full: 'Amos', names: ['Amos'] },
-  { id: 31, full: 'Obadiah', names: ['Obad', 'Obadiah'] },
-  { id: 32, full: 'Jonah', names: ['Jonah'] },
-  { id: 33, full: 'Micah', names: ['Mic', 'Micah'] },
-  { id: 34, full: 'Nahum', names: ['Nah', 'Nahum'] },
-  { id: 35, full: 'Habakkuk', names: ['Hab', 'Habakkuk'] },
-  { id: 36, full: 'Zephaniah', names: ['Zeph', 'Zephaniah'] },
-  { id: 37, full: 'Haggai', names: ['Hag', 'Haggai'] },
-  { id: 38, full: 'Zechariah', names: ['Zech', 'Zechariah'] },
-  { id: 39, full: 'Malachi', names: ['Mal', 'Malachi'] },
-  { id: 40, full: 'Matthew', names: ['Matt', 'Matthew'] },
-  { id: 41, full: 'Mark', names: ['Mark'] },
-  { id: 42, full: 'Luke', names: ['Luke'] },
-  { id: 43, full: 'John', names: ['John'] },
-  { id: 44, full: 'Acts', names: ['Acts'] },
-  { id: 45, full: 'Romans', names: ['Rom', 'Romans'] },
-  { id: 46, full: '1 Corinthians', n: 1, names: ['Cor', 'Corinthians'] },
-  { id: 47, full: '2 Corinthians', n: 2, names: ['Cor', 'Corinthians'] },
-  { id: 48, full: 'Galatians', names: ['Gal', 'Galatians'] },
-  { id: 49, full: 'Ephesians', names: ['Eph', 'Ephesians'] },
-  { id: 50, full: 'Philippians', names: ['Phil', 'Philippians'] },
-  { id: 51, full: 'Colossians', names: ['Col', 'Colossians'] },
-  { id: 52, full: '1 Thessalonians', n: 1, names: ['Thess', 'Thessalonians'] },
-  { id: 53, full: '2 Thessalonians', n: 2, names: ['Thess', 'Thessalonians'] },
-  { id: 54, full: '1 Timothy', n: 1, names: ['Tim', 'Timothy'] },
-  { id: 55, full: '2 Timothy', n: 2, names: ['Tim', 'Timothy'] },
-  { id: 56, full: 'Titus', names: ['Titus'] },
-  { id: 57, full: 'Philemon', names: ['Philem', 'Philemon'] },
-  { id: 58, full: 'Hebrews', names: ['Heb', 'Hebrews'] },
-  { id: 59, full: 'James', names: ['Jas', 'James'] },
-  { id: 60, full: '1 Peter', n: 1, names: ['Pet', 'Peter'] },
-  { id: 61, full: '2 Peter', n: 2, names: ['Pet', 'Peter'] },
-  { id: 62, full: '1 John', n: 1, names: ['John'] },
-  { id: 63, full: '2 John', n: 2, names: ['John'] },
-  { id: 64, full: '3 John', n: 3, names: ['John'] },
-  { id: 65, full: 'Jude', names: ['Jude'] },
-  { id: 66, full: 'Revelation', names: ['Rev', 'Revelation'] }
+  { id: 1, full: 'Genesis', names: ['Gen', 'Genesis'], ru: 'Бытие', ruNames: ['Быт.', 'Бытие', 'Бытия', 'Бытии'] },
+  { id: 2, full: 'Exodus', names: ['Ex', 'Exod', 'Exodus'], ru: 'Исход', ruNames: ['Исх.', 'Исход', 'Исхода', 'Исходе'] },
+  { id: 3, full: 'Leviticus', names: ['Lev', 'Leviticus'], ru: 'Левит', ruNames: ['Лев.', 'Левит', 'Левита'] },
+  { id: 4, full: 'Numbers', names: ['Num', 'Numbers'], ru: 'Числа', ruNames: ['Чис.', 'Числа', 'Чисел'] },
+  { id: 5, full: 'Deuteronomy', names: ['Deut', 'Deuteronomy'], ru: 'Второзаконие', ruNames: ['Втор.', 'Второзаконие', 'Второзакония', 'Второзаконии'] },
+  { id: 6, full: 'Joshua', names: ['Josh', 'Joshua'], ru: 'Иисус Навин', ruNames: ['Нав.'] },
+  { id: 7, full: 'Judges', names: ['Judg', 'Judges'], ru: 'Судьи', ruNames: ['Суд.'] },
+  { id: 8, full: 'Ruth', names: ['Ruth'], ru: 'Руфь', ruNames: ['Руфь', 'Руфи'] },
+  { id: 9, full: '1 Samuel', n: 1, names: ['Sam', 'Samuel'], ru: '1 Царств', ruNames: ['Цар.'], ruN: 1 },
+  { id: 10, full: '2 Samuel', n: 2, names: ['Sam', 'Samuel'], ru: '2 Царств', ruNames: ['Цар.'], ruN: 2 },
+  { id: 11, full: '1 Kings', n: 1, names: ['Kings'], ru: '3 Царств', ruNames: ['Цар.'], ruN: 3 },
+  { id: 12, full: '2 Kings', n: 2, names: ['Kings'], ru: '4 Царств', ruNames: ['Цар.'], ruN: 4 },
+  { id: 13, full: '1 Chronicles', n: 1, names: ['Chr', 'Chronicles'], ru: '1 Паралипоменон', ruNames: ['Пар.'] },
+  { id: 14, full: '2 Chronicles', n: 2, names: ['Chr', 'Chronicles'], ru: '2 Паралипоменон', ruNames: ['Пар.'] },
+  { id: 15, full: 'Ezra', names: ['Ezra'], ru: 'Ездра', ruNames: ['Ездр.'] },
+  { id: 16, full: 'Nehemiah', names: ['Neh', 'Nehemiah'], ru: 'Неемия', ruNames: ['Неем.'] },
+  { id: 17, full: 'Esther', names: ['Esth', 'Esther'], ru: 'Есфирь', ruNames: ['Есф.'] },
+  { id: 18, full: 'Job', names: ['Job'], ru: 'Иов', ruNames: ['Иов', 'Иова'] },
+  { id: 19, full: 'Psalms', names: ['Ps', 'Psalm', 'Psalms'], ru: 'Псалом', ruNames: ['Пс.', 'Псалом', 'Псалма', 'Псалме', 'псалом', 'псалма', 'псалме'] },
+  { id: 20, full: 'Proverbs', names: ['Prov', 'Proverbs'], ru: 'Притчи', ruNames: ['Притч.'] },
+  { id: 21, full: 'Ecclesiastes', names: ['Eccl', 'Ecclesiastes'], ru: 'Екклесиаст', ruNames: ['Еккл.'] },
+  { id: 22, full: 'Song of Songs', names: ['Song'], ru: 'Песнь песней', ruNames: ['Песн.'] },
+  { id: 23, full: 'Isaiah', names: ['Isa', 'Isaiah'], ru: 'Исаия', ruNames: ['Ис.', 'Исаия', 'Исаии'] },
+  { id: 24, full: 'Jeremiah', names: ['Jer', 'Jeremiah'], ru: 'Иеремия', ruNames: ['Иер.', 'Иеремия', 'Иеремии'] },
+  { id: 25, full: 'Lamentations', names: ['Lam', 'Lamentations'], ru: 'Плач Иеремии', ruNames: ['Плач'] },
+  { id: 26, full: 'Ezekiel', names: ['Ezek', 'Ezekiel'], ru: 'Иезекииль', ruNames: ['Иез.', 'Иезекииль', 'Иезекииля'] },
+  { id: 27, full: 'Daniel', names: ['Dan', 'Daniel'], ru: 'Даниил', ruNames: ['Дан.'] },
+  { id: 28, full: 'Hosea', names: ['Hos', 'Hosea'], ru: 'Осия', ruNames: ['Ос.', 'Осия', 'Осии'] },
+  { id: 29, full: 'Joel', names: ['Joel'], ru: 'Иоиль', ruNames: ['Иоил.'] },
+  { id: 30, full: 'Amos', names: ['Amos'], ru: 'Амос', ruNames: ['Ам.'] },
+  { id: 31, full: 'Obadiah', names: ['Obad', 'Obadiah'], ru: 'Авдий', ruNames: ['Авд.'] },
+  { id: 32, full: 'Jonah', names: ['Jonah'], ru: 'Иона', ruNames: ['Ион.'] },
+  { id: 33, full: 'Micah', names: ['Mic', 'Micah'], ru: 'Михей', ruNames: ['Мих.'] },
+  { id: 34, full: 'Nahum', names: ['Nah', 'Nahum'], ru: 'Наум', ruNames: ['Наум'] },
+  { id: 35, full: 'Habakkuk', names: ['Hab', 'Habakkuk'], ru: 'Аввакум', ruNames: ['Авв.'] },
+  { id: 36, full: 'Zephaniah', names: ['Zeph', 'Zephaniah'], ru: 'Софония', ruNames: ['Соф.'] },
+  { id: 37, full: 'Haggai', names: ['Hag', 'Haggai'], ru: 'Аггей', ruNames: ['Агг.'] },
+  { id: 38, full: 'Zechariah', names: ['Zech', 'Zechariah'], ru: 'Захария', ruNames: ['Зах.', 'Захария', 'Захарии'] },
+  { id: 39, full: 'Malachi', names: ['Mal', 'Malachi'], ru: 'Малахия', ruNames: ['Мал.', 'Малахия', 'Малахии'] },
+  { id: 40, full: 'Matthew', names: ['Matt', 'Matthew'], ru: 'От Матфея', ruNames: ['Мф.', 'Матфея'] },
+  { id: 41, full: 'Mark', names: ['Mark'], ru: 'От Марка', ruNames: ['Мк.', 'Марка'] },
+  { id: 42, full: 'Luke', names: ['Luke'], ru: 'От Луки', ruNames: ['Лк.', 'Луки'] },
+  { id: 43, full: 'John', names: ['John'], ru: 'От Иоанна', ruNames: ['Ин.', 'Иоанна'] },
+  { id: 44, full: 'Acts', names: ['Acts'], ru: 'Деяния', ruNames: ['Деян.', 'Деяния', 'Деяний'] },
+  { id: 45, full: 'Romans', names: ['Rom', 'Romans'], ru: 'Римлянам', ruNames: ['Рим.', 'Римлянам'] },
+  { id: 46, full: '1 Corinthians', n: 1, names: ['Cor', 'Corinthians'], ru: '1 Коринфянам', ruNames: ['Кор.', 'Коринфянам'] },
+  { id: 47, full: '2 Corinthians', n: 2, names: ['Cor', 'Corinthians'], ru: '2 Коринфянам', ruNames: ['Кор.', 'Коринфянам'] },
+  { id: 48, full: 'Galatians', names: ['Gal', 'Galatians'], ru: 'Галатам', ruNames: ['Гал.', 'Галатам'] },
+  { id: 49, full: 'Ephesians', names: ['Eph', 'Ephesians'], ru: 'Ефесянам', ruNames: ['Еф.', 'Ефесянам'] },
+  { id: 50, full: 'Philippians', names: ['Phil', 'Philippians'], ru: 'Филиппийцам', ruNames: ['Флп.'] },
+  { id: 51, full: 'Colossians', names: ['Col', 'Colossians'], ru: 'Колоссянам', ruNames: ['Кол.'] },
+  { id: 52, full: '1 Thessalonians', n: 1, names: ['Thess', 'Thessalonians'], ru: '1 Фессалоникийцам', ruNames: ['Фес.'] },
+  { id: 53, full: '2 Thessalonians', n: 2, names: ['Thess', 'Thessalonians'], ru: '2 Фессалоникийцам', ruNames: ['Фес.'] },
+  { id: 54, full: '1 Timothy', n: 1, names: ['Tim', 'Timothy'], ru: '1 Тимофею', ruNames: ['Тим.'] },
+  { id: 55, full: '2 Timothy', n: 2, names: ['Tim', 'Timothy'], ru: '2 Тимофею', ruNames: ['Тим.'] },
+  { id: 56, full: 'Titus', names: ['Titus'], ru: 'Титу', ruNames: ['Тит.'] },
+  { id: 57, full: 'Philemon', names: ['Philem', 'Philemon'], ru: 'Филимону', ruNames: ['Флм.'] },
+  { id: 58, full: 'Hebrews', names: ['Heb', 'Hebrews'], ru: 'Евреям', ruNames: ['Евр.', 'Евреям'] },
+  { id: 59, full: 'James', names: ['Jas', 'James'], ru: 'Иакова', ruNames: ['Иак.'] },
+  { id: 60, full: '1 Peter', n: 1, names: ['Pet', 'Peter'], ru: '1 Петра', ruNames: ['Пет.'] },
+  { id: 61, full: '2 Peter', n: 2, names: ['Pet', 'Peter'], ru: '2 Петра', ruNames: ['Пет.'] },
+  { id: 62, full: '1 John', n: 1, names: ['John'], ru: '1 Иоанна', ruNames: ['Ин.'] },
+  { id: 63, full: '2 John', n: 2, names: ['John'], ru: '2 Иоанна', ruNames: ['Ин.'] },
+  { id: 64, full: '3 John', n: 3, names: ['John'], ru: '3 Иоанна', ruNames: ['Ин.'] },
+  { id: 65, full: 'Jude', names: ['Jude'], ru: 'Иуды', ruNames: ['Иуд.'] },
+  { id: 66, full: 'Revelation', names: ['Rev', 'Revelation'], ru: 'Откровение', ruNames: ['Откр.', 'Откровение', 'Откровения', 'Откровении'] }
 ];
 
-/* name → { 0: unnumbered id, 1: "1 X" id, … }; full name by id, for the dialog heading. */
+/* name → { 0: unnumbered id, 1: "1 X" id, … }; full name by id, for the dialog heading.
+   The Russian page reads the same table through `ru`/`ruNames`/`ruN`: Russian Bibles call
+   1–2 Samuel and 1–2 Kings «1–4 Царств», so `ruN` is the volume number a Russian reader sees. */
 const BOOK_BY_NAME = {};
 const BOOK_FULL_BY_ID = {};
+/* English names by id, kept on both pages: Bible Gateway is searched in English even when the
+   page is Russian, because it does not parse Russian abbreviations. */
+const BOOK_EN_BY_ID = {};
 BOOKS.forEach(b => {
-  BOOK_FULL_BY_ID[b.id] = b.full;
-  b.names.forEach(name => {
+  BOOK_EN_BY_ID[b.id] = b.full;
+  BOOK_FULL_BY_ID[b.id] = RU ? b.ru : b.full;
+  (RU ? b.ruNames : b.names).forEach(name => {
     const slot = BOOK_BY_NAME[name] || (BOOK_BY_NAME[name] = {});
-    slot[b.n || 0] = b.id;
+    slot[(RU ? b.ruN || b.n : b.n) || 0] = b.id;
   });
 });
 
 /* Longest name first so "Isaiah 53" matches as Isaiah rather than backtracking through "Isa". */
-const BOOK_NAME_PATTERN = Array.from(new Set(BOOKS.flatMap(b => b.names)))
-  .sort((a, b) => b.length - a.length).join('|');
+const BOOK_NAME_PATTERN = Array.from(new Set(BOOKS.flatMap(b => RU ? b.ruNames : b.names)))
+  .sort((a, b) => b.length - a.length).map(n => n.replace(/\./g, '\\.')).join('|');
+/* `\b` is an ASCII word boundary, and Cyrillic letters are not word characters to it, so the
+   Russian pattern says "not straight after a letter" in so many words instead. */
 const REF_RE = new RegExp(
-  '\\b((?:[123]\\s)?(?:' + BOOK_NAME_PATTERN + ')\\s\\d+(?::\\d+(?:[-–]\\d+(?::\\d+)?)?(?:,\\s?\\d+(?:[-–]\\d+)?)*)?)', 'g');
+  (RU ? '(?<![A-Za-z\\u0400-\\u04FF])' : '\\b') +
+  '((?:' + REF_NUM + '\\s)?(?:' + BOOK_NAME_PATTERN + ')\\s\\d+(?::\\d+(?:[-–]\\d+(?::\\d+)?)?(?:,\\s?\\d+(?:[-–]\\d+)?)*)?)', 'g');
 
 function splitReferenceGroup(refs) {
   const parts = String(refs).split(/\s*;\s*/).filter(Boolean);
   let lastBook = '';
   const expanded = [];
   parts.forEach(part => {
-    const book = part.match(/^((?:[123]\s)?[A-Za-z]+)\s+\d/);
+    const book = part.match(new RegExp('^((?:' + REF_NUM + '\\s)?' + REF_BOOK_WORD + ')\\s+\\d'));
     if (book) lastBook = book[1];
     else if (lastBook && /^\d/.test(part)) part = lastBook + ' ' + part;
-    const commaGroup = part.match(/^((?:[123]\s)?[A-Za-z]+)\s+(\d+):(.+,.+)$/);
+    const commaGroup = part.match(new RegExp('^((?:' + REF_NUM + '\\s)?' + REF_BOOK_WORD + ')\\s+(\\d+):(.+,.+)$'));
     if (commaGroup) {
       commaGroup[3].split(/\s*,\s*/).forEach(verse => expanded.push(commaGroup[1] + ' ' + commaGroup[2] + ':' + verse));
     } else {
@@ -109,13 +138,24 @@ function splitReferenceGroup(refs) {
   return expanded;
 }
 
+/* Bible Gateway cannot read «Быт. 3:21», so the Russian page searches it by the English book
+   name with the Russian chapter and verse, in НРП — which numbers the Psalms the way the
+   Russian reference already does. */
+function bgHref(r) {
+  if (!RU) return BG + encodeURIComponent(r);
+  const m = String(r).match(new RegExp('^((?:' + REF_NUM + '\\s)?' + REF_BOOK_WORD + ')\\s+(.*)$'));
+  const parsed = parseReference(r);
+  const en = parsed && BOOK_EN_BY_ID[parsed.bookId];
+  return BG + encodeURIComponent(en && m ? en + ' ' + m[2] : r) + '&version=NRT';
+}
+
 function singleRefLink(r) {
-  return '<a class="ref-link" target="_blank" rel="noopener" href="' + BG + encodeURIComponent(r) + '" data-ref="' + r + '">' + r + '</a>';
+  return '<a class="ref-link" target="_blank" rel="noopener" href="' + bgHref(r) + '" data-ref="' + r + '">' + r + '</a>';
 }
 
 /* Reads as the book, still carries the verse: hovering it opens the same pop-up as any reference. */
 function namedRefLink(ref, label) {
-  return '<a class="ref-link" target="_blank" rel="noopener" href="' + BG + encodeURIComponent(ref) + '" data-ref="' + ref + '">' + label + '</a>';
+  return '<a class="ref-link" target="_blank" rel="noopener" href="' + bgHref(ref) + '" data-ref="' + ref + '">' + label + '</a>';
 }
 
 function refLink(r) {
@@ -166,6 +206,9 @@ const PANEL_ICONS = [
   [/practice|tool|checklist|path/, 'tool']
 ];
 function panelIcon(label) {
+  /* The regexes read English labels; the Russian ones are mapped one by one in UI_RU, and the
+     shape check asserts each lands on the icon its English twin gets. */
+  if (RU && UI_RU['@panelIcons'] && UI_RU['@panelIcons'][label]) return UI_RU['@panelIcons'][label];
   const l = String(label || '').toLowerCase();
   for (let i = 0; i < PANEL_ICONS.length; i++) if (PANEL_ICONS[i][0].test(l)) return PANEL_ICONS[i][1];
   return 'compass';
@@ -179,20 +222,20 @@ function paragraphCards(html, labels) {
   const parts = html.match(/<p>[\s\S]*?<\/p>/g) || [html];
   return parts.map((part, i) =>
     '<div class="mind-panel">' +
-    panelHead(labels && labels[i] ? labels[i] : 'Field note ' + (i + 1)) +
+    panelHead(labels && labels[i] ? labels[i] : TXTF('Field note {n}', { n: i + 1 })) +
     linkRefs(part) + '</div>').join('');
 }
 
 const NAV = [
-  { id: 'start', label: 'Start Here', icon: 'compass', cvar: '--c-start', blurb: 'The big idea in five moves — and how to read without wasting your Bible.' },
-  { id: 'pattern', label: 'The Pattern', icon: 'dune', cvar: '--c-pattern', blurb: 'Egypt → Wilderness → Promised Land: the three seasons every life walks through.' },
-  { id: 'threads', label: 'Threads', icon: 'thread', cvar: '--c-threads', blurb: 'Thirteen routes traced Genesis to Revelation — every one lands on Jesus.' },
-  { id: 'codes', label: 'The Codes', icon: 'key', cvar: '--c-codes', blurb: 'Prophecies, types & shadows, and the feasts — with honesty badges on every claim.' },
-  { id: 'triune', label: 'Threefold Witness', icon: 'trinity', cvar: '--c-triune', blurb: 'Father, Son, and Spirit shown plainly — and echoed through the story patterns.' },
-  { id: 'walking', label: 'Walk It Out', icon: 'walk', cvar: '--c-walk', blurb: 'Identity, righteousness, rest, healing — new-covenant life without the old software.' },
-  { id: 'detours', label: 'Detours', icon: 'fork', cvar: '--c-detour', blurb: 'Twelve sincere wrong turns, marked on the map — each with the on-ramp back.' },
-  { id: 'mind', label: 'Mind & Body', icon: 'brain', cvar: '--c-mind', blurb: 'Where scripture and neuroscience shake hands: emotions, meditation, sound, hearing God.' },
-  { id: 'library', label: 'Library', icon: 'book', cvar: '--c-library', blurb: 'The curated pack: books, videos, podcasts — with discernment notes included.' }
+  { id: 'start', label: TXT('Start Here'), icon: 'compass', cvar: '--c-start', blurb: TXT('The big idea in five moves — and how to read without wasting your Bible.') },
+  { id: 'pattern', label: TXT('The Pattern'), icon: 'dune', cvar: '--c-pattern', blurb: TXT('Egypt → Wilderness → Promised Land: the three seasons every life walks through.') },
+  { id: 'threads', label: TXT('Threads'), icon: 'thread', cvar: '--c-threads', blurb: TXT('Thirteen routes traced Genesis to Revelation — every one lands on Jesus.') },
+  { id: 'codes', label: TXT('The Codes'), icon: 'key', cvar: '--c-codes', blurb: TXT('Prophecies, types & shadows, and the feasts — with honesty badges on every claim.') },
+  { id: 'triune', label: TXT('Threefold Witness'), icon: 'trinity', cvar: '--c-triune', blurb: TXT('Father, Son, and Spirit shown plainly — and echoed through the story patterns.') },
+  { id: 'walking', label: TXT('Walk It Out'), icon: 'walk', cvar: '--c-walk', blurb: TXT('Identity, righteousness, rest, healing — new-covenant life without the old software.') },
+  { id: 'detours', label: TXT('Detours'), icon: 'fork', cvar: '--c-detour', blurb: TXT('Twelve sincere wrong turns, marked on the map — each with the on-ramp back.') },
+  { id: 'mind', label: TXT('Mind & Body'), icon: 'brain', cvar: '--c-mind', blurb: TXT('Where scripture and neuroscience shake hands: emotions, meditation, sound, hearing God.') },
+  { id: 'library', label: TXT('Library'), icon: 'book', cvar: '--c-library', blurb: TXT('The curated pack: books, videos, podcasts — with discernment notes included.') }
 ];
 
 /* ================= hero thread chart ================= */
@@ -215,13 +258,13 @@ function buildHeroChart() {
     paths += '<path class="hero-thread-trigger" data-thread="' + t.id + '" d="' + d + '" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round"></path>';
     labels += '<text class="hero-line-label" data-thread="' + t.id + '" x="-10" y="' + (y0 + 3) + '" text-anchor="end" font-size="7.2" letter-spacing="0.7" fill="var(' + t.cvar + ')" style="font-family:var(--font-label)">' + t.name.toUpperCase() + '</text>';
   });
-  const eras = [[70, 'TORAH'], [180, 'HISTORY'], [277, 'POETS'], [398, 'PROPHETS'], [528, 'GOSPELS'], [622, 'LETTERS'], [694, 'REV']];
+  const eras = [[70, 'TORAH'], [180, 'HISTORY'], [277, 'POETS'], [398, 'PROPHETS'], [528, 'GOSPELS'], [622, 'LETTERS'], [694, 'REV']].map(e => [e[0], TXT(e[1])]);
   let ticks = '';
   eras.forEach(([x, l]) => {
     ticks += '<line class="hero-era" x1="' + x + '" y1="288" x2="' + x + '" y2="294" stroke="var(--line)" stroke-width="1.5"/>' +
       '<text class="hero-era" x="' + x + '" y="306" text-anchor="middle" font-size="8.5" letter-spacing="1.5" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:600">' + l + '</text>';
   });
-  return '<svg class="hero-svg hero-svg-h" viewBox="0 0 720 316" role="img" aria-label="Thirteen biblical themes converging on Jesus and continuing to Revelation">' +
+  return '<svg class="hero-svg hero-svg-h" viewBox="0 0 720 316" role="img" aria-label="' + TXT('Thirteen biblical themes converging on Jesus and continuing to Revelation') + '">' +
     labels + paths +
     '<path class="hero-spur hero-spur-glow" d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" opacity="0.14"/>' +
     '<path class="hero-spur" d="M' + CX + ' ' + CY + ' H' + XE + '" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>' +
@@ -229,7 +272,7 @@ function buildHeroChart() {
     '<circle class="hero-node" cx="' + CX + '" cy="' + CY + '" r="5.5" fill="var(--gold)"/>' +
     '<path class="hero-cross" d="M' + CX + ' 118 v-26 M' + (CX - 9) + ' 101 h18" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>' +
     '<line class="hero-drop" x1="' + CX + '" y1="124" x2="' + CX + '" y2="' + (CY - 8) + '" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>' +
-    '<text class="hero-jesus" x="' + CX + '" y="82" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">JESUS</text>' +
+    '<text class="hero-jesus" x="' + CX + '" y="82" text-anchor="middle" font-size="10" letter-spacing="2.5" fill="var(--gold)" style="font-family:var(--font-label);font-weight:700">' + TXT('JESUS') + '</text>' +
     ticks +
     '</svg>';
 }
@@ -310,12 +353,13 @@ function buildJourneySVG() {
   };
   const flag = (x, y, txt, c) =>
     '<text x="' + x + '" y="' + y + '" text-anchor="middle" font-size="9" letter-spacing="1.4" fill="' + (c || 'var(--ink-soft)') + '" style="font-family:var(--font-label);font-weight:700">' + txt + '</text>';
+  /* «КРАСНОЕ МОРЕ» is twice the width of RED SEA and ran off its band; long names set smaller. */
   const seaGap = (x0, x1, yTop, name) => {
     const w = x1 - x0;
     let waves = '';
     for (let i = 0; i < 3; i++) waves += '<path d="M' + (x0 + 6) + ' ' + (yTop + 10 + i * 8) + ' q' + (w / 4) + ' -6 ' + (w / 2) + ' 0 t' + (w / 2) + ' 0" stroke="#e9f2f6" stroke-width="1.5" fill="none" opacity="0.5"/>';
     return '<polygon points="' + P([[x0, yTop], [x1, yTop - 16], [x1, yTop + 34], [x0, yTop + 50]]) + '" fill="var(--t-water)" opacity="0.85"/>' + waves +
-      '<text x="' + (x0 + w / 2) + '" y="' + (yTop + 24) + '" text-anchor="middle" font-size="8" letter-spacing="1" fill="#fff" style="font-family:var(--font-label);font-weight:700" transform="rotate(-9 ' + (x0 + w / 2) + ' ' + (yTop + 24) + ')">' + name + '</text>';
+      '<text x="' + (x0 + w / 2) + '" y="' + (yTop + 24) + '" text-anchor="middle" font-size="' + (name.length > 9 ? 6.4 : 8) + '" letter-spacing="' + (name.length > 9 ? 0.4 : 1) + '" fill="#fff" style="font-family:var(--font-label);font-weight:700" transform="rotate(-9 ' + (x0 + w / 2) + ' ' + (yTop + 24) + ')">' + name + '</text>';
   };
 
   const eg = slab(34, 322, 168, 84, '--s-egypt');
@@ -335,19 +379,19 @@ function buildJourneySVG() {
     ' L' + rLa2.map(Math.round).join(' ');
 
   // pins on key points, each named
-  pin(aEg[0], aEg[1], 1, 'GOSHEN|DELIVERED', 24);
-  pin(rDe1[0], rDe1[1], 2, 'SINAI|IDENTITY SPOKEN', 24);
-  pin(rDeMid[0], rDeMid[1], 3, 'KADESH|THE CHOICE', 28);
-  pin(rLa1[0], rLa1[1], 4, 'GILGAL|MANNA STOPS', -20);
-  pin(rLa2[0], rLa2[1], 5, 'FRUITFULNESS', 22);
-  pins.push('<text x="' + Math.round(rDeMid[0] + 7) + '" y="' + Math.round(rDeMid[1] - 56) + '" text-anchor="middle" font-size="7.2" letter-spacing="1.2" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700">40-YEAR LOOP · NUM 14:33</text>');
+  pin(aEg[0], aEg[1], 1, TXT('GOSHEN|DELIVERED'), 24);
+  pin(rDe1[0], rDe1[1], 2, TXT('SINAI|IDENTITY SPOKEN'), 24);
+  pin(rDeMid[0], rDeMid[1], 3, TXT('KADESH|THE CHOICE'), 28);
+  pin(rLa1[0], rLa1[1], 4, TXT('GILGAL|MANNA STOPS'), -20);
+  pin(rLa2[0], rLa2[1], 5, TXT('FRUITFULNESS'), 22);
+  pins.push('<text x="' + Math.round(rDeMid[0] + 7) + '" y="' + Math.round(rDeMid[1] - 56) + '" text-anchor="middle" font-size="7.2" letter-spacing="1.2" fill="var(--s-desert)" style="font-family:var(--font-label);font-weight:700">' + TXT('40-YEAR LOOP · NUM 14:33') + '</text>');
 
   const eL = eg.pt(0.4, 0.55), eL2 = eg.pt(0.75, 0.5);
   const dT = de.pt(0.8, 0.85), dFire = de.pt(0.28, 0.6), mtn = de.pt(0.06, 0.8);
   const lH = la.pt(0.78, 0.7), lG = la.pt(0.62, 0.5), lC = la.pt(0.28, 0.85);
   const nile1 = eg.pt(0.02, 1), nile2 = eg.pt(0.07, 0);
 
-  return '<svg viewBox="0 0 900 430" role="img" aria-label="An isometric journey from Egypt through the wilderness into the promised land">' +
+  return '<svg viewBox="0 0 900 430" role="img" aria-label="' + TXT('An isometric journey from Egypt through the wilderness into the promised land') + '">' +
     sun(150, 70, 16) +
     // pillar of cloud (day) & fire (night) over the wilderness
     (function () {
@@ -357,8 +401,8 @@ function buildJourneySVG() {
         '<g fill="var(--s-desert)" opacity="0.42"><circle cx="' + px + '" cy="' + ptop + '" r="13"/><circle cx="' + (px - 11) + '" cy="' + (ptop + 5) + '" r="9"/><circle cx="' + (px + 11) + '" cy="' + (ptop + 5) + '" r="9"/></g>' +
         '<path d="M' + px + ' ' + (pb - 3) + ' q-9 -13 0 -24 q3 7 4 4 q4 -9 -1 -17 q13 9 8 25 q-2 8 -11 12z" fill="var(--thread)" opacity="0.72"/>';
     })() +
-    la.svg + seaGap(560, 626, 300, 'JORDAN') +
-    de.svg + seaGap(250, 318, 350, 'RED SEA') +
+    la.svg + seaGap(560, 626, 300, TXT('JORDAN')) +
+    de.svg + seaGap(250, 318, 350, TXT('RED SEA')) +
     eg.svg +
     // elements
     '<path d="M' + Math.round(nile1[0]) + ' ' + Math.round(nile1[1]) + ' L' + Math.round(nile2[0]) + ' ' + Math.round(nile2[1]) + '" stroke="var(--t-water)" stroke-width="7" stroke-linecap="round" opacity="0.4"/>' +
@@ -370,13 +414,13 @@ function buildJourneySVG() {
     tent(dT[0], dT[1], 26, 40) +
     hill(lH[0] - 14, lH[1], 30, 26, 'color-mix(in srgb, var(--s-land) 78%, #000 10%)') + hill(lH[0] + 16, lH[1], 34, 34, 'var(--s-land)') +
     grapes(lG[0], lG[1]) + cityWall(lC[0], lC[1]) +
-    '<text x="' + Math.round(lC[0]) + '" y="' + Math.round(lC[1] - 32) + '" text-anchor="middle" font-size="6.8" letter-spacing="1" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:700">JERICHO · JOSH 6</text>' +
+    '<text x="' + Math.round(lC[0]) + '" y="' + Math.round(lC[1] - 32) + '" text-anchor="middle" font-size="6.8" letter-spacing="1" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:700">' + TXT('JERICHO · JOSH 6') + '</text>' +
     '<path class="journey-route-path" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>' +
     pins.join('') +
     // zone banners
-    flag(eg.pt(0.5, -0.05)[0], 405, 'EGYPT', 'var(--s-egypt)') + flag(eg.pt(0.5, -0.05)[0], 419, 'BONDAGE') +
-    flag(de.pt(0.5, -0.05)[0], 405, 'WILDERNESS', 'var(--s-desert)') + flag(de.pt(0.5, -0.05)[0], 419, 'FORMATION') +
-    flag(la.pt(0.5, -0.05)[0], 405, 'PROMISED LAND', 'var(--s-land)') + flag(la.pt(0.5, -0.05)[0], 419, 'INHERITANCE') +
+    flag(eg.pt(0.5, -0.05)[0], 405, TXT('EGYPT'), 'var(--s-egypt)') + flag(eg.pt(0.5, -0.05)[0], 419, TXT('BONDAGE')) +
+    flag(de.pt(0.5, -0.05)[0], 405, TXT('WILDERNESS'), 'var(--s-desert)') + flag(de.pt(0.5, -0.05)[0], 419, TXT('FORMATION')) +
+    flag(la.pt(0.5, -0.05)[0], 405, TXT('PROMISED LAND'), 'var(--s-land)') + flag(la.pt(0.5, -0.05)[0], 419, TXT('INHERITANCE')) +
     '</svg>';
 }
 
@@ -462,9 +506,9 @@ function buildTabernacleSVG() {
 
   // numbered pins + staggered name labels in the sky
   const stations = [
-    { p: sGate, name: 'THE GATE', pinY: 248 }, { p: sAltar, name: 'BRONZE ALTAR', pinY: 248 }, { p: sLaver, name: 'THE LAVER', pinY: 248 },
-    { p: sTable, name: 'TABLE OF BREAD', pinY: 202 }, { p: sLamp, name: 'LAMPSTAND', pinY: 202 }, { p: sIncense, name: 'ALTAR OF INCENSE', pinY: 202 },
-    { p: sVeil, name: 'THE VEIL', pinY: 202 }, { p: sArk, name: 'MERCY SEAT', pinY: 202 }
+    { p: sGate, name: TXT('THE GATE'), pinY: 248 }, { p: sAltar, name: TXT('BRONZE ALTAR'), pinY: 248 }, { p: sLaver, name: TXT('THE LAVER'), pinY: 248 },
+    { p: sTable, name: TXT('TABLE OF BREAD'), pinY: 202 }, { p: sLamp, name: TXT('LAMPSTAND'), pinY: 202 }, { p: sIncense, name: TXT('ALTAR OF INCENSE'), pinY: 202 },
+    { p: sVeil, name: TXT('THE VEIL'), pinY: 202 }, { p: sArk, name: TXT('MERCY SEAT'), pinY: 202 }
   ];
   const nodeElements = stations.map((s, i) => {
     const zone = i >= 6 ? 'var(--c-codes)' : (i >= 3 ? 'var(--s-egypt)' : 'var(--s-desert)');
@@ -479,14 +523,14 @@ function buildTabernacleSVG() {
 
   const zlabel = (x, y, txt, c) => '<text x="' + x + '" y="' + y + '" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="' + c + '" style="font-family:var(--font-label);font-weight:700">' + txt + '</text>';
 
-  return '<svg class="tabernacle-svg" viewBox="0 0 920 400" role="img" aria-label="Isometric diagram of the tabernacle: the walk from the gate to the mercy seat">' +
+  return '<svg class="tabernacle-svg" viewBox="0 0 920 400" role="img" aria-label="' + TXT('Isometric diagram of the tabernacle: the walk from the gate to the mercy seat') + '">' +
     ground + fence + gate + altar + laver + tent + veil + table + lamp + incense + ark +
     '<path class="tabernacle-route" d="' + route + '" fill="none" stroke="var(--thread)" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="2 6"/>' +
     nodeElements +
-    zlabel(460, 128, 'HOLY PLACE', 'var(--s-egypt)') + zlabel(700, 128, 'HOLY OF HOLIES', 'var(--c-codes)') +
-    '<text x="118" y="349" font-size="7.5" letter-spacing="1.4" fill="#fff" opacity="0.75" style="font-family:var(--font-label);font-weight:700">OUTER COURT</text>' +
-    '<text x="46" y="382" font-size="7.5" letter-spacing="1.2" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">EAST · THE WAY IN</text>' +
-    '<text x="874" y="382" text-anchor="end" font-size="7.5" letter-spacing="1.2" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">WEST · THE PRESENCE</text>' +
+    zlabel(460, 128, TXT('HOLY PLACE'), 'var(--s-egypt)') + zlabel(700, 128, TXT('HOLY OF HOLIES'), 'var(--c-codes)') +
+    '<text x="118" y="349" font-size="7.5" letter-spacing="1.4" fill="#fff" opacity="0.75" style="font-family:var(--font-label);font-weight:700">' + TXT('OUTER COURT') + '</text>' +
+    '<text x="46" y="382" font-size="7.5" letter-spacing="1.2" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">' + TXT('EAST · THE WAY IN') + '</text>' +
+    '<text x="874" y="382" text-anchor="end" font-size="7.5" letter-spacing="1.2" fill="var(--ink-faint)" style="font-family:var(--font-label);font-weight:700">' + TXT('WEST · THE PRESENCE') + '</text>' +
     '</svg>';
 }
 
@@ -503,13 +547,13 @@ function buildFeastArc() {
      pile. `lead` is how far each label stands off its own mark, which fans the cluster into a
      ladder that reads top to bottom while every mark stays where the calendar actually puts it. */
   const FEASTS = [
-    { t: 0.07, name: 'PASSOVER', to: 'THE CROSS · 1 COR 5:7', ic: 'lamb', done: true, lead: 60 },
-    { t: 0.13, name: 'UNLEAVENED BREAD', to: 'THE BURIAL', ic: 'bread', done: true, lead: 104 },
-    { t: 0.19, name: 'FIRSTFRUITS', to: 'RESURRECTION · 1 COR 15:20', ic: 'grapes', done: true, lead: 148 },
-    { t: 0.40, name: 'PENTECOST', to: 'THE SPIRIT · ACTS 2:1', ic: 'wind', done: true, lead: 66 },
-    { t: 0.70, name: 'TRUMPETS', to: 'THE RETURN · 1 THESS 4:16', ic: 'music', done: false, lead: 150 },
-    { t: 0.78, name: 'ATONEMENT', to: 'THEY LOOK ON HIM · ZECH 12:10', ic: 'gate', done: false, lead: 104 },
-    { t: 0.87, name: 'TABERNACLES', to: 'GOD WITH MAN · REV 21:3', ic: 'temple', done: false, lead: 60 }
+    { t: 0.07, name: TXT('PASSOVER'), to: TXT('THE CROSS · 1 COR 5:7'), ic: 'lamb', done: true, lead: 60 },
+    { t: 0.13, name: TXT('UNLEAVENED BREAD'), to: TXT('THE BURIAL'), ic: 'bread', done: true, lead: 104 },
+    { t: 0.19, name: TXT('FIRSTFRUITS'), to: TXT('RESURRECTION · 1 COR 15:20'), ic: 'grapes', done: true, lead: 148 },
+    { t: 0.40, name: TXT('PENTECOST'), to: TXT('THE SPIRIT · ACTS 2:1'), ic: 'wind', done: true, lead: 66 },
+    { t: 0.70, name: TXT('TRUMPETS'), to: TXT('THE RETURN · 1 THESS 4:16'), ic: 'music', done: false, lead: 150 },
+    { t: 0.78, name: TXT('ATONEMENT'), to: TXT('THEY LOOK ON HIM · ZECH 12:10'), ic: 'gate', done: false, lead: 104 },
+    { t: 0.87, name: TXT('TABERNACLES'), to: TXT('GOD WITH MAN · REV 21:3'), ic: 'temple', done: false, lead: 60 }
   ];
   let marks = '';
   FEASTS.forEach(f => {
@@ -532,16 +576,16 @@ function buildFeastArc() {
       '<text x="' + L[0] + '" y="' + L[1] + '" text-anchor="' + anchor + '" font-size="11" letter-spacing="1" fill="' + cMain + '" style="font-family:var(--font-label);font-weight:700">' + f.name + '</text>' +
       '<text x="' + L[0] + '" y="' + (L[1] + 14) + '" text-anchor="' + anchor + '" font-size="8.6" letter-spacing="0.6" fill="' + cSub + '" style="font-family:var(--font-label);font-weight:700">' + f.to + '</text>';
   });
-  return '<svg viewBox="-58 8 978 322" role="img" aria-label="The seven feasts of Israel on the arc of the sacred year — spring fulfilled at the first coming, fall still ahead">' +
+  return '<svg viewBox="-58 8 978 322" role="img" aria-label="' + TXT('The seven feasts of Israel on the arc of the sacred year — spring fulfilled at the first coming, fall still ahead') + '">' +
     '<path d="M60 240 Q450 40 840 240" fill="none" stroke="var(--ink-faint)" stroke-width="1.6" opacity="0.45"/>' +
     '<path d="M60 240 Q235.5 150 411 141" fill="none" stroke="var(--gold)" stroke-width="2.6" opacity="0.85"/>' +
     marks +
-    '<text x="150" y="286" text-anchor="middle" font-size="11" letter-spacing="1.8" fill="var(--c-walk)" style="font-family:var(--font-label);font-weight:700">SPRING · FULFILLED TO THE DAY</text>' +
-    '<text x="742" y="286" text-anchor="middle" font-size="11" letter-spacing="1.8" fill="var(--c-detour)" style="font-family:var(--font-label);font-weight:700">FALL · STILL AHEAD</text>' +
+    '<text x="150" y="286" text-anchor="middle" font-size="11" letter-spacing="1.8" fill="var(--c-walk)" style="font-family:var(--font-label);font-weight:700">' + TXT('SPRING · FULFILLED TO THE DAY') + '</text>' +
+    '<text x="742" y="286" text-anchor="middle" font-size="11" letter-spacing="1.8" fill="var(--c-detour)" style="font-family:var(--font-label);font-weight:700">' + TXT('FALL · STILL AHEAD') + '</text>' +
     '<circle cx="318" cy="316" r="4.5" fill="var(--gold)"/>' +
-    '<text x="330" y="320" font-size="9" letter-spacing="0.9" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">FULFILLED</text>' +
+    '<text x="330" y="320" font-size="9" letter-spacing="0.9" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">' + TXT('FULFILLED') + '</text>' +
     '<circle cx="432" cy="316" r="4.5" fill="var(--card)" stroke="var(--c-detour)" stroke-width="1.8" stroke-dasharray="2 2"/>' +
-    '<text x="444" y="320" font-size="9" letter-spacing="0.9" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">AHEAD · DATES HELD LOOSELY (ACTS 1:7)</text>' +
+    '<text x="444" y="320" font-size="9" letter-spacing="0.9" fill="var(--ink-soft)" style="font-family:var(--font-label);font-weight:600">' + TXT('AHEAD · DATES HELD LOOSELY (ACTS 1:7)') + '</text>' +
     '</svg>';
 }
 
@@ -551,7 +595,7 @@ function diagramHint(label) {
   return '<p class="diagram-hint">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M3 12h18"/><path d="m8 7-5 5 5 5"/><path d="m16 7 5 5-5 5"/></svg>' +
-    '<span>Swipe to see the whole ' + label + '</span></p>';
+    '<span>' + TXT('Swipe to see the whole ' + label) + '</span></p>';
 }
 
 function head(navItem, h2, lede) {
@@ -583,7 +627,7 @@ function vStart() {
   const trails = NAV.slice(1).map(t =>
     '<a class="trailhead" href="#/' + t.id + '" style="--c:var(' + t.cvar + ')">' +
     '<span class="icon-chip">' + icon(t.icon) + '</span>' +
-    '<span><h3>' + t.label + '</h3><p>' + t.blurb + '</p><span class="go">Open the chart →</span></span></a>').join('');
+    '<span><h3>' + t.label + '</h3><p>' + t.blurb + '</p><span class="go">' + TXT('Open the chart →') + '</span></span></a>').join('');
   const howOrder = [5, 0, 1, 2, 3, 4];
   const howIcon = { 0: 'scroll', 1: 'lamb', 2: 'wind', 3: 'covenant', 4: 'walk', 5: 'cross' };
   const howSpan = { 5: 'feature', 0: 'wide', 1: 'wide', 2: 'reg', 3: 'reg', 4: 'reg' };
@@ -592,30 +636,30 @@ function vStart() {
       '<div class="bento-txt"><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div></div>'; }).join('');
   return '<div class="view">' +
     '<div class="hero">' +
-    '<div class="eyebrow" style="--c:var(--thread)">' + icon('thread') + 'A field manual to the Bible</div>' +
-    '<h1>Sixty-six books. One plot: <em>Jesus.</em></h1>' +
-    '<p class="lede">Threads, patterns, and codes tie the whole Bible together — and every one of them, traced far enough, ends at the same Person. This manual maps them, so you can read without getting lost and walk out what you find.</p>' +
+    '<div class="eyebrow" style="--c:var(--thread)">' + icon('thread') + TXT('A field manual to the Bible') + '</div>' +
+    '<h1>' + TXT('Sixty-six books. One plot: <em>Jesus.</em>') + '</h1>' +
+    '<p class="lede">' + TXT('Threads, patterns, and codes tie the whole Bible together — and every one of them, traced far enough, ends at the same Person. This manual maps them, so you can read without getting lost and walk out what you find.') + '</p>' +
     '</div>' +
     '<div class="chart-panel hero-chart">' +
     '  <div class="thread-preview-card" id="thread-preview">' +
     '    <div class="preview-placeholder">' +
     '      <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
-    '      <h3>The Story Map</h3>' +
-    '      <p>Choose a route to see its waypoints and where it lands.<span class="hint-hover"> Hover to peek, click to keep it.</span></p>' +
+    '      <h3>' + TXT('The Story Map') + '</h3>' +
+    '      <p>' + TXT('Choose a route to see its waypoints and where it lands.') + '<span class="hint-hover">' + TXT(' Hover to peek, click to keep it.') + '</span></p>' +
     '    </div>' + previewDotsHtml(null) +
     '  </div>' +
     '  <div class="chart-main">' +
     '    <div class="hero-scroll">' +
-    '      <span class="chart-corner tl">' + namedRefLink('Gen 1:1', '<span class="cc-long">Genesis</span><span class="cc-short">Gen</span>') + '</span>' +
-    '      <span class="chart-corner br">' + namedRefLink('Rev 22:21', '<span class="cc-long">Revelation</span><span class="cc-short">Rev</span>') + '</span>' +
+    '      <span class="chart-corner tl">' + namedRefLink(TXT('Gen 1:1'), '<span class="cc-long">' + TXT('Genesis') + '</span><span class="cc-short">' + TXT('Gen') + '</span>') + '</span>' +
+    '      <span class="chart-corner br">' + namedRefLink(TXT('Rev 22:21'), '<span class="cc-long">' + TXT('Revelation') + '</span><span class="cc-short">' + TXT('Rev') + '</span>') + '</span>' +
     buildHeroChart() + '</div>' +
     '    <div class="hero-legend">' + legend + '</div>' +
     '  </div>' +
     '</div>' +
-    '<p class="hero-verse">' + START.heroVerse.text + '<span class="vref">— ' + refLink(START.heroVerse.ref) + ' · the Emmaus road</span></p>' +
-    '<div class="home-section-title"><h2>The big idea</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<p class="hero-verse">' + START.heroVerse.text + '<span class="vref">— ' + refLink(START.heroVerse.ref) + TXT(' · the Emmaus road') + '</span></p>' +
+    '<div class="home-section-title"><h2>' + TXT('The big idea') + '</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<div class="big-idea">' + ideas + '</div>' +
-    '<div class="home-section-title"><h2>Pick a trailhead</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="home-section-title"><h2>' + TXT('Pick a trailhead') + '</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<div class="grid grid-2">' + trails + '</div>' +
     '<div class="home-section-title"><h2>' + START.howTo.title + '</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<div class="bento">' + tips + '</div>' +
@@ -625,6 +669,8 @@ function vStart() {
 function vPattern() {
   const n = NAV[1];
   const ROW_ICONS = { 'What it is': 'compass', 'It feels like': 'heart', 'God’s move': 'name', 'The exit': 'gate', 'Provision': 'bread' };
+  /* the Russian rows carry the Russian label, so the same icons are found under it too */
+  if (RU) Object.keys(ROW_ICONS).forEach(k => { ROW_ICONS[TXT(k)] = ROW_ICONS[k]; });
   const seasons = PATTERN.seasons.map(s =>
     '<div class="season-card" style="--c:var(' + s.cvar + ')">' +
     '<div class="season-head"><span class="icon-chip">' + icon(s.icon) + '</span>' +
@@ -643,26 +689,26 @@ function vPattern() {
     '<div class="case-top"><div><h3>' + c.name + '</h3><span class="case-sub">' + c.sub + '</span></div></div>' +
     '<div class="phase-bar"><span class="p1"></span><span class="p2"></span><span class="p3"></span></div>' +
     '<div class="case-rows">' +
-    '<div class="row r1"><b>Egypt</b><span>' + linkRefs(c.p1) + '</span></div>' +
-    '<div class="row r2"><b>Desert</b><span>' + linkRefs(c.p2) + '</span></div>' +
-    '<div class="row r3"><b>Land</b><span>' + linkRefs(c.p3) + '</span></div>' +
+    '<div class="row r1"><b>' + TXT('Egypt') + '</b><span>' + linkRefs(c.p1) + '</span></div>' +
+    '<div class="row r2"><b>' + TXT('Desert') + '</b><span>' + linkRefs(c.p2) + '</span></div>' +
+    '<div class="row r3"><b>' + TXT('Land') + '</b><span>' + linkRefs(c.p3) + '</span></div>' +
     '</div></div>').join('');
-  return '<div class="view">' + head(n, 'Egypt → Wilderness → Promised Land', PATTERN.intro) +
+  return '<div class="view">' + head(n, TXT('Egypt → Wilderness → Promised Land'), PATTERN.intro) +
     '<div class="chart-panel journey-panel">' +
-    '<span class="chart-corner tl">' + refLink('Gen 15:13') + '</span><span class="chart-corner br">' + refLink('Josh 21:45') + '</span>' +
+    '<span class="chart-corner tl">' + refLink(TXT('Gen 15:13')) + '</span><span class="chart-corner br">' + refLink(TXT('Josh 21:45')) + '</span>' +
     '<div class="journey-scroll">' + buildJourneySVG() + '</div>' + diagramHint('journey') +
     '<div class="journey-caps">' +
-    '<div class="journey-cap" style="--c:var(--s-egypt)"><b>Egypt says</b><span>' + linkRefs('“You are what you produce.” Worth measured in bricks per day (Ex 5:13-14).') + '</span></div>' +
-    '<div class="journey-cap" style="--c:var(--s-desert)"><b>The wilderness hears</b><span>' + linkRefs('“You are my son” — identity spoken before performance (Ex 4:22; Deut 8:2-3).') + '</span></div>' +
-    '<div class="journey-cap" style="--c:var(--s-land)"><b>The land walks</b><span>' + linkRefs('Fight FROM victory, not for it — “I have given you” (Josh 1:3).') + '</span></div>' +
+    '<div class="journey-cap" style="--c:var(--s-egypt)"><b>' + TXT('Egypt says') + '</b><span>' + linkRefs(TXT('“You are what you produce.” Worth measured in bricks per day (Ex 5:13-14).')) + '</span></div>' +
+    '<div class="journey-cap" style="--c:var(--s-desert)"><b>' + TXT('The wilderness hears') + '</b><span>' + linkRefs(TXT('“You are my son” — identity spoken before performance (Ex 4:22; Deut 8:2-3).')) + '</span></div>' +
+    '<div class="journey-cap" style="--c:var(--s-land)"><b>' + TXT('The land walks') + '</b><span>' + linkRefs(TXT('Fight FROM victory, not for it — “I have given you” (Josh 1:3).')) + '</span></div>' +
     '</div></div>' +
     '<div class="season-grid">' + seasons + '</div>' +
-    '<div class="home-section-title"><h2>Trail wisdom</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="home-section-title"><h2>' + TXT('Trail wisdom') + '</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<div class="insight-grid">' + insights + '</div>' +
-    '<div class="home-section-title"><h2>Case studies</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
-    '<p class="lede" style="margin-bottom:16px">“These things happened to them as examples… written down for our instruction” (' + refLink('1 Cor 10:11') + '). The library of case studies, in three-phase view:</p>' +
+    '<div class="home-section-title"><h2>' + TXT('Case studies') + '</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-pattern)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<p class="lede" style="margin-bottom:16px">' + TXT('“These things happened to them as examples… written down for our instruction” (') + refLink(TXT('1 Cor 10:11')) + TXT('). The library of case studies, in three-phase view:') + '</p>' +
     '<div class="grid grid-3">' + cases + '</div>' +
-    '<p class="note">Want this pattern in video form? BibleProject’s <a class="ref-link" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=dYPlBq8ELvA">“The Exodus Way”</a> names the same three roads: out of slavery, through the wilderness, into inheritance.</p>' +
+    '<p class="note">' + TXT('Want this pattern in video form? BibleProject’s <a class="ref-link" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=dYPlBq8ELvA">“The Exodus Way”</a> names the same three roads: out of slavery, through the wilderness, into inheritance.') + '</p>' +
     '</div>';
 }
 
@@ -670,56 +716,56 @@ function vThreads() {
   const n = NAV[2];
   const rows = THREADS.map(t => {
     const wps = t.way.map(w =>
-      '<div class="wp-card' + (w.j ? ' wp-cross' : '') + '" data-verse-ref="' + escapeScriptureText(splitReferenceGroup(w.ref)[0]) + '"><span class="wp-ref">' + refLink(w.ref) + (w.j ? ' · lands here' : '') + '</span><p>' + linkRefs(w.note) + '</p></div>').join('');
+      '<div class="wp-card' + (w.j ? ' wp-cross' : '') + '" data-verse-ref="' + escapeScriptureText(splitReferenceGroup(w.ref)[0]) + '"><span class="wp-ref">' + refLink(w.ref) + (w.j ? TXT(' · lands here') : '') + '</span><p>' + linkRefs(w.note) + '</p></div>').join('');
     return '<div class="thread-row" id="t-' + t.id + '" style="--c:var(' + t.cvar + ')">' +
       '<div class="thread-row-head">' +
       '<span class="icon-chip">' + icon(t.icon) + '</span>' +
       '<div class="thread-row-title"><h3>' + t.name + '</h3><span class="thread-tag">' + t.tag + '</span></div>' +
-      '<span class="thread-count">' + t.way.length + ' waypoints</span>' +
+      '<span class="thread-count">' + (RU ? t.way.length + ' ' + ruPlural(t.way.length, UI_RU['@waypoints']) : t.way.length + ' waypoints') + '</span>' +
       '</div>' +
       /* the fade mask rides the static window, never the scrolling element */
       '<div class="marquee-window"><div class="thread-marquee" data-marquee><div class="marquee-track">' + wps + '</div></div></div>' +
       '<div class="thread-row-foot">' +
-      '<div class="lands-on"><span class="label">Where it lands</span>' + linkRefs(t.landsOn) + '</div>' +
-      '<p class="for-you">For you: ' + linkRefs(t.forYou) + '</p>' +
+      '<div class="lands-on"><span class="label">' + TXT('Where it lands') + '</span>' + linkRefs(t.landsOn) + '</div>' +
+      '<p class="for-you">' + TXT('For you: ') + linkRefs(t.forYou) + '</p>' +
       '</div></div>';
   }).join('');
-  return '<div class="view">' + head(n, 'Thirteen threads through the whole book',
-    'Every ribbon below is one theme traced Genesis to Revelation — real verses, in order, drifting past like a filmstrip (drag to browse, then let go to resume; tap any reference to read it). The gold card is where the thread lands on Jesus. This is the fastest cure for “the Bible feels random.”') +
+  return '<div class="view">' + head(n, TXT('Thirteen threads through the whole book'),
+    TXT('Every ribbon below is one theme traced Genesis to Revelation — real verses, in order, drifting past like a filmstrip (drag to browse, then let go to resume; tap any reference to read it). The gold card is where the thread lands on Jesus. This is the fastest cure for “the Bible feels random.”')) +
     '<div class="thread-rows">' + rows + '</div></div>';
 }
 
 function vCodes() {
   const n = NAV[3];
-  const tabs = [['prophecies', 'Prophecies'], ['types', 'Types & Shadows'], ['tabernacle', 'The Tabernacle'], ['feasts', 'The Feasts'], ['loose', 'Hold Loosely']];
+  const tabs = [['prophecies', 'Prophecies'], ['types', 'Types & Shadows'], ['tabernacle', 'The Tabernacle'], ['feasts', 'The Feasts'], ['loose', 'Hold Loosely']].map(t => [t[0], TXT(t[1])]);
   const tabIcons = { prophecies: 'scroll', types: 'temple', tabernacle: 'gate', feasts: 'calendar', loose: 'wind' };
   const tabBtns = tabs.map(([id, l], i) => '<button class="subtab' + (i === 0 ? ' active' : '') + '" data-tab="' + id + '" style="--c:var(--c-codes)">' + icon(tabIcons[id] || 'cross') + ' ' + l + '</button>').join('');
   const kindBadge = k => k === 'direct'
-    ? '<span class="badge explicit" title="A stated prediction with an explicit New Testament fulfillment">Direct</span>'
-    : '<span class="badge classical" title="A pattern the NT or the church reads as fulfilled typologically">Pattern</span>';
+    ? '<span class="badge explicit" title="' + TXT('A stated prediction with an explicit New Testament fulfillment') + '">' + TXT('Direct') + '</span>'
+    : '<span class="badge classical" title="' + TXT('A pattern the NT or the church reads as fulfilled typologically') + '">' + TXT('Pattern') + '</span>';
   /* Twenty rows of near-identical text is a wall to scan. A mark per claim gives the eye
      something to land on and, more usefully, something to remember a row by. */
   const PROPHECY_ICONS = ['bolt', 'globe', 'king', 'star', 'bread', 'pyramid', 'dune', 'light',
     'heart', 'gate', 'fork', 'ban', 'mic', 'cross', 'garment', 'lamb', 'search', 'rest', 'walk', 'temple'];
   const rows = CODES.prophecies.map((p, i) =>
-    '<tr><td data-label="The claim"><span class="claim"><span class="claim-ic">' +
-      icon(PROPHECY_ICONS[i % PROPHECY_ICONS.length]) + '</span>' + p.what + '</span></td><td data-label="Promised">' + refLink(p.ot) + '</td><td data-label="Lands">' + refLink(p.nt) + '</td><td data-label="Reading">' + kindBadge(p.kind) + '</td></tr>').join('');
+    '<tr><td data-label="' + TXT('The claim') + '"><span class="claim"><span class="claim-ic">' +
+      icon(PROPHECY_ICONS[i % PROPHECY_ICONS.length]) + '</span>' + p.what + '</span></td><td data-label="' + TXT('Promised') + '">' + refLink(p.ot) + '</td><td data-label="' + TXT('Lands') + '">' + refLink(p.nt) + '</td><td data-label="' + TXT('Reading') + '">' + kindBadge(p.kind) + '</td></tr>').join('');
   const types = CODES.types.map(t =>
     '<div class="card type-card" style="--c:var(--c-codes)"><h3>' + t.name + ' ' + badge(t.badge) + '</h3>' +
     '<div class="type-refs">' + linkRefs(t.refs) + '</div><p>' + linkRefs(t.body) + '</p></div>').join('');
   const courtStations = CODES.tabernacle.stations.slice(0, 3).map((s, i) =>
-    '<div class="tab-station-card"><div class="station-meta"><span class="station-num">Station ' + (i + 1) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
+    '<div class="tab-station-card"><div class="station-meta"><span class="station-num">' + TXTF('Station {n}', { n: i + 1 }) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
   const holyStations = CODES.tabernacle.stations.slice(3, 6).map((s, i) =>
-    '<div class="tab-station-card"><div class="station-meta"><span class="station-num">Station ' + (i + 4) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
+    '<div class="tab-station-card"><div class="station-meta"><span class="station-num">' + TXTF('Station {n}', { n: i + 4 }) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
   const mostHolyStations = CODES.tabernacle.stations.slice(6, 8).map((s, i) =>
-    '<div class="tab-station-card"><div class="station-meta"><span class="station-num">Station ' + (i + 7) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
-  const tabInsights = '<div class="tab-insights"><div class="tab-insights-title">' + icon('key') + '<span>Details worth noticing</span></div><div class="grid grid-2">' +
+    '<div class="tab-station-card"><div class="station-meta"><span class="station-num">' + TXTF('Station {n}', { n: i + 7 }) + '</span><span class="station-desc">' + s.what + '</span></div><h3>' + s.name + '</h3><p class="station-jesus">' + linkRefs(s.jesus) + '</p></div>').join('');
+  const tabInsights = '<div class="tab-insights"><div class="tab-insights-title">' + icon('key') + '<span>' + TXT('Details worth noticing') + '</span></div><div class="grid grid-2">' +
     CODES.tabernacle.insights.map(i => '<div class="card insight-mini" style="--c:var(--c-codes)"><b>' + i.t + '</b><p>' + linkRefs(i.x) + '</p></div>').join('') + '</div></div>';
 
   const tabernacleLayout = '<div class="tabernacle-grid">' +
-    '<div class="tabernacle-zone zone-court"><div class="zone-header">Outer Court <span class="zone-sub">East Entrance</span></div><div class="zone-stations">' + courtStations + '</div></div>' +
-    '<div class="tabernacle-zone zone-holy"><div class="zone-header">Holy Place <span class="zone-sub">The Sanctuary</span></div><div class="zone-stations">' + holyStations + '</div></div>' +
-    '<div class="tabernacle-zone zone-most-holy"><div class="zone-header">Holy of Holies <span class="zone-sub">Behind the Veil</span></div><div class="zone-stations">' + mostHolyStations + '</div></div>' +
+    '<div class="tabernacle-zone zone-court"><div class="zone-header">' + TXT('Outer Court') + ' <span class="zone-sub">' + TXT('East Entrance') + '</span></div><div class="zone-stations">' + courtStations + '</div></div>' +
+    '<div class="tabernacle-zone zone-holy"><div class="zone-header">' + TXT('Holy Place') + ' <span class="zone-sub">' + TXT('The Sanctuary') + '</span></div><div class="zone-stations">' + holyStations + '</div></div>' +
+    '<div class="tabernacle-zone zone-most-holy"><div class="zone-header">' + TXT('Holy of Holies') + ' <span class="zone-sub">' + TXT('Behind the Veil') + '</span></div><div class="zone-stations">' + mostHolyStations + '</div></div>' +
     '</div>';
 
   /* icons and the spring/autumn split mirror the arc above, so the chart and the list
@@ -733,22 +779,22 @@ function vCodes() {
     '<p>' + linkRefs(f.body) + '</p></div>';
   const feasts =
     '<div class="feast-group is-done">' +
-    '<span class="feast-group-label">' + icon('light') + 'Spring — fulfilled, to the day</span>' +
+    '<span class="feast-group-label">' + icon('light') + TXT('Spring — fulfilled, to the day') + '</span>' +
     '<div class="feast-cards">' + CODES.feasts.slice(0, 4).map((f, i) => feastCard(f, i)).join('') + '</div></div>' +
     '<div class="feast-group is-ahead">' +
-    '<span class="feast-group-label">' + icon('music') + 'Autumn — the shape of what is ahead</span>' +
+    '<span class="feast-group-label">' + icon('music') + TXT('Autumn — the shape of what is ahead') + '</span>' +
     '<div class="feast-cards">' + CODES.feasts.slice(4).map((f, i) => feastCard(f, i + 4)).join('') + '</div></div>';
   const loose = CODES.loose.map(l =>
     '<div class="card type-card" style="--c:var(--c-codes)"><h3>' + l.name + ' ' + badge(l.badge) + '</h3><p>' + linkRefs(l.body) + '</p></div>').join('');
-  return '<div class="view">' + head(n, 'The codes: written in advance', CODES.intro) +
+  return '<div class="view">' + head(n, TXT('The codes: written in advance'), CODES.intro) +
     '<div class="subtabs">' + tabBtns + '</div>' +
     '<div class="tabpane" data-pane="prophecies">' +
-    '<div class="table-scroll"><table class="map-table"><thead><tr><th>The claim</th><th>Promised</th><th>Lands</th><th>Reading</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<div class="table-scroll"><table class="map-table"><thead><tr><th>' + TXT('The claim') + '</th><th>' + TXT('Promised') + '</th><th>' + TXT('Lands') + '</th><th>' + TXT('Reading') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
     '<p class="note">' + linkRefs(CODES.prophecyNote) + '</p></div>' +
     '<div class="tabpane" data-pane="types" hidden>' +
     '<p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.typesLede) + '</p>' +
     '<div class="card vocab-card" style="--c:var(--c-codes)">' +
-    '<div class="vocab-head">' + icon('scroll') + '<span>The New Testament\u2019s own four words for it</span></div>' +
+    '<div class="vocab-head">' + icon('scroll') + '<span>' + TXT('The New Testament\u2019s own four words for it') + '</span></div>' +
     '<ol class="vocab-steps">' + CODES.typesVocab.map((v, i) =>
       '<li class="vocab-step">' +
       '<span class="vocab-top"><span class="vocab-num">' + (i + 1) + '</span>' +
@@ -760,9 +806,9 @@ function vCodes() {
     '<p class="vocab-note">' + linkRefs(CODES.typesBadgeNote) + '</p>' +
     '</div>' +
     '<div class="grid grid-2">' + types + '</div></div>' +
-    '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container">' + buildTabernacleSVG() + '</div>' + diagramHint('tabernacle') + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.</p></div>' +
+    '<div class="tabpane" data-pane="tabernacle" hidden><p class="lede" style="margin-bottom:20px">' + linkRefs(CODES.tabernacle.intro) + '</p><div class="tabernacle-graphic-container">' + buildTabernacleSVG() + '</div>' + diagramHint('tabernacle') + tabernacleLayout + tabInsights + '<p class="note" style="margin-top:20px">' + TXT('Walk it east to west and you’ve just walked the gospel: enter, be covered, be washed, be fed, be lit, pray, pass the torn veil, meet Him at the mercy seat.') + '</p></div>' +
     '<div class="tabpane" data-pane="feasts" hidden>' +
-    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + namedRefLink('Lev 23:2', 'Leviticus') + '</span><span class="chart-corner br">' + namedRefLink('Col 2:16-17', 'Colossians') + '</span>' +
+    '<div class="chart-panel feast-arc-panel"><span class="chart-corner tl">' + namedRefLink(TXT('Lev 23:2'), TXT('Leviticus')) + '</span><span class="chart-corner br">' + namedRefLink(TXT('Col 2:16-17'), TXT('Colossians')) + '</span>' +
     '<div class="feast-arc-scroll">' + buildFeastArc() + '</div></div>' + diagramHint('year') +
     '<div class="feast-groups">' + feasts + '</div><p class="note">' + linkRefs(CODES.feastNote) + '</p></div>' +
     '<div class="tabpane" data-pane="loose" hidden><div class="grid grid-2">' + loose + '</div></div>' +
@@ -772,9 +818,9 @@ function vCodes() {
 function vTriune() {
   const n = NAV[4];
   const RAIL_META = [
-    { icon: 'scroll', label: 'Load-bearing' },
-    { icon: 'ear', label: 'Listen for it' },
-    { icon: 'wind', label: 'Hold loosely' }
+    { icon: 'scroll', label: TXT('Load-bearing') },
+    { icon: 'ear', label: TXT('Listen for it') },
+    { icon: 'wind', label: TXT('Hold loosely') }
   ];
   const rails = TRIUNE.rails.map((r, ix) => {
     const m = RAIL_META[ix % RAIL_META.length];
@@ -786,9 +832,9 @@ function vTriune() {
     '<div class="card triune-anchor-card" style="--c:var(--c-triune)">' +
     '<h3>' + a.name + ' ' + badge(a.badge) + '</h3>' +
     '<div class="triune-roles">' +
-    '<div class="triune-role"><b>Father</b><span>' + linkRefs(a.father) + '</span></div>' +
-    '<div class="triune-role"><b>Son</b><span>' + linkRefs(a.son) + '</span></div>' +
-    '<div class="triune-role"><b>Spirit</b><span>' + linkRefs(a.spirit) + '</span></div>' +
+    '<div class="triune-role"><b>' + TXT('Father') + '</b><span>' + linkRefs(a.father) + '</span></div>' +
+    '<div class="triune-role"><b>' + TXT('Son') + '</b><span>' + linkRefs(a.son) + '</span></div>' +
+    '<div class="triune-role"><b>' + TXT('Spirit') + '</b><span>' + linkRefs(a.spirit) + '</span></div>' +
     '</div>' + refRow(a.refs) + '</div>').join('');
   const patterns = TRIUNE.patterns.map(p =>
     '<div class="card triune-pattern-card" style="--c:var(--c-triune)">' +
@@ -796,11 +842,11 @@ function vTriune() {
     '<p class="story">' + linkRefs(p.story) + '</p>' +
     '<p class="reading">' + linkRefs(p.reading) + '</p>' +
     refRow(p.refs) + '</div>').join('');
-  return '<div class="view">' + head(n, 'Father, Son & Spirit in the story', TRIUNE.intro) +
+  return '<div class="view">' + head(n, TXT('Father, Son & Spirit in the story'), TRIUNE.intro) +
     '<div class="triune-rails">' + rails + '</div>' +
-    '<div class="home-section-title"><h2>Explicit anchors</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="home-section-title"><h2>' + TXT('Explicit anchors') + '</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<div class="grid grid-2">' + anchors + '</div>' +
-    '<div class="home-section-title"><h2>Story echoes</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
+    '<div class="home-section-title"><h2>' + TXT('Story echoes') + '</h2><svg class="rr" viewBox="0 0 300 12" preserveAspectRatio="none" style="color:var(--c-triune)" aria-hidden="true"><path d="M0 6 H300" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 4"/></svg></div>' +
     '<div class="grid grid-2">' + patterns + '</div>' +
     '<p class="note" style="border-left-color:var(--c-triune)">' + linkRefs(TRIUNE.note) + '</p></div>';
 }
@@ -812,12 +858,12 @@ function vWalking() {
   const cards = WALKING.pillars.map(p =>
     '<div class="card pillar-card" style="--c:var(--c-walk)">' +
     '<div class="case-top"><span class="icon-chip">' + icon(p.icon) + '</span><h3>' + p.name + '</h3></div>' +
-    '<div class="row lie"><b>' + icon('ban') + 'Old software</b><span>' + p.lie + '</span></div>' +
-    '<div class="row truth"><b>' + icon('bolt') + 'New identity</b><span>' + p.truth + '</span></div>' +
+    '<div class="row lie"><b>' + icon('ban') + TXT('Old software') + '</b><span>' + p.lie + '</span></div>' +
+    '<div class="row truth"><b>' + icon('bolt') + TXT('New identity') + '</b><span>' + p.truth + '</span></div>' +
     '<p class="pillar-body">' + linkRefs(p.body) + '</p>' +
-    '<div class="practice"><span class="label">' + icon('tool') + 'Try this</span>' + linkRefs(p.practice) + '</div>' +
+    '<div class="practice"><span class="label">' + icon('tool') + TXT('Try this') + '</span>' + linkRefs(p.practice) + '</div>' +
     refRow(p.refs) + '</div>').join('');
-  return '<div class="view">' + head(n, 'Walking in the new covenant', WALKING.intro) +
+  return '<div class="view">' + head(n, TXT('Walking in the new covenant'), WALKING.intro) +
     '<div class="hero-legend" style="justify-content:flex-start;padding:0 0 8px">' + words + '</div>' +
     '<p class="note" style="margin:0 0 22px">' + WALKING.tenWordsNote + '</p>' +
     '<div class="grid grid-2">' + cards + '</div></div>';
@@ -829,11 +875,11 @@ function vDetours() {
     '<div class="card detour-card" id="d-' + i + '" style="--c:var(--c-detour)">' +
     '<h3><span class="icon-chip" style="--c:var(--c-detour)">' + icon('fork') + '</span>' + d.name + '</h3>' +
     '<div class="detour-rows">' +
-    '<div class="row pull"><b>' + icon('magnet') + 'The pull</b><span>' + linkRefs(d.pull) + '</span></div>' +
-    '<div class="row cost"><b>' + icon('alert') + 'The cost</b><span>' + linkRefs(d.cost) + '</span></div>' +
-    '<div class="row home"><b>' + icon('compass') + 'The way home</b><span>' + linkRefs(d.home) + '</span></div>' +
+    '<div class="row pull"><b>' + icon('magnet') + TXT('The pull') + '</b><span>' + linkRefs(d.pull) + '</span></div>' +
+    '<div class="row cost"><b>' + icon('alert') + TXT('The cost') + '</b><span>' + linkRefs(d.cost) + '</span></div>' +
+    '<div class="row home"><b>' + icon('compass') + TXT('The way home') + '</b><span>' + linkRefs(d.home) + '</span></div>' +
     '</div>' + refRow(d.refs) + '</div>').join('');
-  return '<div class="view">' + head(n, 'Detours: sincere wrong turns', DETOURS.intro) +
+  return '<div class="view">' + head(n, TXT('Detours: sincere wrong turns'), DETOURS.intro) +
     '<div class="grid grid-2">' + cards + '</div></div>';
 }
 
@@ -849,19 +895,19 @@ function vMind() {
   const cards = MIND.blocks.map((b, bi) => {
     let tv = '';
     if (b.tv) {
-      tv = '<div class="tv-grid"><div class="tv-box treasure"><span class="label">Keep the treasure</span><ul>' +
+      tv = '<div class="tv-grid"><div class="tv-box treasure"><span class="label">' + TXT('Keep the treasure') + '</span><ul>' +
         b.tv.treasure.map(x => '<li>' + linkRefs(x) + '</li>').join('') + '</ul></div>' +
-        '<div class="tv-box ditch"><span class="label">Skip the ditch</span><ul>' +
+        '<div class="tv-box ditch"><span class="label">' + TXT('Skip the ditch') + '</span><ul>' +
         b.tv.ditch.map(x => '<li>' + linkRefs(x) + '</li>').join('') + '</ul></div></div>';
     }
     return '<div class="card mind-card" style="--c:var(' + MIND_HUES[bi % MIND_HUES.length] + ')">' +
       '<h3><span class="icon-chip">' + icon(b.icon) + '</span>' + b.name + '</h3>' +
       '<div class="mind-body-txt mind-panel-grid">' + paragraphCards(b.body, b.panelLabels) + '</div>' + tv + refRow(b.refs) + '</div>';
   }).join('');
-  return '<div class="view">' + head(n, 'Mind, body & the Spirit', MIND.intro) +
+  return '<div class="view">' + head(n, TXT('Mind, body & the Spirit'), MIND.intro) +
     '<div class="card neuro-primer" style="--c:var(--c-mind)">' +
-    '<div><h3>Neuro primer: read the brain without letting it replace the Bible</h3>' +
-    '<p class="lede">Use this section as a set of rails: curiosity without hype, embodiment without reductionism, and practice without pressure.</p></div>' +
+    '<div><h3>' + TXT('Neuro primer: read the brain without letting it replace the Bible') + '</h3>' +
+    '<p class="lede">' + TXT('Use this section as a set of rails: curiosity without hype, embodiment without reductionism, and practice without pressure.') + '</p></div>' +
     '<div class="mind-panel-grid">' + primer + '</div></div>' +
     '<div class="grid grid-1">' + cards + '</div></div>';
 }
@@ -880,14 +926,14 @@ function vLibrary() {
     '<div class="shelf-items">' + s.items.map(i => {
       const m = KIND_META[i.kind] || KIND_META.book;
       return '<a class="shelf-item" style="--c:var(' + m.c + ')" target="_blank" rel="noopener" href="' + i.url + '">' +
-        '<span class="kind">' + icon(m.icon) + i.kind + '</span>' +
+        '<span class="kind">' + icon(m.icon) + TXT(i.kind) + '</span>' +
         '<b>' + i.title + '</b>' +
         '<span class="by">' + i.by + '</span>' +
         '<span class="note-txt">' + i.note + '</span>' +
-        '<span class="shelf-go">Open' + icon('linkout') + '</span></a>';
+        '<span class="shelf-go">' + TXT('Open') + icon('linkout') + '</span></a>';
     }).join('') +
     '</div></div>').join('');
-  return '<div class="view">' + head(n, 'The pack list', LIBRARY.intro) + shelves + '</div>';
+  return '<div class="view">' + head(n, TXT('The pack list'), LIBRARY.intro) + shelves + '</div>';
 }
 
 /* ================= search ================= */
@@ -1012,14 +1058,14 @@ function buildThreadPreviewContent(t) {
     '  <div class="preview-stepper">' + previewStepperHtml(t) + '</div>' +
     '  <p class="preview-tag">' + t.tag + '</p>' +
     '  <div class="preview-foot">' +
-    '    <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">Learn more</a>' +
+    '    <a class="preview-more" href="#t-' + t.id + '" data-thread-more="' + t.id + '">' + TXT('Learn more') + '</a>' +
     '  </div>' +
     '  </div>' +
     '  <div class="preview-body">' +
-    '    <h4>Journey Milestones:</h4>' +
+    '    <h4>' + TXT('Journey Milestones:') + '</h4>' +
     '    <ul>' + shortWay + '</ul>' +
     '    <div class="preview-lands">' +
-    '      <strong>Where it lands</strong>' +
+    '      <strong>' + TXT('Where it lands') + '</strong>' +
     '      <p>' + linkRefs(t.landsOn) + '</p>' +
     '    </div>' +
     '  </div>' +
@@ -1039,7 +1085,7 @@ function previewStepperHtml(t) {
   const at = n => THREADS[(n + THREADS.length) % THREADS.length];
   const arrow = (dir, d) =>
     '<button class="preview-step" type="button" data-step-thread="' + at(i + dir).id + '" data-dir="' + dir + '"' +
-    ' aria-label="' + (dir < 0 ? 'Previous' : 'Next') + ' thread: ' + at(i + dir).name + '"' +
+    ' aria-label="' + TXTF(dir < 0 ? 'Previous thread: {name}' : 'Next thread: {name}', { name: at(i + dir).name }) + '"' +
     ' title="' + at(i + dir).name + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg></button>';
   return arrow(-1, 'm14.5 6-6 6 6 6') + arrow(1, 'm9.5 6 6 6-6 6');
@@ -1169,8 +1215,8 @@ function resetThreadPreview() {
   swapPreviewContent(previewEl,
     '  <div class="preview-placeholder">' +
     '    <svg class="preview-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
-    '    <h3>The Story Map</h3>' +
-    '    <p>Choose a route to see its waypoints and where it lands.<span class="hint-hover"> Hover to peek, click to keep it.</span></p>' +
+    '    <h3>' + TXT('The Story Map') + '</h3>' +
+    '    <p>' + TXT('Choose a route to see its waypoints and where it lands.') + '<span class="hint-hover">' + TXT(' Hover to peek, click to keep it.') + '</span></p>' +
     '  </div>' + previewDotsHtml(null));
 }
 
@@ -1434,13 +1480,23 @@ const VERSIONS = [
   { code: 'MSG', full: 'The Message' },
   { code: 'TPT', full: 'The Passion Translation' }
 ];
-let ACTIVE_VERSION = 'NIV';
+/* The Russian page reads Russian translations only: НРП by default, Синодальный beside it.
+   Every English one is dropped rather than hidden — there is nothing on that side to switch to.
+   `label` is what the reader sees; `code` stays the bolls.life id and what is stored. */
+if (RU) VERSIONS.splice(0, VERSIONS.length,
+  { code: 'NRT', label: 'НРП', full: 'Новый русский перевод' },
+  { code: 'SYNOD', label: 'СП', full: 'Синодальный перевод' });
+let ACTIVE_VERSION = RU ? 'NRT' : 'NIV';
 function getVersion() { return ACTIVE_VERSION; }
+function versionLabel(code) {
+  const v = VERSIONS.find(x => x.code === code);
+  return (v && v.label) || code;
+}
 function applyVersion(code) {
   if (!VERSIONS.some(v => v.code === code)) return;
   ACTIVE_VERSION = code;
   lsSet('thread-version', code);
-  document.querySelectorAll('.verpick-val').forEach(val => { val.textContent = code; });
+  document.querySelectorAll('.verpick-val').forEach(val => { val.textContent = versionLabel(code); });
   document.querySelectorAll('.verpick-opt').forEach(o => o.setAttribute('aria-selected', String(o.dataset.v === code)));
 }
 
@@ -1454,7 +1510,7 @@ function versionMenuHtml(heading) {
       '<button class="verpick-opt" type="button" role="option" data-v="' + v.code + '"' +
       ' title="' + v.full + '" aria-label="' + v.full + '"' +
       ' aria-selected="' + (v.code === ACTIVE_VERSION) + '">' +
-      '<span class="code">' + v.code + '</span></button>').join('');
+      '<span class="code">' + (v.label || v.code) + '</span></button>').join('');
 }
 
 function wireVersionPicker(wrap, onChoose) {
@@ -1463,7 +1519,7 @@ function wireVersionPicker(wrap, onChoose) {
   const val = wrap && wrap.querySelector('.verpick-val');
   if (!wrap || !btn || !menu || !val) return null;
 
-  val.textContent = ACTIVE_VERSION;
+  val.textContent = versionLabel(ACTIVE_VERSION);
   const opts = () => Array.from(menu.querySelectorAll('.verpick-opt'));
   const close = () => {
     wrap.classList.remove('open');
@@ -1934,26 +1990,26 @@ function readingPanelHtml() {
     ['source-serif', 'Source Serif', 'sans headings, serif text'],
     ['figtree', 'Figtree', 'sans headings and text'],
     ['atkinson', 'Atkinson', 'drawn for legibility']
-  ];
-  return '<span class="prefs-head">Typeface <b class="prefs-head-val">Literata</b></span>' +
+  ].map(f => [f[0], f[1], TXT(f[2])]);
+  return '<span class="prefs-head">' + TXT('Typeface') + ' <b class="prefs-head-val">Literata</b></span>' +
     '<div class="typegrid" data-pref="ctx-type">' +
     faces.map(f => '<button type="button" data-v="' + f[0] + '" data-name="' + f[1] + '" aria-pressed="false"' +
       ' title="' + f[1] + ' \u2014 ' + f[2] + '" aria-label="' + f[1] + ', ' + f[2] + '"><b>A</b><i>a</i></button>').join('') +
     '</div>' +
-    '<span class="prefs-head">Line height</span>' +
+    '<span class="prefs-head">' + TXT('Line height') + '</span>' +
     '<div class="seg" data-pref="ctx-lh">' +
-    ['snug', 'normal', 'roomy'].map(v => '<button type="button" data-v="' + v + '">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>').join('') +
+    ['snug', 'normal', 'roomy'].map(v => '<button type="button" data-v="' + v + '">' + TXT(v.charAt(0).toUpperCase() + v.slice(1)) + '</button>').join('') +
     '</div>' +
-    '<span class="prefs-head">Text size</span>' +
+    '<span class="prefs-head">' + TXT('Text size') + '</span>' +
     /* Two equal halves in a pill read as a two-way preset, not as a ladder you can walk. A
        minus, the value you are on, and a plus say what it actually is. */
     '<div class="stepper sizer" data-pref="ctx-fs">' +
-    '<button type="button" data-step="-1" aria-label="Smaller passage text"><span class="sz-op" aria-hidden="true">\u2212</span></button>' +
+    '<button type="button" data-step="-1" aria-label="' + TXT('Smaller passage text') + '"><span class="sz-op" aria-hidden="true">\u2212</span></button>' +
     '<span class="stepper-val ctx-fs-val">100%</span>' +
-    '<button type="button" data-step="1" aria-label="Larger passage text"><span class="sz-op" aria-hidden="true">+</span></button>' +
+    '<button type="button" data-step="1" aria-label="' + TXT('Larger passage text') + '"><span class="sz-op" aria-hidden="true">+</span></button>' +
     '</div>' +
     contextShowsHtml() +
-    '<div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="ctx">Reset</button></div>';
+    '<div class="prefs-foot"><button class="prefs-reset" type="button" data-prefs-reset="ctx">' + TXT('Reset') + '</button></div>';
 }
 
 /* One element, moved rather than duplicated — beside "Even more context" on a desktop footer
@@ -1962,9 +2018,9 @@ function readingPanelHtml() {
    these are two independent switches, not one choice out of a set, and the shape keeps them
    out of the panel's single-select handler while it is sitting inside it. */
 function contextShowsHtml() {
-  return '<div class="ctx-shows"><span class="prefs-head">Show in the passage</span>' +
-    '<button type="button" data-show="nums" aria-pressed="false">Verse numbers</button>' +
-    '<button type="button" data-show="heads" aria-pressed="false">Headings</button>' +
+  return '<div class="ctx-shows"><span class="prefs-head">' + TXT('Show in the passage') + '</span>' +
+    '<button type="button" data-show="nums" aria-pressed="false">' + TXT('Verse numbers') + '</button>' +
+    '<button type="button" data-show="heads" aria-pressed="false">' + TXT('Headings') + '</button>' +
     '</div>';
 }
 
@@ -2139,8 +2195,8 @@ function initVersionPicker() {
 
   const saved = lsGet('thread-version');
   if (saved && VERSIONS.some(v => v.code === saved)) ACTIVE_VERSION = saved;
-  val.textContent = ACTIVE_VERSION;
-  menu.innerHTML = versionMenuHtml('Read in');
+  val.textContent = versionLabel(ACTIVE_VERSION);
+  menu.innerHTML = versionMenuHtml(TXT('Read in'));
   /* Changing translation used to close the pinned pop-up and leave it stale; re-read it instead. */
   wireVersionPicker(wrap, () => refreshPinnedTooltip());
 }
@@ -2183,7 +2239,7 @@ let contextPrefsPanel = null;
 
 function parseReference(refStr) {
   const clean = refStr.replace(/–/g, '-').trim();
-  const match = clean.match(/^([123]\s)?([A-Za-z]+)\s(\d+)(?::(\d+)(?:[-](\d+))?)?/);
+  const match = clean.match(new RegExp('^(' + REF_NUM + '\\s)?(' + REF_BOOK_WORD + ')\\s(\\d+)(?::(\\d+)(?:[-](\\d+))?)?'));
   if (!match) return null;
 
   const numPrefix = match[1] ? match[1].trim() : '';
@@ -2262,6 +2318,14 @@ function cleanBollsText(text) {
    happens to send — poetry, mostly — are folded back into spaces. Left in they broke a verse
    into half-lines with uneven gaps, and split the highlight into a pill per fragment. The
    hover pop-up keeps its own breaks; this is only for the dialog. */
+/* НРП on bolls.life sets dialogue on its own line and then loses the break, so a speech arrives
+   glued to the words before it: «сказал:— Не бойтесь», «так, о царь.Они ответили». */
+function ruVerseText(text) {
+  return String(text)
+    .replace(/([:,.!?»])\s*—\s*/g, '$1 — ')
+    .replace(/([.!?»])(?=[А-ЯЁ«])/g, '$1 ');
+}
+
 function flowText(text) {
   return String(text).replace(/\s*\n+\s*/g, ' ').trim();
 }
@@ -2293,7 +2357,7 @@ function splitHeading(text) {
 
 async function fetchTptFromYouVersion(ref) {
   const passage = toYouVersionPassage(ref);
-  if (!passage) throw new Error('Reference not recognized.');
+  if (!passage) throw new Error(TXT('Reference not recognized.'));
   const text = await fetchTptPassage(passage);
   return escapeScriptureText(text);
 }
@@ -2334,7 +2398,7 @@ function tptFallbackNote(parsed, reason, shown = TPT_FALLBACK_VERSION) {
 
 /* The same sentence for any other translation that had to be stood in for. */
 function swapNote(version, shown) {
-  return version + ' is unavailable right now — showing ' + shown;
+  return TXTF('{v} is unavailable right now — showing {s}', { v: versionLabel(version), s: versionLabel(shown) });
 }
 
 function tptCoversBook(ref) {
@@ -2359,17 +2423,17 @@ async function loadVerseText(ref, version) {
    one note names what was asked for and what actually came back, which may be the WEB. */
 async function fetchFromBolls(ref, version, noteFor) {
   const parsed = parseReference(ref);
-  if (!parsed) return 'Reference not recognized.';
+  if (!parsed) return TXT('Reference not recognized.');
 
   const { bookId, chapter, verseStart, verseEnd } = parsed;
   let verses;
   try {
     verses = await getChapter(version, bookId, chapter);
   } catch (e) {
-    return 'Could not retrieve scripture text.';
+    return TXT('Could not retrieve scripture text.');
   }
 
-  if (!verses || !verses.length) return 'Verse not found.';
+  if (!verses || !verses.length) return TXT('Verse not found.');
 
   let filtered = [];
   if (verseStart !== null) {
@@ -2382,12 +2446,12 @@ async function fetchFromBolls(ref, version, noteFor) {
     filtered = verses.slice(0, 3);
   }
 
-  if (!filtered.length) return 'Verse not found in ' + version + '.';
+  if (!filtered.length) return TXTF('Verse not found in {v}.', { v: versionLabel(version) });
 
   const shown = verses.standIn || version;
   const note = noteFor ? noteFor(shown) : shown !== version ? swapNote(version, shown) : '';
   return filtered.map(v => {
-    return cleanBollsText(v.text);
+    return RU ? ruVerseText(cleanBollsText(v.text)) : cleanBollsText(v.text);
   }).join(' ') + (note ? '\n<span class="verse-fallback-note">' + escapeScriptureText(note) + '.</span>' : '');
 }
 
@@ -2531,7 +2595,7 @@ async function loadBollsContext(parsed, version, radius, noteFor) {
     (fallbackNote ? ' data-fallback="' + escapeScriptureText(fallbackNote) + '"' : '') +
     '>' + rows.map(v => {
     const selected = v.chapter === parsed.chapter && v.verse >= selectedStart && v.verse <= selectedEnd;
-    const parts = splitHeading(cleanBollsText(v.text));
+    const parts = splitHeading(RU ? ruVerseText(cleanBollsText(v.text)) : cleanBollsText(v.text));
     const num = v.chapter === parsed.chapter ? String(v.verse) : v.chapter + ':' + v.verse;
     return (parts.heading ? '<b class="context-heading">' + parts.heading + '</b>' : '') +
       '<span class="context-verse' + (selected ? ' is-selected' : '') + '"><sup class="context-verse-number">' + num +
@@ -2577,30 +2641,30 @@ function initTooltip() {
   contextDialogEl.tabIndex = -1;
   contextDialogEl.innerHTML =
     '<div class="context-dialog-inner">' +
-    '  <header class="context-dialog-head"><div class="context-dialog-title"><span class="label">See in context</span>' +
+    '  <header class="context-dialog-head"><div class="context-dialog-title"><span class="label">' + TXT('See in context') + '</span>' +
     '  <div class="context-dialog-ref"><h3></h3><span class="context-range" hidden></span>' +
     '  <span class="context-fallback" hidden></span></div></div>' +
     '  <div class="context-dialog-actions"><div class="verpick context-verpick">' +
-    '    <button class="verpick-btn" type="button" aria-haspopup="listbox" aria-expanded="false" title="Bible translation">' +
+    '    <button class="verpick-btn" type="button" aria-haspopup="listbox" aria-expanded="false" title="' + TXT('Bible translation') + '">' +
     '      <svg class="verpick-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C10 4.4 7 4.1 4 4.6V19c3-.5 6-.2 8 1.6 2-1.8 5-2.1 8-1.6V4.6c-3-.5-6-.2-8 1.6z"/><path d="M12 6.2v14.4"/></svg>' +
-    '      <span class="verpick-val">' + ACTIVE_VERSION + '</span>' +
+    '      <span class="verpick-val">' + versionLabel(ACTIVE_VERSION) + '</span>' +
     '      <svg class="verpick-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 9.8 5.5 5 5.5-5"/></svg>' +
-    '    </button><div class="verpick-menu" role="listbox" aria-label="Bible translation" hidden></div></div>' +
+    '    </button><div class="verpick-menu" role="listbox" aria-label="' + TXT('Bible translation') + '" hidden></div></div>' +
     '    <div class="prefs context-prefs">' +
-    '      <button class="prefs-btn context-prefs-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Reading settings" title="Reading settings">' +
+    '      <button class="prefs-btn context-prefs-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="' + TXT('Reading settings') + '" title="' + TXT('Reading settings') + '">' +
     '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 8h9M17.5 8H20M4 16h3.5M12 16h8"/><circle cx="15.2" cy="8" r="2.3"/><circle cx="9.7" cy="16" r="2.3"/></svg>' +
     '      </button>' +
-    '      <div class="prefs-menu" role="dialog" aria-label="Reading settings" hidden>' + readingPanelHtml() + '</div>' +
+    '      <div class="prefs-menu" role="dialog" aria-label="' + TXT('Reading settings') + '" hidden>' + readingPanelHtml() + '</div>' +
     '    </div>' +
-    '    <button class="context-dialog-close" type="button" aria-label="Close">' +
+    '    <button class="context-dialog-close" type="button" aria-label="' + TXT('Close') + '">' +
     '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6.6 6.6l10.8 10.8M17.4 6.6 6.6 17.4"/></svg>' +
     '    </button></div></header>' +
     '  <div class="context-dialog-body" aria-live="polite"></div>' +
-    '  <footer class="context-dialog-foot"><button class="context-more-button" type="button">Even more context</button></footer>' +
+    '  <footer class="context-dialog-foot"><button class="context-more-button" type="button">' + TXT('Even more context') + '</button></footer>' +
     '</div>';
   document.body.appendChild(contextDialogEl);
   const contextPickerWrap = contextDialogEl.querySelector('.context-verpick');
-  contextPickerWrap.querySelector('.verpick-menu').innerHTML = versionMenuHtml('Read in');
+  contextPickerWrap.querySelector('.verpick-menu').innerHTML = versionMenuHtml(TXT('Read in'));
   contextVersionPicker = wireVersionPicker(contextPickerWrap, code => {
     contextDialogEl.dataset.version = code;
     refreshVerseContext(true);
@@ -2779,7 +2843,7 @@ function fillTooltip(ref, version, requestId) {
   const box = tooltipEl.querySelector('.tooltip-text');
   if (box) box.classList.add('is-loading');
   const label = tooltipEl.querySelector('.tooltip-ref');
-  if (label) label.textContent = ref + ' (' + version + ')';
+  if (label) label.textContent = ref + ' (' + versionLabel(version) + ')';
   const button = tooltipEl.querySelector('.tooltip-context-button');
   if (button) { button.dataset.ref = ref; button.dataset.version = version; }
   return loadVerseText(ref, version).then(text => {
@@ -2789,7 +2853,7 @@ function fillTooltip(ref, version, requestId) {
   }).catch(() => {
     if (requestId !== tooltipRequestId) return;
     const b = tooltipEl.querySelector('.tooltip-text');
-    if (b) { b.classList.remove('is-loading'); b.innerHTML = '<span style="color:var(--thread)">Unable to load verse.</span>'; }
+    if (b) { b.classList.remove('is-loading'); b.innerHTML = '<span style="color:var(--thread)">' + TXT('Unable to load verse.') + '</span>'; }
   });
 }
 
@@ -2800,9 +2864,9 @@ function fillTooltip(ref, version, requestId) {
    hand. A touchscreen has no hover at all: there the first tap opens the pop-up and the
    button inside it is the second tap. */
 function tooltipActionHtml(ref, version) {
-  if (HOVER_CAPABLE) return '<div class="tooltip-actions is-hint">Click the reference to read it in context</div>';
+  if (HOVER_CAPABLE) return '<div class="tooltip-actions is-hint">' + TXT('Click the reference to read it in context') + '</div>';
   return '<div class="tooltip-actions"><button class="tooltip-context-button" type="button" data-ref="' +
-    escapeScriptureText(ref) + '" data-version="' + version + '">See in context</button></div>';
+    escapeScriptureText(ref) + '" data-version="' + version + '">' + TXT('See in context') + '</button></div>';
 }
 
 function showTooltip(link, ref, pinned) {
@@ -2815,8 +2879,8 @@ function showTooltip(link, ref, pinned) {
 
   positionTooltip(link);
   tooltipEl.innerHTML =
-    '<span class="tooltip-ref">' + escapeScriptureText(ref) + ' (' + version + ')</span>' +
-    '<div class="tooltip-text is-loading">Reading…</div>' +
+    '<span class="tooltip-ref">' + escapeScriptureText(ref) + ' (' + versionLabel(version) + ')</span>' +
+    '<div class="tooltip-text is-loading">' + TXT('Reading…') + '</div>' +
     tooltipActionHtml(ref, version);
   tooltipEl.classList.toggle('is-pinned', tooltipPinned);
   tooltipEl.classList.add('open');
@@ -2887,7 +2951,7 @@ function markNewContextVerses(body, seen) {
    rather than guessing. */
 function setContextRange(badge, range) {
   if (!badge) return;
-  badge.textContent = range ? 'Showing ' + range : '';
+  badge.textContent = range ? TXTF('Showing {range}', { range: range }) : '';
   badge.hidden = !range;
 }
 
@@ -2916,7 +2980,7 @@ function refreshVerseContext(preserveSelection, grow) {
   /* A widening keeps the badge it has until the wider passage lands, because it is still true.
      A fresh reference has nothing to say yet. */
   if (!preserveSelection) { setContextRange(rangeBadge, ''); setContextFallback(fallbackBadge, ''); }
-  if (!preserveSelection) body.innerHTML = '<p class="context-loading">Loading surrounding verses…</p>';
+  if (!preserveSelection) body.innerHTML = '<p class="context-loading">' + TXT('Loading surrounding verses…') + '</p>';
   else {
     body.style.minHeight = body.offsetHeight + 'px';
     /* Dimming the whole passage is right for a change of translation, where every word is
@@ -2925,7 +2989,7 @@ function refreshVerseContext(preserveSelection, grow) {
     if (!grow) body.classList.add('is-refreshing');
   }
   moreButton.disabled = true;
-  moreButton.textContent = preserveSelection ? 'Loading more…' : 'Even more context';
+  moreButton.textContent = preserveSelection ? TXT('Loading more…') : TXT('Even more context');
 
   loadVerseContext(ref, version, radius).then(html => {
     if (requestId !== contextRequestId) return;
@@ -2938,13 +3002,13 @@ function refreshVerseContext(preserveSelection, grow) {
     if (grow) markNewContextVerses(body, seenBefore);
     if (selectedBefore) pinContextSelection(body, REDUCED_MOTION ? 0 : 460, selectedTopBefore);
     moreButton.disabled = false;
-    moreButton.textContent = 'Even more context';
+    moreButton.textContent = TXT('Even more context');
     /* Past the last verse of a book there is nothing to widen into, and asking again used to
        re-fetch the identical passage for as long as anyone kept pressing. */
     if (grow && body.textContent.length <= lengthBefore) {
       moreButton.disabled = true;
       moreButton.classList.add('is-done');
-      moreButton.textContent = 'That\u2019s all of it';
+      moreButton.textContent = TXT('That\u2019s all of it');
     }
   }).catch(() => {
     if (requestId !== contextRequestId) return;
@@ -2952,9 +3016,9 @@ function refreshVerseContext(preserveSelection, grow) {
     body.style.minHeight = '';
     setContextRange(rangeBadge, '');
     setContextFallback(fallbackBadge, '');
-    body.innerHTML = '<p>Unable to load the surrounding verses right now.</p>';
+    body.innerHTML = '<p>' + TXT('Unable to load the surrounding verses right now.') + '</p>';
     moreButton.disabled = false;
-    moreButton.textContent = 'Even more context';
+    moreButton.textContent = TXT('Even more context');
   });
 }
 
@@ -3220,7 +3284,7 @@ function initRail() {
   const rail = document.createElement('div');
   rail.id = 'rail';
   rail.innerHTML = '<div class="rail-track"></div><div class="rail-fill"></div>' +
-    NAV.map(n => '<button class="rail-dot" data-view="' + n.id + '" title="' + n.label + '" aria-label="Jump to ' + n.label + '" style="--c:var(' + n.cvar + ')"><span class="rail-dot-label">' + n.label + '</span></button>').join('');
+    NAV.map(n => '<button class="rail-dot" data-view="' + n.id + '" title="' + n.label + '" aria-label="' + TXTF('Jump to {label}', { label: n.label }) + '" style="--c:var(' + n.cvar + ')"><span class="rail-dot-label">' + n.label + '</span></button>').join('');
   document.body.appendChild(rail);
   rail.addEventListener('click', ev => {
     const dot = ev.target.closest('.rail-dot');
